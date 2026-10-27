@@ -1,134 +1,207 @@
-# Project Brief — Total Recall Hackathon (Tatum × Walrus)
+# Project Brief: Total Recall Hackathon (Tatum × Walrus)
 
-Read this whole file before doing anything. It is the agreed plan.
-
-@AGENTS.md
+Read this whole file before doing anything. It is the agreed plan. It replaces every earlier version.
 
 ## About the person you're working with
 - Name: Maverick. First hackathon, beginner coder, Windows laptop.
-- Explain things in plain, simple language. Short answers. No jargon without a one-line explanation.
+- Explain things in plain, simple language. Short answers. Explain any technical word in one line the first time you use it.
 - Before any step that needs an account, API key, wallet or payment, stop and tell him exactly what to do and why.
 - Never ask him to paste private keys, seed phrases or API keys into chat. They go in `.env` only.
 
-## Top priority: functionality first, looks later
-1. **Meet every hackathon requirement first** (Mainnet Walrus writes, 10+ memories, real Tatum Sui integration, working demo, public repo).
-2. **Make it work reliably:** test each feature end to end, handle errors gracefully, no crashes or broken flows. Write simple tests for scoring maths and the main journey.
-3. **Only then polish the design.** Use a clean, plain layout until everything works. No time on animations, fancy styling or extra features while any core flow is unfinished or untested.
-4. Uniqueness comes from Memory Check + market comparison working for real, not from visuals.
-Before marking any feature done, confirm it works with real Mainnet calls, not just mocked ones.
+## Top priority: it has to work
+1. **Meet every hackathon requirement first:** Mainnet Walrus writes, 10+ memories, real Tatum integration, working demo, public repo.
+2. **Make it reliable:** test each feature end to end with real Mainnet calls, not mocks. Handle errors without crashing. Write tests for all scoring maths and the main data job.
+3. **Only then work on looks.** Plain, clean layout until everything works. No animations, fancy styling or extra features while any core flow is unfinished or untested.
+4. What makes this product stand out is the memory-based source scoring working on real matches, not the visuals.
+
+A feature is "done" only when it has run for real on Mainnet and its tests pass.
 
 ## Hackathon facts (re-check the official page before submitting)
-- Event: Total Recall — Tatum × Walrus Memory Hackathon. Online.
+- Event: Total Recall, Tatum × Walrus Memory Hackathon. Online.
 - Deadline: **10 Nov 2026, 17:00 UTC**. Aim to submit by 9 Nov.
-- Track: **Track 1 — Markets & Sports Prediction**.
-  Brief: "Users log picks before events. Compare bookmaker odds with onchain sources. Track which voices were right. Memory stores credibility scores so the app learns who to trust."
+- Track: **Track 1, Markets & Sports Prediction.**
+  Brief: "Build a prediction app for sports, elections, culture, or markets. Compare bookmaker odds with onchain sources. Track which voices were right. Users log picks before events. Memory stores credibility scores so the app learns who to trust."
 - Required:
   1. Walrus Memory integrated and writing on **Mainnet**
   2. **At least 10 memories** stored on Mainnet
   3. Tatum RPC used for onchain data
-  4. Published blog post (what it does, how it uses Tatum + Walrus, how it learned over time)
+  4. Published blog post: what it does, how it uses Tatum + Walrus, how it learned over time
   5. Working demo + **public GitHub repo**
   6. 2–3 minute demo video
 - Submission form also needs: Tatum account ID, Sui address, MEMWAL_AGENT_ID.
 - Judging: Walrus + Tatum integration 30% · Technical quality (clean code, Tatum Sui RPC) 30% · Creativity 20% · Presentation (docs + working demo) 20%.
 
-## The product (name TBD — decide later)
-A football prediction companion that remembers your past decisions and uses them to give you better feedback before your next pick.
+## The product (name TBD)
+**An odds watchdog for football that learns which source to trust.**
 
-Core story for the demo:
-**Record a prediction → stamp proof on Sui → grade the outcome → remember it in Walrus → use that memory to improve the next decision.**
+The problem it solves: a bettor sees one bookie's odds and has no way to know if the price is fair. Polymarket, where people trade real money on the same match, often gives a different chance. Nobody shows when the two disagree, or which one is usually right.
 
-It is NOT a betting platform. No bets, no stakes, no payouts.
+What the app does, with no effort from the user:
+1. Before each big match, it pulls bookmaker odds and Polymarket's price.
+2. It shows the chance each source gives, and flags big gaps.
+3. It stamps a record of that reading on Sui before kickoff, so the app's own history can't be edited after the result.
+4. After the match, it checks which source was closer.
+5. Walrus Memory keeps every reading, result and score, and builds a track record for each source (by league and by size of disagreement).
+6. Next time the sources disagree, the app recalls similar past cases and says which source has been more reliable, with the sample size.
 
-## Features (MVP, in priority order)
-1. **Prediction journal** — user logs: match, league, kickoff time, pick (Home win / Draw / Away win), confidence %, one-line reason, optional source (e.g. a tipster). Locked at kickoff. Edits create a new version; never silently overwrite.
-2. **Proof on Sui** — each prediction's hash is committed on Sui Mainnet via Tatum. Only the hash/minimal data goes onchain. Reasoning and personal data stay off-chain. Show the transaction digest + explorer link in the UI.
-3. **Walrus Memory** — store predictions, reasons, outcomes, and computed patterns as memories. Recall relevant ones when a new prediction is made.
-4. **Memory Check (the star feature)** — before the user submits, recall relevant history and combine it with market data. Example:
-   > "You're 80% sure. Polymarket says 45%. When you've disagreed with the market by this much before, you were right 2 of 9 times."
-   Only show a pattern when the data supports it. If history is too thin, say so plainly.
-5. **Market comparison** — bookmaker implied probability (100 ÷ decimal odds) vs onchain market price from **Tatum Prediction Markets API** (Polymarket/Kalshi, base URL `https://api.tatum.io/v4/data/prediction`). Only compare genuinely matching events/outcomes. Show source + timestamp.
-   - **Bookmaker odds:** get them from an odds data service (e.g. The Odds API, free tier — verify football coverage and limits). Do NOT scrape SportyBet/Bet9ja or other bookie sites. Save odds once per match (at prediction time) to stay within free limits.
-   - **Polymarket won't have a market for every match.** When there's no matching market, show bookmaker odds only with a clear note ("No Polymarket market for this match"). Never leave it blank, guess, or match to a different event.
-   - If neither source has odds, say so and still let the user save the prediction.
-6. **Grading + scorecard** — after the match, grade from a football results source (or clearly marked manual confirmation). Show settled picks, wins/losses, sample size, accuracy by confidence band (only if enough data).
-7. **Tipster check (small)** — user pastes text of someone's prediction. App extracts match/pick/odds, user confirms, it's saved with evidence labels. Records build going forward only. (Screenshots only if time is left at the end.)
+Users can also make their own pick in one tap. It gets stamped and scored against the bookies and Polymarket.
+
+Core demo story:
+**Read the odds → stamp them on Sui → grade the result → remember it in Walrus → use that memory to say who to trust next time.**
+
+In one line: *It compares the bookies with Polymarket before every match, remembers which one turned out right, and tells you who to trust next time.*
+
+It is NOT a betting platform. No bets, no stakes, no payouts, no tips sold. It shows evidence, not sure wins.
+
+## How it meets each part of the Track 1 brief
+| Brief line | What we build |
+|---|---|
+| Compare bookmaker odds with onchain sources | Bookie odds vs Polymarket price for the same match, side by side |
+| Track which voices were right | Every source (and every user who picks) graded after every match |
+| Memory stores credibility scores so the app learns who to trust | Walrus holds each source's record; recalled memories change what the app tells you |
+| Users log picks before events | One-tap pick before kickoff, stamped on Sui, scored afterwards |
+Keep this table true. If a build decision would break a row, stop and tell Maverick.
+
+## Features in priority order
+1. **Data job (most important, start first).** Runs **every day**, not just weekends, so weekday matches (midweek league games, Champions League, Europa League) are covered too. For each upcoming match in the chosen leagues, on any day of the week:
+   - Fetch bookmaker 1X2 odds (home/draw/away) from an odds data service.
+   - Fetch Polymarket prices for the same match through the **Tatum Prediction Markets API** (`https://api.tatum.io/v4/data/prediction`).
+   - Match events across sources carefully (same teams, same date). If unsure, don't match. Never guess.
+   - Only use Polymarket markets above a minimum traded volume (set a sensible threshold and document it) so thin markets don't distort results.
+   - Save the snapshot with the exact fetch time and source.
+2. **Proof on Sui.** Hash each pre-kickoff snapshot and record the hash on Sui Mainnet via Tatum. Show the transaction digest and an explorer link. Only the hash and minimal metadata go onchain.
+3. **Grading.** After full time, fetch the result from a football results source (e.g. football-data.org, verify limits). Score each source's probabilities with a proper scoring rule (Brier score) and record which was closer.
+4. **Walrus Memory.** Store snapshots, results, per-match scores and source records as memories. Recall relevant past cases for each upcoming match (same league, similar gap size, same teams). **Show the recalled memories in the UI** so it's visible that Walrus is doing real work.
+5. **"Who to trust" view.** For each upcoming match: each source's chance, the gap, and the memory-based note, e.g.
+   > "Bookies: Arsenal 55%. Polymarket: 68%. In 20 Premier League matches where they disagreed by 10+ points, Polymarket was closer 14 times."
+   Show the sample size every time. If there isn't enough history, say so plainly.
+6. **One-tap user pick.** Sign in, pick Home/Draw/Away before kickoff, optional confidence. Stamped on Sui, graded, scored against the sources. Personal note over time, e.g. "When you went against Polymarket, you were right 3 of 11 times."
+7. **Source scorecard page.** Each source's record by league, with sample sizes. Users' records too.
+8. **Stretch only (if everything above works and is tested):** tipster check from pasted text; Enoki sign-in + sponsored gas; share card for correct picks.
+
+## Maths rules
+- All counting and scoring happens in the database/code, deterministic and reproducible. Walrus stores and recalls; it does not do the maths.
+- Convert decimal odds to chance: 1 ÷ odds. Remove the bookmaker margin by normalising the three chances to sum to 100%. Document this.
+- Polymarket: use the price of each outcome's market; normalise if the three don't sum to 100%. Document this.
+- Use the Brier score for "who was closer". Write unit tests with hand-checked examples.
+- An LLM may only *explain* numbers in words. It never decides them.
 
 ## Agreed decisions (don't change without asking Maverick)
-- **Football only** (Premier League, La Liga, other big leagues).
-- **One app wallet, server-side.** The app holds one funded Sui keypair in `.env` and pays gas to stamp every user's prediction via Tatum. Users never need a wallet or SUI. Document this trade-off honestly in the README.
-- **Embedded wallet + sponsored gas = postponed.** Only attempt if everything else is done and tested.
-- **No automatic tipster history scraping** (X API is paid, scraping breaks terms, deleted posts can't be recovered).
+- **Football only.** Start with the Premier League; add La Liga, Serie A, Bundesliga and Champions League if Polymarket covers them with enough volume.
+- **Database does the counting, Walrus does the remembering.** Every snapshot, result, score and pattern is also saved to Walrus, and Walrus recall is shown in the app.
+- **One app wallet, server-side.** The app holds one funded Sui keypair in `.env` and pays gas for every stamp via Tatum. Users never need a wallet or SUI. Add a low-balance warning for the owner and a per-user daily limit on picks. Explain this honestly in the README.
+- **Every edit to a user pick before kickoff gets its own Sui stamp.** Keep full version history. Picks lock at kickoff.
+- **Supabase** for both database and sign-in. Sign-in options: **Google** and **email** (magic link or password). Both must be tested end to end on the live site: new account, sign in, sign out, sign back in, and a user who first used email then tries Google with the same address. Google needs a free OAuth setup in Google Cloud Console; walk Maverick through it step by step. Skip Apple (needs a paid $99/year developer account). Other providers only if time allows.
+- **Enoki (zkLogin + sponsored gas) is on hold.** It's paid ($69+/month for Mainnet). Only revisit if Maverick confirms free hackathon credits.
+- **Tipster check:** pasted text only, and stretch priority.
+- **No scraping** of bookmaker sites (SportyBet, Bet9ja etc.) or X. Use official APIs only.
+- **No prizes or payouts.** No budget for it, and it would blur the "not betting" line.
 - **No Tatum AI Builder** for the main build.
-- A labelled **"Claude (AI)"** demo profile and a **"Market Favourite"** baseline may exist. Never present AI/sample profiles as real humans.
+- **Name:** decided later.
 
-### Decided 26 Oct 2026
-- **Database counts, Walrus remembers.** All counting and scoring (win rates, "right 2 of 9 times", confidence bands) is done in the database with deterministic code. Walrus stores every pick, result and pattern, and recalls related past picks and reasons.
-- **Show the recalled memories in Memory Check.** The user should see which Walrus memories were recalled, so it's clear Walrus is doing real work.
-- **Every edit before kickoff gets its own Sui stamp.** Keep the full version history (v1, v2, ...), each with its own hash and transaction digest.
-- **MEMWAL_AGENT_ID:** the SDK calls this `accountId`. Probably the same thing; confirm on the Walrus Memory dashboard.
-- **Supabase** for both the database (Postgres) and email login. No Neon.
-- **Tipster check: pasted text only.** Screenshot reading only if time is left at the end.
-- **Product name:** decide later.
+## Honesty rules
+- Never fabricate odds, prices, results or records and present them as real.
+- If data is missing, show "no Polymarket market for this match" or "odds unavailable". Never blank, never guessed, never matched to the wrong event.
+- An onchain timestamp proves when the app recorded something, not that a price was available to every bettor or that a source is trustworthy.
+- No single hidden "trust score". Every claim shows its sample size and league.
+- Small samples are labelled as early signals.
+- No financial advice, no "sure wins", no profit promises.
 
-## Honesty rules (important)
-- Never fabricate predictions, odds, results or tipster records and present them as real.
-- Label sample/imported data clearly. Predictions imported from the Google Sheet are "imported", not "locked onchain before kickoff".
-- An onchain timestamp proves when our app recorded something — not that the original social post was published then, or that its content is true.
-- No single hidden "trust score". Show sample size and limits.
-- No financial advice or guaranteed outcomes.
-- Credibility/scoring maths must be deterministic and reproducible. An LLM may *explain* numbers, never *decide* them.
+## Writing style (all app text, README, blog post, demo script)
+Write like a football fan explaining something to a friend. People should understand every sentence on first read.
 
-## Tech (agreed)
-- Next.js 16 + TypeScript (App Router, `src/` folder), npm, deployed on Vercel (free). Next 16 differs from older versions: check `node_modules/next/dist/docs/` before writing Next-specific code.
-- Supabase (free tier) for app records and email login. Walrus Memory is the memory layer; the DB is just for app state and all the counting.
-- Walrus Memory TypeScript SDK: `@mysten-incubation/memwal` (needs delegate key, account ID, relayer server URL). Docs: https://docs.wal.app/walrus-memory · dashboard: https://memory.walrus.xyz/dashboard · repo: https://github.com/MystenLabs/MemWal
-- Sui: small Move module that records a prediction commitment (hash) and emits an event. Use Tatum's Sui **gRPC** gateway (`https://sui-mainnet-grpc.gateway.tatum.io`, API key sent as `x-api-key` metadata). Tatum's Sui JSON-RPC was switched off July 2026, so don't use it. Docs: https://docs.tatum.io
-- Tests: Vitest (`npm test`).
-- Keep all Walrus calls in one module and all Tatum calls in one module so judges can find them easily:
-  - `src/lib/walrus.ts` — every Walrus Memory call
-  - `src/lib/tatum.ts` — every Tatum call (Sui gRPC + Prediction Markets)
-  - `src/lib/odds.ts`, `src/lib/scoring.ts` — pure maths, fully tested
+Rules:
+- Short sentences. One idea each. Most under 15 words.
+- Common words. "Use" not "utilise". "Help" not "facilitate". "Check" not "verify" in user-facing text.
+- Active voice. "Polymarket was closer" not "Polymarket was found to be more accurate".
+- Put the point first. Lead with the number or the answer.
+- Be specific. "Right 14 of 20 times" beats "highly reliable".
+- Use the words fans use: odds, bookies, slip, chance, kickoff, full time. Explain anything else once.
+- No exclamation marks in normal UI text. No emojis in data screens.
+- Avoid em dashes. Use a full stop or a comma.
 
-## Verify before building each part
-- Exact Walrus Memory SDK usage and what counts as a memory.
-- Tatum Sui endpoint, auth, and transaction submission method.
-- Whether the free Tatum plan includes the Prediction Markets API, and whether Polymarket has markets for the matches we use.
-- A free football results source and odds source, and their limits.
-- Current SUI cost per transaction (fund the app wallet with a few dollars).
+Never use: unlock, seamless, revolutionise, empower, leverage, harness, elevate, game-changer, cutting-edge, dive into, delve, robust, in today's fast-paced world, journey (for a user flow), "not just X, it's Y", lists of three adjectives, or rhetorical questions in headings.
 
-## Build order (deadline 10 Nov)
-- Days 1–3: project setup, prediction journal, Sui stamp via Tatum working end to end.
-- Days 4–6: Walrus Memory writes + recall; result grading.
-- Days 7–9: Memory Check with market comparison.
-- Days 10–11: small tipster check; scorecard.
-- Days 12–13: polish, README, `.env.example`, blog post draft.
-- Days 14–15: record demo, final checks, submit early.
-Get one full journey working before adding anything else.
-The **order** matters (each step builds on the one before). The **days** are only a rough guide: if a step is finished and tested early, move straight to the next. If a step runs late, tell Maverick and cut from the later, optional items, not from the core requirements.
-**Hard date:** the "enter a prediction and lock it" feature must work by **6 Nov**, so real picks for the 7–8 Nov matches go through the app live.
+Examples:
+- Bad: "Leverage AI-powered insights to elevate your betting journey."
+- Good: "See which odds have been right before you pick."
+- Bad: "Our robust verification system ensures complete transparency."
+- Good: "Every reading is stamped on Sui before kickoff, so we can't change it later."
+- Bad: "Insufficient historical data is available for this fixture."
+- Good: "Not enough past matches yet. We need about 10 before showing a pattern."
+
+Show Maverick all user-facing text before it's final. He has the last word.
+
+## Suggested tech (confirm with Maverick before installing)
+- Next.js + TypeScript, deployed on Vercel (free).
+- Supabase (free tier) for Postgres and email sign-in.
+- Scheduled job for the data collector (e.g. Vercel Cron or Supabase scheduled functions; check free-tier limits and pick what's reliable).
+- Walrus Memory TypeScript SDK (MemWal). Docs: https://docs.wal.app/walrus-memory · Dashboard: https://memory.walrus.xyz/dashboard
+- Sui: a small Move module that records a commitment (hash) and emits an event. Submit via Tatum's Sui gateway (check Tatum docs for current method; Sui has deprecated JSON-RPC, gRPC is preferred): https://docs.tatum.io
+- Odds: an odds data service with a free tier (e.g. The Odds API). Verify football coverage and request limits. Fetch once or twice per match only.
+- Results: football-data.org or similar. Verify limits.
+- Keep all Walrus calls in one module, all Tatum calls in one module, all scoring in one module, so judges can find them.
+
+## Verify first (Day 1, before building on them)
+1. Does the free Tatum plan include the Prediction Markets API? Does it return Polymarket football match markets with prices? **If not, stop and tell Maverick before choosing a workaround.**
+2. Which leagues have Polymarket match markets with decent volume this weekend.
+3. Odds service: football coverage, free request limit, which bookmakers.
+4. Results source: coverage and limits.
+5. Walrus Memory SDK: how to write and recall, what counts as a memory, `MEMWAL_AGENT_ID` vs `accountId`.
+6. Tatum Sui: endpoint, auth, how to submit a transaction. Current gas cost per stamp.
+
+## Build order
+Build in this order. Each step builds on the one before. Finish and test a step, then move straight to the next. If things run late, tell Maverick and cut stretch items, never core requirements.
+1. Setup, verify the list above, and get the **data job saving real snapshots** (bookie + Polymarket) for upcoming matches.
+2. Sui stamp of each snapshot via Tatum, working end to end on Mainnet.
+3. Grading after full time; Walrus writes and recall.
+4. "Who to trust" view with recalled memories and sample sizes.
+5. One-tap user picks (sign-in, stamp, grade); scorecard page.
+6. Fix bugs, test failure cases, README, `.env.example`, blog post draft.
+7. Polish UI, record demo, final checks, submit early.
+
+**Hard dates:**
+- **Fri 30 Oct:** the data job must be saving real pre-kickoff snapshots, so the 31 Oct–1 Nov matches are captured. If stamping isn't ready yet, save snapshots with fetch times and label them "not stamped". Data can't be collected after the fact, so this comes before everything else.
+- **6 Nov:** stamping, grading and user picks working, so the 7–8 Nov matches run fully live.
+- Weekday matches count exactly like weekend ones. Users can pick on any day there's a match.
 
 ## Security
 - `.env` is never committed. Provide `.env.example` with placeholders.
-- Secret-bearing calls (Tatum key, app wallet key, Walrus key) run server-side only.
-- Test failure cases: RPC down, transaction fails, memory read/write fails, odds missing, match postponed.
+- Secret-bearing calls (Tatum key, odds key, app wallet key, Walrus key) run server-side only.
+- Test failure cases: Tatum down, odds API limit hit, no Polymarket market, transaction fails, wallet low, memory write/read fails, match postponed, team names that don't match across sources.
 
-## Data already being collected
-Maverick and a friend are logging real predictions in a Google Sheet before kickoff, starting the weekend of 31 Oct–1 Nov, plus midweek European games. Columns: Predicted by, Logged at, Match, League, Kickoff, Pick, Confidence, Reason, Odds for your pick, Market chance, Result, Correct?. Build an importer for this sheet (CSV export), marking rows as "imported" (not locked onchain).
-- The sheet is a **stopgap only**. Once the app can save and lock predictions (target 6 Nov), new picks go through the app; the 7–8 Nov matches should be logged live in the app.
-- Real users never use a sheet. The importer is for our own history.
-- The two predictors are just our demo data. The product itself is for anyone: every user has their own account, history and Memory Check. Don't build anything specific to two people.
+## Old Google Sheet
+Maverick may still log personal picks in a Google Sheet as backup. If so, add a simple CSV importer later and label rows "imported" (not stamped before kickoff). This is low priority. The data job is the main data source now.
 
-## Writing style (all app text, README, blog post, demo script)
-- Write like a real person talking to a football fan: short, plain, specific.
-- Use concrete details ("You were 80% sure. You were right 2 of 9 times.") instead of vague claims.
-- Avoid AI-sounding filler and clichés: "unlock", "seamless", "revolutionize", "empower", "leverage", "in today's fast-paced world", "dive into", "game-changer", "elevate", em-dash-heavy sentences, and lists of three adjectives.
-- No hype. Say what the app does and what it can't do.
-- Show Maverick any user-facing text before finalising it.
+## New-user experience
+- Anyone can browse matches and source records without signing up.
+- Sign-up (Google or email, via Supabase) is only needed to make picks.
+- From day one, the app shows real odds, Polymarket prices and gaps, even before much history exists.
+- Patterns appear only once there's enough history, always with the sample size.
 
-## New-user experience (cold start)
-A brand-new user has no history, so the app must still be useful on the first pick:
-- Sign up with email — no wallet, no crypto.
-- Market comparison works immediately ("Bookies give this 55%, Polymarket 52%").
-- Memory Check says plainly "Not enough history yet — patterns start after about 10 settled picks" instead of inventing insights.
-- Once picks are settled, Memory Check uses their real history. Show sample size on every pattern ("based on 18 picks").
+## Project notes (kept up to date as we build)
+
+@AGENTS.md
+
+### Tech in use
+- Next.js 16 + TypeScript (App Router, `src/` folder), npm. Next 16 differs from older versions: check `node_modules/next/dist/docs/` before writing Next-specific code. Cache Components is on: pages that read the login or need fresh data call `await connection()` inside a `<Suspense>` boundary.
+- Supabase: Postgres + sign-in. Uses the new key names (`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`). Email + password works now, with "Confirm email" turned off. Google sign-in still to add.
+- Database changes live in `supabase/migrations/` as numbered SQL files. Maverick runs each one in the Supabase SQL Editor.
+- Tests: Vitest (`npm test`).
+- Where the calls live, so judges can find them:
+  - `src/lib/tatum.ts`: every Tatum call (Sui gRPC + Prediction Markets)
+  - `src/lib/walrus.ts`: every Walrus Memory call
+  - `src/lib/odds.ts`, `src/lib/scoring.ts`: pure maths, fully tested
+  - `src/lib/football-data.ts`: fixtures and results from football-data.org
+- Tatum Sui: gRPC gateway `https://sui-mainnet-grpc.gateway.tatum.io`, API key sent as `x-api-key` metadata. Tatum's Sui JSON-RPC was switched off in July 2026, so don't use it.
+- Walrus Memory SDK: `@mysten-incubation/memwal` (needs delegate key, account ID, relayer server URL).
+- "Total Recall" is only a working title until the real name is picked.
+
+### Already built (before the 27 Oct brief change)
+- User pick journal: sign-in, new pick, edits saved as versions, full history, kickoff lock enforced by the database, content hash per version. This becomes feature 6 (one-tap user pick). It still needs slimming down: pick + optional confidence only.
+- Migrations 0001 (predictions + versions) and 0002 (link to football-data.org fixture).
+
+### Checked so far (27 Oct 2026)
+- The Odds API free plan: 500 credits a month. One h2h call for one league and one region costs 1 credit and returns every upcoming match in that league. `/sports` and `/events` are free.
+- Polymarket has football match events with 3 Yes/No markets (home win, draw, away win). Big matches trade $30k to $1M. Still to check through Tatum once Maverick has a key.
+- Tatum free plan: 1M credits a month, 3 requests a second. Not yet confirmed that the Prediction Markets API is included.
