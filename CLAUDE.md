@@ -233,4 +233,15 @@ Each league must pass three checks: The Odds API covers it, Polymarket has match
 
 - **Polymarket volume threshold: $10,000 traded on the match (all three outcome markets together) at the moment of the reading.** A match under it is saved but marked "thin market" and left out of scoring. In the last 28 days every settled match in these 6 leagues finished above $50,000 (lowest league median: Ligue 1 at about $378k), so $10k before kickoff only filters out the odd quiet game. Revisit once we have our own pre-kickoff readings.
 - Polymarket's league series also holds cup games (e.g. Hull vs Brentford sat in the EPL series). Never trust the series alone: only match a Polymarket event to a fixture when both teams and the kickoff date agree.
-- Still to confirm with live keys: The Odds API returns h2h odds with a draw for each league (checked on its docs page only so far), and the Polymarket numbers through Tatum match the public figures above (checked on Polymarket's public API so far).
+
+### Live key checks (27 Oct 2026, all passed)
+- **GitHub:** public repo https://github.com/Maveri-Q/total-recall-hackathon, branch `main`.
+- **football-data.org:** all 6 leagues return upcoming fixtures and finished scores. Rate limit is shown in the `x-requests-available-minute` header (10 a minute).
+- **The Odds API:** all 6 leagues return h2h odds with a Draw price for every match, from about 20 UK bookies (`regions=uk`). Each call returns roughly the next two rounds. 6 credits used in testing, 494 left in October.
+- **Tatum Prediction Markets works on the free plan.** Endpoints in use:
+  - `GET /search?q=<teams>&limitPerType=10` finds a match event, e.g. "Chelsea FC vs. Manchester United FC" with `marketCount: 3`, `totalVolume` in USD, `closeTime` = kickoff.
+  - `GET /events/{id}` returns the event with `markets` as a list of market ids (no outcome names).
+  - `GET /markets/{id}/price` returns `{ yes: { price, bid, ask }, no: {...}, timestamp }`.
+  - Still to work out while building: which market id is home, draw or away (look for a market details endpoint with the question text). Don't guess from list order.
+  - Example, 27 Oct: Chelsea v Man United Yes prices 0.535 / 0.245 / 0.225 (sum 1.005). Bookie sport888 at the same time: 1.83 / 3.75 / 3.8.
+- **Team names differ across sources:** "Paris Saint Germain" (Odds API), "PSG" (football-data short name), "Paris Saint-Germain FC" (Polymarket). Matching needs a name-normalising step plus the same kickoff date. Never match on a name guess alone.
