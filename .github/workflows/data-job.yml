@@ -1,0 +1,34 @@
+# Takes bookie + Polymarket readings for upcoming matches. Runs every hour at :17
+# (GitHub's busiest time is the top of the hour, when scheduled jobs can start late).
+# Keys come from the repo's Actions secrets, never from the code.
+name: Data job
+
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: data-job
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run data-job
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
+          TATUM_API_KEY: ${{ secrets.TATUM_API_KEY }}
