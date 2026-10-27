@@ -4,10 +4,19 @@
 //   GET /events?status=active&search=...   find the match event
 //   GET /markets?eventId=...     the three markets (home win, draw, away win) with live Yes prices
 //
-// Sui stamping goes here too, once it's built.
+// Sui Mainnet through Tatum's gRPC gateway (sui-mainnet-grpc.gateway.tatum.io, key in x-api-key):
+//   stampHashes()     records reading/pick hashes with our Move module (move/sources/stamp.move)
+//   getAppBalance()   the app wallet's SUI balance, for the low-balance warning
+//   publishPackage()  one-time publish of the Move module
+import { ChannelCredentials } from "@grpc/grpc-js";
+import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
+import { SuiGrpcClient } from "@mysten/sui/grpc";
+import { Transaction } from "@mysten/sui/transactions";
+import { GrpcTransport } from "@protobuf-ts/grpc-transport";
 import { findMatchingEvent, mapMarkets, teamWords, type EventCandidate } from "./data-job/team-names";
 import type { PolyPrices } from "./data-job/reading";
 import { fetchWithRetry } from "./http";
+import { hashToBytes, refToBytes, STAMP_KIND, type StampItem } from "./sui-stamp";
 
 const PREDICTION_URL = "https://api.tatum.io/v4/data/prediction";
 
@@ -94,4 +103,107 @@ export async function fetchPolymarketPrices(link: PolymarketLink): Promise<PolyP
   const ours = new Set(Object.values(link.markets));
   const volume = markets.filter((m) => ours.has(m.id)).reduce((sum, m) => sum + (Number(m.volume) || 0), 0);
   return { eventId: link.eventId, fetchedAt, volume, yes: { home, draw, away } };
+}
+
+// ---------------------------------------------------------------------------------------------
+// Sui Mainnet (gRPC through Tatum)
+// ---------------------------------------------------------------------------------------------
+
+const SUI_GRPC_HOST = "sui-mainnet-grpc.gateway.tatum.io:443";
+
+let sui: SuiGrpcClient | null = null;
+
+/** Tatum's gateway speaks native gRPC (HTTP/2), so we use the grpc-js transport, not gRPC-web. */
+export function suiClient(): SuiGrpcClient {
+  sui ??= new SuiGrpcClient({
+    network: "mainnet",
+    transport: new GrpcTransport({
+      host: SUI_GRPC_HOST,
+      channelCredentials: ChannelCredentials.createSsl(),
+      meta: { "x-api-key": apiKey() },
+    }),
+  });
+  return sui;
+}
+
+/** The app wallet. Its private key lives only in .env.local / GitHub secrets. */
+export function appKeypair(): Ed25519Keypair {
+  const secret = process.env.SUI_APP_PRIVATE_KEY?.trim();
+  if (!secret || secret.includes("your-")) throw new Error("SUI_APP_PRIVATE_KEY is missing");
+  return Ed25519Keypair.fromSecretKey(secret);
+}
+
+export function stampPackageId(): string {
+  const id = process.env.SUI_PACKAGE_ID?.trim();
+  if (!id || !/^0x[0-9a-f]{64}$/.test(id)) throw new Error("SUI_PACKAGE_ID is missing");
+  return id;
+}
+
+/** True when the wallet key and package id are both set, so stamping can run. */
+export function stampingConfigured(): boolean {
+  try {
+    appKeypair();
+    stampPackageId();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function getAppBalance(): Promise<{ address: string; mist: bigint }> {
+  const address = appKeypair().toSuiAddress();
+  const res = await suiClient().core.getBalance({ owner: address });
+  return { address, mist: BigInt(res.balance.balance) };
+}
+
+/**
+ * Stamps up to MAX_STAMPS_PER_TX hashes in one Sui transaction. Each becomes its own
+ * `Stamped` event. Returns the transaction digest, or throws if Sui rejects it.
+ */
+export async function stampHashes(items: StampItem[]): Promise<{ digest: string }> {
+  if (items.length === 0) throw new Error("Nothing to stamp");
+  const signer = appKeypair();
+  const target = `${stampPackageId()}::stamp::record`;
+
+  const tx = new Transaction();
+  tx.setSender(signer.toSuiAddress());
+  for (const item of items) {
+    tx.moveCall({
+      target,
+      arguments: [
+        tx.pure.u8(STAMP_KIND[item.kind]),
+        tx.pure.vector("u8", hashToBytes(item.hash)),
+        tx.pure.vector("u8", refToBytes(item.refId)),
+        tx.object.clock(),
+      ],
+    });
+  }
+
+  const result = await suiClient().core.signAndExecuteTransaction({ transaction: tx, signer });
+  if (result.$kind === "FailedTransaction") {
+    const t = result.FailedTransaction;
+    throw new Error(`Sui rejected the stamp transaction ${t.digest}: ${JSON.stringify(t.status.error)}`);
+  }
+  return { digest: result.Transaction.digest };
+}
+
+/** One-time: publish the Move module. Returns the new package id. */
+export async function publishPackage(modules: string[], dependencies: string[]): Promise<{ packageId: string; digest: string }> {
+  const signer = appKeypair();
+  const tx = new Transaction();
+  tx.setSender(signer.toSuiAddress());
+  const upgradeCap = tx.publish({ modules, dependencies });
+  tx.transferObjects([upgradeCap], signer.toSuiAddress());
+
+  const result = await suiClient().core.signAndExecuteTransaction({
+    transaction: tx,
+    signer,
+    include: { effects: true },
+  });
+  if (result.$kind === "FailedTransaction") {
+    throw new Error(`Publish failed: ${JSON.stringify(result.FailedTransaction.status.error)}`);
+  }
+  const pkg = result.Transaction.effects.changedObjects.find((o) => o.outputState === "PackageWrite");
+  if (!pkg) throw new Error(`Published, but no package id found in transaction ${result.Transaction.digest}`);
+  return { packageId: pkg.objectId, digest: result.Transaction.digest };
 }

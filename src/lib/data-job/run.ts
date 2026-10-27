@@ -4,11 +4,20 @@
 // 2. Work out which matches are due a reading (see schedule.ts).
 // 3. For each league with a due match: fetch bookie odds (1 credit), then straight away the
 //    Polymarket prices for those matches, so both readings are from the same moment.
-// 4. Save each reading with its hash, ready to be stamped on Sui.
+// 4. Save each reading with its hash.
+// 5. Stamp the new readings' hashes on Sui Mainnet through Tatum.
 import { LEAGUES } from "../leagues";
 import { fetchLeagueOdds, listEvents } from "../odds-api";
 import { createAdminClient } from "../supabase/admin";
-import { fetchPolymarketPrices, findPolymarketMatch, type PolymarketLink } from "../tatum";
+import { chunk, explorerTxUrl, LOW_BALANCE_MIST, MAX_STAMPS_PER_TX, mistToSui } from "../sui-stamp";
+import {
+  fetchPolymarketPrices,
+  findPolymarketMatch,
+  getAppBalance,
+  stampHashes,
+  stampingConfigured,
+  type PolymarketLink,
+} from "../tatum";
 import { buildReading } from "./reading";
 import { dueReadings, type ReadingKind } from "./schedule";
 
@@ -38,6 +47,54 @@ export type RunSummary = {
 
 function errorText(e: unknown): string {
   return e instanceof Error ? e.message : String(e);
+}
+
+const STAMP_RETRY_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+
+/**
+ * Stamps every reading that isn't on Sui yet, in batches of up to 100 per transaction.
+ * A failed batch is marked "failed" and tried again on the next run.
+ */
+async function stampPendingReadings(db: ReturnType<typeof createAdminClient>, now: Date, log: string[]) {
+  if (!stampingConfigured()) {
+    log.push("Sui stamping isn't set up yet (wallet key or package id missing). Readings stay unstamped.");
+    return;
+  }
+  try {
+    const { address, mist } = await getAppBalance();
+    if (mist < LOW_BALANCE_MIST) {
+      log.push(`WARNING: app wallet ${address} is low on SUI (${mistToSui(mist)} SUI left). Top it up.`);
+    }
+  } catch (e) {
+    log.push(`Couldn't check the app wallet balance (${errorText(e)})`);
+  }
+
+  const { data: pending, error } = await db
+    .from("readings")
+    .select("id, content_hash")
+    .in("sui_status", ["pending", "failed"])
+    .gte("taken_at", new Date(now.getTime() - STAMP_RETRY_WINDOW_MS).toISOString())
+    .order("taken_at", { ascending: true })
+    .limit(MAX_STAMPS_PER_TX * 3);
+  if (error) {
+    log.push(`Couldn't load readings to stamp (${error.message})`);
+    return;
+  }
+
+  for (const batch of chunk(pending ?? [], MAX_STAMPS_PER_TX)) {
+    const ids = batch.map((r) => r.id);
+    try {
+      const { digest } = await stampHashes(batch.map((r) => ({ kind: "reading", hash: r.content_hash, refId: r.id })));
+      await db
+        .from("readings")
+        .update({ sui_status: "stamped", sui_digest: digest, stamped_at: new Date().toISOString() })
+        .in("id", ids);
+      log.push(`Stamped ${batch.length} reading(s) on Sui: ${explorerTxUrl(digest)}`);
+    } catch (e) {
+      await db.from("readings").update({ sui_status: "failed" }).in("id", ids);
+      log.push(`Sui stamp failed for ${batch.length} reading(s), will retry next run (${errorText(e)})`);
+    }
+  }
 }
 
 export async function runDataJob(now: Date = new Date()): Promise<RunSummary> {
@@ -196,6 +253,9 @@ export async function runDataJob(now: Date = new Date()): Promise<RunSummary> {
     if (creditsRemaining !== null && creditsRemaining < 60) {
       log.push(`Low on Odds API credits (${creditsRemaining} left): pre-kickoff readings are paused`);
     }
+
+    // 5. Stamp new readings on Sui (and retry any that failed in the last week).
+    await stampPendingReadings(db, now, log);
   } finally {
     await db
       .from("job_runs")

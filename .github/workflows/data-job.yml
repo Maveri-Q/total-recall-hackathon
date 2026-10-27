@@ -32,3 +32,6 @@ jobs:
           SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
           ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
           TATUM_API_KEY: ${{ secrets.TATUM_API_KEY }}
+          # Sui stamping. Until these two secrets exist, readings are saved but not stamped.
+          SUI_APP_PRIVATE_KEY: ${{ secrets.SUI_APP_PRIVATE_KEY }}
+          SUI_PACKAGE_ID: ${{ secrets.SUI_PACKAGE_ID }}

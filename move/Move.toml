@@ -1,0 +1,6 @@
+[package]
+name = "total_recall"
+edition = "2024"
+
+[addresses]
+total_recall = "0x0"

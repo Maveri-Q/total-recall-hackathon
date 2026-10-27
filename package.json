@@ -11,6 +11,9 @@
     "data-job": "tsx scripts/data-job.mts"
   },
   "dependencies": {
+    "@grpc/grpc-js": "1.14.6",
+    "@mysten/sui": "2.36.0",
+    "@protobuf-ts/grpc-transport": "2.11.1",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.118.0",
     "next": "16.4.3",
