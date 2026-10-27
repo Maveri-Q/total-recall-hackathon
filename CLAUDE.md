@@ -205,3 +205,32 @@ Maverick may still log personal picks in a Google Sheet as backup. If so, add a 
 - The Odds API free plan: 500 credits a month. One h2h call for one league and one region costs 1 credit and returns every upcoming match in that league. `/sports` and `/events` are free.
 - Polymarket has football match events with 3 Yes/No markets (home win, draw, away win). Big matches trade $30k to $1M. Still to check through Tatum once Maverick has a key.
 - Tatum free plan: 1M credits a month, 3 requests a second. Not yet confirmed that the Prediction Markets API is included.
+
+### Data job schedule (agreed 27 Oct 2026)
+- Runs on **GitHub Actions**, every hour at an odd minute (e.g. :17, GitHub can start busy top-of-hour jobs late). Free for public repos.
+- **Bookie odds and Polymarket are always fetched together.** For each league that needs a reading, fetch the bookie odds, then straight away the Polymarket prices for the same matches. Save both fetch times. If they're more than 5 minutes apart, mark the reading "out of sync" and leave it out of scoring.
+- Also save each bookmaker's own `last_update` time from The Odds API, since a bookie's price can be older than our fetch.
+- **Two readings per match:**
+  1. **Day-before reading:** the first run after 06:00 UTC takes a reading for every match kicking off in the next 24 hours.
+  2. **Pre-kickoff reading:** a run 2 to 4 hours before kickoff. The 2-hour spread allows for late GitHub runs.
+- One Odds API call (1 credit: h2h market, 1 region) returns every upcoming match in a league, so one call covers all matches that need a reading in that run.
+- Free calls (`/events`) decide which leagues need a reading, so credits are only spent when a match is due.
+- **Budget guard:** read The Odds API's `x-requests-remaining` header after each call. Under 60 credits left this month, skip pre-kickoff readings and keep only day-before readings. Log it so Maverick can see.
+- Estimated use (conservative, the 6 leagues below): about **248 of 500 Odds API credits a month** (63 day-before + 185 pre-kickoff). About 480 Polymarket readings a month through Tatum, well under 1M credits.
+
+### Leagues (checked 27 Oct 2026)
+Each league must pass three checks: The Odds API covers it, Polymarket has match markets above the volume threshold, and football-data.org's free plan has its results. Codes live in `src/lib/leagues.ts`.
+
+| League | Odds API key | Polymarket series | football-data | Result |
+|---|---|---|---|---|
+| Premier League | soccer_epl | 10188 | PL | In |
+| La Liga | soccer_spain_la_liga | 10193 | PD | In |
+| Serie A | soccer_italy_serie_a | 10203 | SA | In |
+| Bundesliga | soccer_germany_bundesliga | 10194 | BL1 | In |
+| Ligue 1 | soccer_france_ligue_one | 10195 | FL1 | In |
+| Champions League | soccer_uefa_champs_league | 10204 | CL | In |
+| Europa League | soccer_uefa_europa_league | 10209 | not on free plan | **Dropped** |
+
+- **Polymarket volume threshold: $10,000 traded on the match (all three outcome markets together) at the moment of the reading.** A match under it is saved but marked "thin market" and left out of scoring. In the last 28 days every settled match in these 6 leagues finished above $50,000 (lowest league median: Ligue 1 at about $378k), so $10k before kickoff only filters out the odd quiet game. Revisit once we have our own pre-kickoff readings.
+- Polymarket's league series also holds cup games (e.g. Hull vs Brentford sat in the EPL series). Never trust the series alone: only match a Polymarket event to a fixture when both teams and the kickoff date agree.
+- Still to confirm with live keys: The Odds API returns h2h odds with a draw for each league (checked on its docs page only so far), and the Polymarket numbers through Tatum match the public figures above (checked on Polymarket's public API so far).
