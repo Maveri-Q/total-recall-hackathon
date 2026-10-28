@@ -59,7 +59,7 @@ It is NOT a betting platform. No bets, no stakes, no payouts, no tips sold. It s
 | Compare bookmaker odds with onchain sources | Bookie odds vs Polymarket price for the same match, side by side |
 | Track which voices were right | Every source (and every user who picks) graded after every match |
 | Memory stores credibility scores so the app learns who to trust | Walrus holds each source's record; recalled memories change what the app tells you |
-| Users log picks before events | One-tap pick before kickoff, stamped on Sui, scored afterwards |
+| Users log picks before events | "Your call" before kickoff, stamped on Sui, scored afterwards |
 Keep this table true. If a build decision would break a row, stop and tell Maverick.
 
 ## Features in priority order
@@ -88,7 +88,7 @@ Keep this table true. If a build decision would break a row, stop and tell Maver
      - Next to the bookies' %: "We turn the bookies' odds into a chance, so you can compare them with Polymarket."
      - Next to the scoreline: "After every game, we check who got closer to the real result. This is the score so far in games like this one."
    - Keep all text casual and short, like a fan talking to a friend.
-6. **One-tap user pick.** Sign in, pick Home/Draw/Away before kickoff, optional confidence. Stamped on Sui, graded, scored against the sources. Personal note over time, e.g. "When you went against Polymarket, you were right 3 of 11 times."
+6. **"Your call" (agreed 28 Oct 2026).** On each match on Coming up: "Your call:" with three buttons named after the teams ("Roma win", "Draw", "Cagliari win"). Sign in needed. Each call and each change before kickoff is stamped on Sui. After the game: "You called it" or "Not this time". The history page is called **"Your calls"**. Personal note over time, e.g. "When you went against Polymarket, you were right 3 of 11 times."
 7. **Source scorecard page.** Each source's record by league, with sample sizes. Users' records too.
 8. **Stretch only (if everything above works and is tested):** tipster check from pasted text; Enoki sign-in + sponsored gas; share card for correct picks.
 
@@ -102,8 +102,8 @@ Keep this table true. If a build decision would break a row, stop and tell Maver
 ## Agreed decisions (don't change without asking Maverick)
 - **Football only.** Start with the Premier League; add La Liga, Serie A, Bundesliga and Champions League if Polymarket covers them with enough volume.
 - **Database does the counting, Walrus does the remembering.** Every snapshot, result, score and pattern is also saved to Walrus, and Walrus recall is shown in the app.
-- **One app wallet, server-side.** The app holds one funded Sui keypair in `.env` and pays gas for every stamp via Tatum. Users never need a wallet or SUI. Add a low-balance warning for the owner and a per-user daily limit on picks. Explain this honestly in the README.
-- **Every edit to a user pick before kickoff gets its own Sui stamp.** Keep full version history. Picks lock at kickoff.
+- **One app wallet, server-side.** The app holds one funded Sui keypair in `.env` and pays gas for every stamp via Tatum. Users never need a wallet or SUI. Add a low-balance warning for the owner and a per-user daily limit on calls. Explain this honestly in the README.
+- **Every change to a call before kickoff gets its own Sui stamp.** Keep full version history. Calls lock at kickoff.
 - **Supabase** for both database and sign-in. Sign-in options: **Google** and **email** (magic link or password). Both must be tested end to end on the live site: new account, sign in, sign out, sign back in, and a user who first used email then tries Google with the same address. Google needs a free OAuth setup in Google Cloud Console; walk Maverick through it step by step. Skip Apple (needs a paid $99/year developer account). Other providers only if time allows.
 - **Enoki (zkLogin + sponsored gas) is on hold.** It's paid ($69+/month for Mainnet). Only revisit if Maverick confirms free hackathon credits.
 - **Tipster check:** pasted text only, and stretch priority.
@@ -169,7 +169,7 @@ Build in this order. Each step builds on the one before. Finish and test a step,
 2. Sui stamp of each snapshot via Tatum, working end to end on Mainnet.
 3. Grading after full time; Walrus writes and recall.
 4. "Coming up" page with recalled memories and sample sizes.
-5. One-tap user picks (sign-in, stamp, grade); scorecard page.
+5. "Your call" (sign-in, stamp, grade) and the "Your calls" page; scorecard page.
 6. Fix bugs, test failure cases, README, `.env.example`, blog post draft.
 7. Polish UI, record demo, final checks, submit early.
 
@@ -188,7 +188,7 @@ Maverick may still log personal picks in a Google Sheet as backup. If so, add a 
 
 ## New-user experience
 - Anyone can browse matches and source records without signing up.
-- Sign-up (Google or email, via Supabase) is only needed to make picks.
+- Sign-up (Google or email, via Supabase) is only needed to make a call.
 - From day one, the app shows real odds, Polymarket prices and gaps, even before much history exists.
 - Patterns appear only once there's enough history, always with the sample size.
 
@@ -211,7 +211,7 @@ Maverick may still log personal picks in a Google Sheet as backup. If so, add a 
 - "Total Recall" is only a working title until the real name is picked.
 
 ### Already built (before the 27 Oct brief change)
-- User pick journal: sign-in, new pick, edits saved as versions, full history, kickoff lock enforced by the database, content hash per version. This becomes feature 6 (one-tap user pick). It still needs slimming down: pick + optional confidence only.
+- User pick journal: sign-in, new pick, edits saved as versions, full history, kickoff lock enforced by the database, content hash per version. This became feature 6 ("Your call"), 28 Oct 2026.
 - Migrations 0001 (predictions + versions) and 0002 (link to football-data.org fixture).
 
 ### Checked so far (27 Oct 2026)

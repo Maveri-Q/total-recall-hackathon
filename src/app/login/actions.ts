@@ -35,13 +35,13 @@ export async function authenticate(_prev: LoginState, formData: FormData): Promi
   if (mode === "login") {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) return { error: authErrorText(error.code, "Couldn't log in. Try again."), email };
-    redirect("/picks");
+    redirect("/calls");
   }
 
   // No confirmation email: "Confirm email" is turned off in Supabase, so sign-up logs the user straight in.
   const { data, error } = await supabase.auth.signUp({ email, password });
   if (error) return { error: authErrorText(error.code, "Couldn't create the account. Try again."), email };
-  if (data.session) redirect("/picks");
+  if (data.session) redirect("/calls");
   return {
     error: "Account created, but Supabase still wants an email confirmation. Turn off \"Confirm email\" in Supabase, then log in.",
     email,

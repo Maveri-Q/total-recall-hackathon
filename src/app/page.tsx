@@ -6,16 +6,19 @@ import type { ReadingRow } from "@/lib/data-job/memories";
 import type { Outcome } from "@/lib/odds";
 import { favourite, headline, MIN_GAMES_FOR_SCORE } from "@/lib/scoreline";
 import { explorerTxUrl } from "@/lib/sui-stamp";
+import { getCurrentUser } from "@/lib/supabase/server";
+import { myCallsOn, type CallVersion, type MyCall } from "@/lib/calls";
 import { Info } from "./info";
 import { KickoffTime } from "./kickoff-time";
+import { YourCall } from "./your-call";
 
 export default function ComingUp() {
   return (
     <main className="mx-auto flex w-full max-w-xl flex-col gap-4 p-4">
       <div className="flex items-baseline justify-between">
         <h1 className="text-2xl font-bold">Coming up</h1>
-        <Link href="/picks" className="underline">
-          Your picks
+        <Link href="/calls" className="underline">
+          Your calls
         </Link>
       </div>
       <Suspense fallback={<p>Loading games…</p>}>
@@ -29,18 +32,42 @@ async function Matches() {
   await connection();
   const matches = await getUpcomingMatches(new Date());
   if (matches.length === 0) return <p>No games in the next day. We check every hour.</p>;
+  const user = await getCurrentUser();
+  const calls = user ? await myCallsOn(matches.map((m) => m.id)) : new Map<string, MyCall>();
   return (
     <ul className="flex flex-col gap-3">
-      {matches.map((m) => (
-        <li key={m.id} className="flex flex-col gap-1 border p-3">
-          <p className="font-bold">
-            {m.homeTeam} vs {m.awayTeam} · <KickoffTime iso={m.kickoffAt} />
-          </p>
-          <Odds match={m} />
-        </li>
-      ))}
+      {matches.map((m) => {
+        const call = calls.get(m.id)?.versions.at(-1) ?? null;
+        return (
+          <li key={m.id} className="flex flex-col gap-1 border p-3">
+            <p className="font-bold">
+              {m.homeTeam} vs {m.awayTeam} · <KickoffTime iso={m.kickoffAt} />
+            </p>
+            <Odds match={m} />
+            <YourCall matchId={m.id} homeTeam={m.homeTeam} awayTeam={m.awayTeam} current={call?.pick ?? null} signedIn={!!user} />
+            {call && <CallProof version={call} />}
+          </li>
+        );
+      })}
     </ul>
   );
+}
+
+/** Each call is stamped on Sui the moment it's made, so it's provably from before kickoff. */
+function CallProof({ version }: { version: CallVersion }) {
+  if (version.sui_status === "stamped" && version.sui_digest) {
+    return (
+      <p className="text-sm">
+        Your call is stamped on Sui ·{" "}
+        <a href={explorerTxUrl(version.sui_digest)} target="_blank" rel="noreferrer" className="underline">
+          see proof
+        </a>
+        . You can change it until kickoff.
+      </p>
+    );
+  }
+  if (version.sui_status === "failed") return <p className="text-sm">Couldn&apos;t stamp your call on Sui yet. We&apos;ll try again.</p>;
+  return <p className="text-sm">Stamping your call on Sui…</p>;
 }
 
 const pct = (x: number) => `${Math.round(x * 100)}%`;

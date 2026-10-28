@@ -1,7 +1,7 @@
 // The commitment hash for one prediction version. Only this hash goes onchain.
 // Anyone with the saved record can recompute it and check it against the Sui transaction.
 import { createHash } from "node:crypto";
-import type { Pick } from "./prediction-input";
+import type { Call } from "./call-result";
 
 export const COMMITMENT_SCHEMA = "total-recall/prediction/v1";
 
@@ -12,8 +12,8 @@ export type CommitmentFields = {
   awayTeam: string;
   league: string;
   kickoffAt: string;
-  pick: Pick;
-  confidence: number;
+  pick: Call;
+  confidence: number | null;
   reason: string | null;
   source: string | null;
 };

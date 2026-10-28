@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Total Recall",
-  description: "Log football picks before kickoff and learn from how they turn out.",
+  description: "Bookies vs Polymarket before every game, and who turned out right.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

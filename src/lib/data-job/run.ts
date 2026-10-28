@@ -103,6 +103,39 @@ async function stampPendingReadings(db: ReturnType<typeof createAdminClient>, no
   }
 }
 
+/**
+ * Calls are stamped the moment they're made (src/lib/calls.ts). This retries any that failed, or that
+ * are still pending after 5 minutes. A late stamp still shows its own Sui time, so it's never passed off
+ * as earlier than it was.
+ */
+async function stampPendingCalls(db: ReturnType<typeof createAdminClient>, now: Date, log: string[]) {
+  if (!stampingConfigured()) return;
+  const { data: pending, error } = await db
+    .from("prediction_versions")
+    .select("id, content_hash, sui_status, created_at")
+    .in("sui_status", ["pending", "failed"])
+    .gte("created_at", new Date(now.getTime() - STAMP_RETRY_WINDOW_MS).toISOString())
+    .lte("created_at", new Date(now.getTime() - 5 * 60 * 1000).toISOString())
+    .limit(MAX_STAMPS_PER_TX);
+  if (error) {
+    log.push(`Couldn't load calls to stamp (${error.message})`);
+    return;
+  }
+  if (!pending?.length) return;
+  const ids = pending.map((v) => v.id);
+  try {
+    const { digest } = await stampHashes(pending.map((v) => ({ kind: "pick", hash: v.content_hash, refId: v.id })));
+    await db
+      .from("prediction_versions")
+      .update({ sui_status: "stamped", sui_digest: digest, stamped_at: new Date().toISOString(), sui_error: null })
+      .in("id", ids);
+    log.push(`Stamped ${pending.length} late call(s) on Sui: ${explorerTxUrl(digest)}`);
+  } catch (e) {
+    await db.from("prediction_versions").update({ sui_status: "failed", sui_error: errorText(e).slice(0, 500) }).in("id", ids);
+    log.push(`Sui stamp failed for ${pending.length} call(s), will retry next run (${errorText(e)})`);
+  }
+}
+
 /** A match is only looked up once it should be over (kickoff + 2 hours), for up to 14 days. */
 const GRADE_AFTER_MS = 2 * 60 * 60 * 1000;
 const GRADE_WINDOW_MS = 14 * 24 * 60 * 60 * 1000;
@@ -353,6 +386,7 @@ export async function runDataJob(now: Date = new Date()): Promise<RunSummary> {
 
     // 5. Stamp new readings on Sui (and retry any that failed in the last week).
     await stampPendingReadings(db, now, log);
+    await stampPendingCalls(db, now, log);
 
     // 6. Grade matches that have finished.
     await gradeFinishedMatches(db, now, log);
