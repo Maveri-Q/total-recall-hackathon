@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState, useTransition } from "react";
 import { callLabel, CALLS, type Call } from "@/lib/call-result";
 import { makeCallAction } from "./calls/actions";
 
@@ -12,15 +13,30 @@ export function YourCall({
   awayTeam,
   current,
   signedIn,
+  stamping,
 }: {
   matchId: string;
   homeTeam: string;
   awayTeam: string;
   current: Call | null;
   signedIn: boolean;
+  /** True while the current call is waiting for its Sui stamp. */
+  stamping: boolean;
 }) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+
+  // The stamp lands a few seconds after the tap. Check back until the proof shows (or give up after a minute).
+  useEffect(() => {
+    if (!stamping) return;
+    let tries = 0;
+    const timer = setInterval(() => {
+      if (++tries > 12) clearInterval(timer);
+      else router.refresh();
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [stamping, router]);
 
   const choose = (pick: Call) =>
     startTransition(async () => {

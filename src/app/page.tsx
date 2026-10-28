@@ -44,7 +44,7 @@ async function Matches() {
               {m.homeTeam} vs {m.awayTeam} · <KickoffTime iso={m.kickoffAt} />
             </p>
             <Odds match={m} />
-            <YourCall matchId={m.id} homeTeam={m.homeTeam} awayTeam={m.awayTeam} current={call?.pick ?? null} signedIn={!!user} />
+            <YourCall matchId={m.id} homeTeam={m.homeTeam} awayTeam={m.awayTeam} current={call?.pick ?? null} signedIn={!!user} stamping={call?.sui_status === "pending"} />
             {call && <CallProof version={call} />}
           </li>
         );

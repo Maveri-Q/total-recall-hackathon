@@ -1,6 +1,7 @@
 // "Your call": reads and saves the signed-in user's calls, and stamps each one on Sui.
 // The database enforces the kickoff lock, version order and daily limit (see supabase/migrations).
 import "server-only";
+import { after } from "next/server";
 import { randomUUID } from "node:crypto";
 import { callOutcome, type Call, type CallOutcome } from "./call-result";
 import { commitmentHash } from "./commitment";
@@ -92,7 +93,7 @@ function errorText(message: string | undefined): string {
 }
 
 /**
- * Saves a call (or a change to it) on one game, then stamps it on Sui straight away so the proof
+ * Saves a call (or a change to it) on one game, then stamps it on Sui within seconds so the proof
  * is from before kickoff. If the stamp fails, the call is still saved and the hourly job retries.
  */
 export async function makeCall(userId: string, matchId: string, pick: Call): Promise<{ ok: true } | { ok: false; error: string }> {
@@ -133,7 +134,8 @@ export async function makeCall(userId: string, matchId: string, pick: Call): Pro
     return { ok: false, error: errorText(error.message) };
   }
 
-  await stampCallVersion(predictionId, version, hash);
+  // Stamp once the tap has answered, so the button responds straight away. The page checks back for the proof.
+  after(() => stampCallVersion(predictionId, version, hash));
   return { ok: true };
 }
 
