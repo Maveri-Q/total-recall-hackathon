@@ -266,3 +266,11 @@ Each league must pass three checks: The Odds API covers it, Polymarket has match
 - Mainnet relayer `https://relayer.memory.walrus.xyz` (Walrus Foundation pays WAL + gas, sees plaintext: public data only). Sign-in on the dashboard was with Google.
 - `npx tsx scripts/check-walrus.mts`: health ok (relayer 0.1.0, production), first test memory saved in 29s and recalled. Blob `IHl-i6yLVe48UVLgbWjoYFY3SqP38iRYhW_AfnQq0JA`, downloadable (encrypted, 360 bytes) from the Walrus Mainnet aggregator. Memory owner address `0x7621926d20615240c28ed1c0d6a393530f900e06b95c9cb0544ab56026a746ba`.
 - Namespaces: `total-recall` for real memories, `checks` for key tests (don't count tests towards the 10 required).
+- **MEMWAL_AGENT_ID for the submission form = the Account ID.** The dashboard labels it "Account ID" and shows the env name `MEMWAL_ACCOUNT_ID` next to it (screenshot, 28 Oct 2026). There's no separate "Agent ID".
+
+### Walrus memories (live, 28 Oct 2026)
+- Step 7 of the data job (`src/lib/data-job/remember.ts`, texts in `memories.ts`). Text written to the `memories` table first (migration 0006), then sent 20 per call; each row keeps its Walrus job id and blob id. A memory sent in an earlier run is checked, never resent.
+- Namespaces: `readings`, `results` (graded matches), `records` (source record per league + "all leagues", a new one each time the count grows). One vote per match: pre-kickoff reading if usable, else day-before.
+- **First run: 16 memories saved on Walrus Mainnet** (11 readings, 3 graded matches, 2 source records). The required 10 is met. A second run queued nothing new.
+- Recall check (`npx tsx scripts/recall-demo.mts`): for tonight's AC Milan v Bologna, Walrus returned the 3 past Serie A cases and the Serie A record first.
+- GitHub secrets now also include FOOTBALL_DATA_API_KEY, MEMWAL_DELEGATE_KEY, MEMWAL_ACCOUNT_ID.
