@@ -7,6 +7,7 @@
 // 4. Save each reading with its hash.
 // 5. Stamp the new readings' hashes on Sui Mainnet through Tatum.
 // 6. Grade finished matches: fetch the score from football-data.org, Brier-score each reading.
+// 7. Save readings, graded matches and source records to Walrus Memory (see remember.ts).
 import { fetchLeagueResults } from "../football-results";
 import { LEAGUES } from "../leagues";
 import { resultFromScore } from "../scoring";
@@ -23,6 +24,7 @@ import {
 } from "../tatum";
 import { findResultMatch, gradeReading, ninetyMinuteGoals, resultStatus } from "./grading";
 import { buildReading } from "./reading";
+import { queueMemories, sendPendingMemories } from "./remember";
 import { dueReadings, type ReadingKind } from "./schedule";
 
 /** Only matches this close are saved; nothing further away can be due. */
@@ -354,6 +356,14 @@ export async function runDataJob(now: Date = new Date()): Promise<RunSummary> {
 
     // 6. Grade matches that have finished.
     await gradeFinishedMatches(db, now, log);
+
+    // 7. Remember it all in Walrus Memory: write the texts, then send them.
+    try {
+      await queueMemories(db, now, log);
+      await sendPendingMemories(db, log);
+    } catch (e) {
+      log.push(`Walrus step skipped this run (${errorText(e)})`);
+    }
   } finally {
     await db
       .from("job_runs")

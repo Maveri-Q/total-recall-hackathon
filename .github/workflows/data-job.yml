@@ -35,3 +35,9 @@ jobs:
           # Sui stamping. Until these two secrets exist, readings are saved but not stamped.
           SUI_APP_PRIVATE_KEY: ${{ secrets.SUI_APP_PRIVATE_KEY }}
           SUI_PACKAGE_ID: ${{ secrets.SUI_PACKAGE_ID }}
+          # Grading (results from football-data.org).
+          FOOTBALL_DATA_API_KEY: ${{ secrets.FOOTBALL_DATA_API_KEY }}
+          # Walrus Memory. Until these exist, memories are queued but not sent.
+          MEMWAL_DELEGATE_KEY: ${{ secrets.MEMWAL_DELEGATE_KEY }}
+          MEMWAL_ACCOUNT_ID: ${{ secrets.MEMWAL_ACCOUNT_ID }}
+          MEMWAL_SERVER_URL: https://relayer.memory.walrus.xyz
