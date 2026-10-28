@@ -6,7 +6,10 @@
 //    Polymarket prices for those matches, so both readings are from the same moment.
 // 4. Save each reading with its hash.
 // 5. Stamp the new readings' hashes on Sui Mainnet through Tatum.
+// 6. Grade finished matches: fetch the score from football-data.org, Brier-score each reading.
+import { fetchLeagueResults } from "../football-results";
 import { LEAGUES } from "../leagues";
+import { resultFromScore } from "../scoring";
 import { fetchLeagueOdds, listEvents } from "../odds-api";
 import { createAdminClient } from "../supabase/admin";
 import { chunk, explorerTxUrl, LOW_BALANCE_MIST, MAX_STAMPS_PER_TX, mistToSui } from "../sui-stamp";
@@ -18,6 +21,7 @@ import {
   stampingConfigured,
   type PolymarketLink,
 } from "../tatum";
+import { findResultMatch, gradeReading, ninetyMinuteGoals, resultStatus } from "./grading";
 import { buildReading } from "./reading";
 import { dueReadings, type ReadingKind } from "./schedule";
 
@@ -93,6 +97,97 @@ async function stampPendingReadings(db: ReturnType<typeof createAdminClient>, no
     } catch (e) {
       await db.from("readings").update({ sui_status: "failed" }).in("id", ids);
       log.push(`Sui stamp failed for ${batch.length} reading(s), will retry next run (${errorText(e)})`);
+    }
+  }
+}
+
+/** A match is only looked up once it should be over (kickoff + 2 hours), for up to 14 days. */
+const GRADE_AFTER_MS = 2 * 60 * 60 * 1000;
+const GRADE_WINDOW_MS = 14 * 24 * 60 * 60 * 1000;
+
+/**
+ * Looks up finished matches on football-data.org (one call per league), saves the 90-minute score,
+ * then scores every reading of that match. Postponed or cancelled matches are noted, not graded.
+ */
+async function gradeFinishedMatches(db: ReturnType<typeof createAdminClient>, now: Date, log: string[]) {
+  const { data: open, error } = await db
+    .from("matches")
+    .select("id, league_code, home_team, away_team, kickoff_at, result_status")
+    .is("graded_at", null)
+    .lt("kickoff_at", new Date(now.getTime() - GRADE_AFTER_MS).toISOString())
+    .gt("kickoff_at", new Date(now.getTime() - GRADE_WINDOW_MS).toISOString())
+    .order("kickoff_at");
+  if (error) {
+    log.push(`Couldn't load matches to grade (${error.message})`);
+    return;
+  }
+
+  const byLeague = new Map<string, NonNullable<typeof open>>();
+  for (const m of open ?? []) byLeague.set(m.league_code, [...(byLeague.get(m.league_code) ?? []), m]);
+
+  for (const [leagueCode, matches] of byLeague) {
+    try {
+      const results = await fetchLeagueResults(
+        leagueCode,
+        matches[0].kickoff_at.slice(0, 10),
+        matches[matches.length - 1].kickoff_at.slice(0, 10),
+      );
+      for (const match of matches) {
+        const label = `${leagueCode} ${match.home_team} v ${match.away_team}`;
+        const found = findResultMatch(
+          { homeTeam: match.home_team, awayTeam: match.away_team, kickoffAt: match.kickoff_at },
+          results,
+        );
+        if (!found) {
+          log.push(`${label}: no result found on football-data.org yet`);
+          continue;
+        }
+        const status = resultStatus(found.status);
+        if (status === null) continue; // not finished yet
+        if (status !== "finished") {
+          if (match.result_status !== status) {
+            await db.from("matches").update({ result_status: status, football_data_id: found.id }).eq("id", match.id);
+            log.push(`${label}: ${status}, not graded`);
+          }
+          continue;
+        }
+        const goals = ninetyMinuteGoals(found.score);
+        if (!goals) {
+          log.push(`${label}: finished but no score yet, will try next run`);
+          continue;
+        }
+        const result = resultFromScore(goals.home, goals.away);
+
+        const { data: readings, error: readError } = await db
+          .from("readings")
+          .select("id, bookie_home, bookie_draw, bookie_away, poly_home, poly_draw, poly_away, usable")
+          .eq("match_id", match.id);
+        if (readError) throw new Error(`loading readings: ${readError.message}`);
+        const gradedAt = new Date().toISOString();
+        for (const r of readings ?? []) {
+          const { error: gradeError } = await db
+            .from("readings")
+            .update({ ...gradeReading(r, result), graded_at: gradedAt })
+            .eq("id", r.id);
+          if (gradeError) throw new Error(`saving grade: ${gradeError.message}`);
+        }
+        // Marked graded last, so a failure above means the whole match is tried again next run.
+        const { error: matchError } = await db
+          .from("matches")
+          .update({
+            football_data_id: found.id,
+            home_goals: goals.home,
+            away_goals: goals.away,
+            result,
+            result_status: "finished",
+            graded_at: gradedAt,
+          })
+          .eq("id", match.id);
+        if (matchError) throw new Error(`saving result: ${matchError.message}`);
+        log.push(`${label}: ${goals.home}-${goals.away}, graded ${readings?.length ?? 0} reading(s)`);
+      }
+    } catch (e) {
+      log.push(`${leagueCode}: grading skipped this run (${errorText(e)})`);
     }
   }
 }
@@ -256,6 +351,9 @@ export async function runDataJob(now: Date = new Date()): Promise<RunSummary> {
 
     // 5. Stamp new readings on Sui (and retry any that failed in the last week).
     await stampPendingReadings(db, now, log);
+
+    // 6. Grade matches that have finished.
+    await gradeFinishedMatches(db, now, log);
   } finally {
     await db
       .from("job_runs")

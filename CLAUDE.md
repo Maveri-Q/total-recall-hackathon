@@ -253,3 +253,10 @@ Each league must pass three checks: The Odds API covers it, Polymarket has match
 - **Real costs:** publish about 0.0074 SUI. One stamp transaction of 11 readings: 0.0001 SUI. At this rate a month of stamping costs well under 0.01 SUI.
 - Sui CLI 1.81.1 lives in `C:\Users\admin\sui-cli` (outside the project), only needed to rebuild `move/bytecode.json`. On first run it made its own unused wallet in `C:\Users\admin\.sui` whose phrase was shown in chat: never fund it.
 - **GitHub's hourly timer runs late and skips.** On 27 Oct the scheduled runs landed at 11:42, 15:54, 20:43 and 00:32 UTC, about every 4 to 5 hours. Pre-kickoff readings still came in for all 3 games that day, but a 1 to 4 hour window can be missed. To fix before the 31 Oct matches.
+
+### Grading (live, 28 Oct 2026)
+- Step 6 of the data job. Matches more than 2 hours past kickoff (up to 14 days back) are looked up on football-data.org, one call per league (`src/lib/football-results.ts`). Linked only when both teams and the kickoff agree with exactly one match.
+- Uses the 90-minute score (`regularTime` when a game went to extra time). Postponed or cancelled matches are noted in `matches.result_status`, not graded.
+- Each reading gets `bookie_brier` and `poly_brier`. `closer` is set only for usable readings. Maths in `src/lib/data-job/grading.ts` + `src/lib/scoring.ts`, tested with hand-worked sums.
+- First real grades, 27 Oct Serie A: Polymarket was closer in all 6 readings (3 matches × 2 readings). Very early, tiny sample.
+- **On-time trigger:** migration 0004 makes Supabase (pg_cron + pg_net) start the GitHub workflow at :17 every hour, using a fine-grained GitHub token (Actions read/write, this repo only, expires 30 Nov 2026) kept in Supabase Vault as `github_dispatch_token`. GitHub's own timer stays as a backup.
