@@ -245,3 +245,11 @@ Each league must pass three checks: The Odds API covers it, Polymarket has match
   - Still to work out while building: which market id is home, draw or away (look for a market details endpoint with the question text). Don't guess from list order.
   - Example, 27 Oct: Chelsea v Man United Yes prices 0.535 / 0.245 / 0.225 (sum 1.005). Bookie sport888 at the same time: 1.83 / 3.75 / 3.8.
 - **Team names differ across sources:** "Paris Saint Germain" (Odds API), "PSG" (football-data short name), "Paris Saint-Germain FC" (Polymarket). Matching needs a name-normalising step plus the same kickoff date. Never match on a name guess alone.
+
+### Sui stamping (live on Mainnet, 28 Oct 2026)
+- **App wallet:** `0x6d7a28ce3c59ebe4596e2d13ac7872b2ef9a828945bfd6cbad9df8e388f88f3a`. Key only in `.env.local` and the `SUI_APP_PRIVATE_KEY` GitHub secret. Funded with 5.5 SUI.
+- **Move package:** `0xa4b3e8ccb8b9331838bb8257c4ec06d3ea7848b67c4cabde3248b7e6df210237` (module `stamp`, event `Stamped`). Publish tx: https://suiscan.xyz/mainnet/tx/3JhanbcmXLivcbQZD4WfMZPTT6DgfUxVuK8ibQMHcWVV
+- **First stamp:** 11 readings in one transaction, 11 `Stamped` events, status success. https://suiscan.xyz/mainnet/tx/5cuZ4iPqHRDHPwqad4ggBb7DX7V82kBnj3Gc4kFpnHoC
+- **Real costs:** publish about 0.0074 SUI. One stamp transaction of 11 readings: 0.0001 SUI. At this rate a month of stamping costs well under 0.01 SUI.
+- Sui CLI 1.81.1 lives in `C:\Users\admin\sui-cli` (outside the project), only needed to rebuild `move/bytecode.json`. On first run it made its own unused wallet in `C:\Users\admin\.sui` whose phrase was shown in chat: never fund it.
+- **GitHub's hourly timer runs late and skips.** On 27 Oct the scheduled runs landed at 11:42, 15:54, 20:43 and 00:32 UTC, about every 4 to 5 hours. Pre-kickoff readings still came in for all 3 games that day, but a 1 to 4 hour window can be missed. To fix before the 31 Oct matches.
