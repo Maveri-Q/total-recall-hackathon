@@ -4,7 +4,9 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
-export type LoginState = { error?: string; email?: string };
+// `done` tells the form to do a full page load to /calls. A soft (in-app) move could reuse a stale
+// copy of /calls from before the login and bounce the user back here.
+export type LoginState = { error?: string; email?: string; done?: boolean };
 
 function authErrorText(code: string | undefined, fallback: string): string {
   switch (code) {
@@ -35,13 +37,13 @@ export async function authenticate(_prev: LoginState, formData: FormData): Promi
   if (mode === "login") {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) return { error: authErrorText(error.code, "Couldn't log in. Try again."), email };
-    redirect("/calls");
+    return { done: true };
   }
 
   // No confirmation email: "Confirm email" is turned off in Supabase, so sign-up logs the user straight in.
   const { data, error } = await supabase.auth.signUp({ email, password });
   if (error) return { error: authErrorText(error.code, "Couldn't create the account. Try again."), email };
-  if (data.session) redirect("/calls");
+  if (data.session) return { done: true };
   return {
     error: "Account created, but Supabase still wants an email confirmation. Turn off \"Confirm email\" in Supabase, then log in.",
     email,

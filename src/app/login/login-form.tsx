@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { authenticate, type LoginState } from "./actions";
 
 /** An eye, or an eye with a line through it once the password is showing. */
@@ -17,6 +17,12 @@ function EyeIcon({ crossed }: { crossed: boolean }) {
 export function LoginForm() {
   const [state, formAction, pending] = useActionState<LoginState, FormData>(authenticate, {});
   const [showPassword, setShowPassword] = useState(false);
+
+  // Logged in: load /calls fresh from the server, so nothing from before the login is reused.
+  useEffect(() => {
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- a full page load is the point here
+    if (state.done) window.location.assign("/calls");
+  }, [state.done]);
 
   return (
     <form action={formAction} className="flex flex-col gap-3">
@@ -51,10 +57,10 @@ export function LoginForm() {
       {state.error && <p className="text-red-700">{state.error}</p>}
 
       <div className="flex gap-3">
-        <button name="mode" value="login" disabled={pending} className="border px-4 py-2">
+        <button name="mode" value="login" disabled={pending || state.done} className="border px-4 py-2">
           Log in
         </button>
-        <button name="mode" value="signup" disabled={pending} className="border px-4 py-2">
+        <button name="mode" value="signup" disabled={pending || state.done} className="border px-4 py-2">
           Create account
         </button>
       </div>
