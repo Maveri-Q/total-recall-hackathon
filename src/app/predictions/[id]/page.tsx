@@ -12,7 +12,7 @@ import { EditPredictionForm } from "./edit-prediction-form";
 export default function PredictionPage({ params }: { params: Promise<{ id: string }> }) {
   return (
     <main className="mx-auto flex max-w-xl flex-col gap-4 p-4">
-      <Link href="/" className="underline">
+      <Link href="/picks" className="underline">
         ← Your picks
       </Link>
       <Suspense fallback={<p>Loading…</p>}>
@@ -48,7 +48,7 @@ async function PredictionDetails({ params }: { params: Promise<{ id: string }> }
         <p>
           {pickLabel(latest.pick, p.home_team, p.away_team)}, {latest.confidence}% sure
         </p>
-        <p>&ldquo;{latest.reason}&rdquo;</p>
+        {latest.reason && <p>&ldquo;{latest.reason}&rdquo;</p>}
         <p>{latest.source ? `Following a tip from ${latest.source}` : "Your own call"}</p>
         <p>
           {locked
@@ -68,7 +68,7 @@ async function PredictionDetails({ params }: { params: Promise<{ id: string }> }
             current={{
               pick: latest.pick,
               confidence: String(latest.confidence),
-              reason: latest.reason,
+              reason: latest.reason ?? "",
               source: latest.source ?? "",
             }}
           />
@@ -84,7 +84,7 @@ async function PredictionDetails({ params }: { params: Promise<{ id: string }> }
                 <strong>Version {v.version}</strong> · saved <LocalTime iso={v.created_at} />
               </p>
               <p>
-                {pickLabel(v.pick, p.home_team, p.away_team)}, {v.confidence}% sure. &ldquo;{v.reason}&rdquo;
+                {pickLabel(v.pick, p.home_team, p.away_team)}, {v.confidence}% sure.{v.reason && <> &ldquo;{v.reason}&rdquo;</>}
                 {v.source && ` Tip from ${v.source}.`}
               </p>
               <p>

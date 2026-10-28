@@ -72,9 +72,22 @@ Keep this table true. If a build decision would break a row, stop and tell Maver
 2. **Proof on Sui.** Hash each pre-kickoff snapshot and record the hash on Sui Mainnet via Tatum. Show the transaction digest and an explorer link. Only the hash and minimal metadata go onchain.
 3. **Grading.** After full time, fetch the result from a football results source (e.g. football-data.org, verify limits). Score each source's probabilities with a proper scoring rule (Brier score) and record which was closer.
 4. **Walrus Memory.** Store snapshots, results, per-match scores and source records as memories. Recall relevant past cases for each upcoming match (same league, similar gap size, same teams). **Show the recalled memories in the UI** so it's visible that Walrus is doing real work.
-5. **"Who to trust" view.** For each upcoming match: each source's chance, the gap, and the memory-based note, e.g.
-   > "Bookies: Arsenal 55%. Polymarket: 68%. In 20 Premier League matches where they disagreed by 10+ points, Polymarket was closer 14 times."
-   Show the sample size every time. If there isn't enough history, say so plainly.
+5. **"Coming up" page (the main page, agreed 28 Oct 2026).** Page title: "Coming up". Each match shows:
+   ```
+   Roma vs Cagliari · 8:45pm
+   Bookies: Roma 58% · Polymarket: Roma 66%
+   Bookies vs Polymarket: 5 – 9
+   in 14 Serie A games where they disagreed this much
+   ```
+   - The scoreline is between the two sources, not the teams. Don't use "head to head": fans read that as the teams' history.
+   - The score comes from Walrus recall: past matches in the same league with a similar gap, counting which source was closer (Brier score). The counting is done in code from our own data; Walrus picks which past games are similar.
+   - Fewer than 10 similar past games: "Not enough games like this yet. We'll show the score once we have 10."
+   - No Polymarket market: "No Polymarket market for this game." Never leave it blank.
+   - A small ⓘ icon opens a short explanation:
+     - Next to Polymarket: "Polymarket is a site where people put real money on what will happen. Its price shows the chance they give each result."
+     - Next to the bookies' %: "We turn the bookies' odds into a chance, so you can compare them with Polymarket."
+     - Next to the scoreline: "After every game, we check who got closer to the real result. This is the score so far in games like this one."
+   - Keep all text casual and short, like a fan talking to a friend.
 6. **One-tap user pick.** Sign in, pick Home/Draw/Away before kickoff, optional confidence. Stamped on Sui, graded, scored against the sources. Personal note over time, e.g. "When you went against Polymarket, you were right 3 of 11 times."
 7. **Source scorecard page.** Each source's record by league, with sample sizes. Users' records too.
 8. **Stretch only (if everything above works and is tested):** tipster check from pasted text; Enoki sign-in + sponsored gas; share card for correct picks.
@@ -155,7 +168,7 @@ Build in this order. Each step builds on the one before. Finish and test a step,
 1. Setup, verify the list above, and get the **data job saving real snapshots** (bookie + Polymarket) for upcoming matches.
 2. Sui stamp of each snapshot via Tatum, working end to end on Mainnet.
 3. Grading after full time; Walrus writes and recall.
-4. "Who to trust" view with recalled memories and sample sizes.
+4. "Coming up" page with recalled memories and sample sizes.
 5. One-tap user picks (sign-in, stamp, grade); scorecard page.
 6. Fix bugs, test failure cases, README, `.env.example`, blog post draft.
 7. Polish UI, record demo, final checks, submit early.

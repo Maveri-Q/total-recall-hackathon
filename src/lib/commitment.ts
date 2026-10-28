@@ -14,7 +14,7 @@ export type CommitmentFields = {
   kickoffAt: string;
   pick: Pick;
   confidence: number;
-  reason: string;
+  reason: string | null;
   source: string | null;
 };
 

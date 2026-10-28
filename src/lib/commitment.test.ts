@@ -54,3 +54,14 @@ describe("commitmentHash", () => {
     expect(a).not.toBe(b);
   });
 });
+
+describe("commitment without a reason", () => {
+  it("hashes a one-tap pick (no reason) and keeps it different from one with a reason", () => {
+    const pick = {
+      predictionId: "p", version: 1, homeTeam: "Roma", awayTeam: "Cagliari", league: "Serie A",
+      kickoffAt: "2026-10-27T19:45:00Z", pick: "home" as const, confidence: 70, source: null,
+    };
+    expect(commitmentHash({ ...pick, reason: null })).toMatch(/^[0-9a-f]{64}$/);
+    expect(commitmentHash({ ...pick, reason: null })).not.toBe(commitmentHash({ ...pick, reason: "Form" }));
+  });
+});

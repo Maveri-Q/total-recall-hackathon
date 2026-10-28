@@ -1,75 +1,161 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { redirect } from "next/navigation";
 import { connection } from "next/server";
-import { isLocked, pickLabel } from "@/lib/prediction-input";
-import { listPredictions } from "@/lib/predictions";
-import { getCurrentUser } from "@/lib/supabase/server";
-import { signOut } from "./login/actions";
-import { LocalTime } from "./local-time";
+import { bandScore, bookiesOf, getUpcomingMatches, polyOf, type UpcomingMatch } from "@/lib/coming-up";
+import type { ReadingRow } from "@/lib/data-job/memories";
+import type { Outcome } from "@/lib/odds";
+import { favourite, headline, MIN_GAMES_FOR_SCORE } from "@/lib/scoreline";
+import { explorerTxUrl } from "@/lib/sui-stamp";
+import { Info } from "./info";
+import { KickoffTime } from "./kickoff-time";
 
-export default function Home() {
+export default function ComingUp() {
   return (
-    <main className="mx-auto flex max-w-xl flex-col gap-4 p-4">
-      <h1 className="text-2xl font-bold">Your picks</h1>
-      <Suspense fallback={<p>Loading your picks…</p>}>
-        <Journal />
+    <main className="mx-auto flex w-full max-w-xl flex-col gap-4 p-4">
+      <div className="flex items-baseline justify-between">
+        <h1 className="text-2xl font-bold">Coming up</h1>
+        <Link href="/picks" className="underline">
+          Your picks
+        </Link>
+      </div>
+      <Suspense fallback={<p>Loading games…</p>}>
+        <Matches />
       </Suspense>
     </main>
   );
 }
 
-async function Journal() {
-  // Picks are personal and lock at kickoff, so always render them fresh for each request.
+async function Matches() {
   await connection();
-  const user = await getCurrentUser();
-  if (!user) redirect("/login");
-  const predictions = await listPredictions();
+  const matches = await getUpcomingMatches(new Date());
+  if (matches.length === 0) return <p>No games in the next day. We check every hour.</p>;
+  return (
+    <ul className="flex flex-col gap-3">
+      {matches.map((m) => (
+        <li key={m.id} className="flex flex-col gap-1 border p-3">
+          <p className="font-bold">
+            {m.homeTeam} vs {m.awayTeam} · <KickoffTime iso={m.kickoffAt} />
+          </p>
+          <Odds match={m} />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+const pct = (x: number) => `${Math.round(x * 100)}%`;
+
+function resultName(o: Outcome, m: UpcomingMatch): string {
+  return o === "home" ? m.homeTeam : o === "away" ? m.awayTeam : "Draw";
+}
+
+function BookiesInfo({ id }: { id: string }) {
+  return (
+    <Info id={`bookies-${id}`} label="About the bookies' chance">
+      We turn the bookies&apos; odds into a chance, so you can compare them with Polymarket.
+    </Info>
+  );
+}
+
+function Odds({ match: m }: { match: UpcomingMatch }) {
+  const r = m.reading;
+  const bookies = r && bookiesOf(r);
+  if (!r || !bookies) return <p>No odds yet. We check them the day before kickoff.</p>;
+
+  const poly = r.poly_status === "not_found" ? null : polyOf(r);
+  if (!poly) {
+    const fav = favourite(bookies);
+    return (
+      <>
+        <p>
+          Bookies: {resultName(fav, m)} {pct(bookies[fav])}
+          <BookiesInfo id={m.id} />
+        </p>
+        <p>No Polymarket market for this game.</p>
+        <SuiProof reading={r} />
+      </>
+    );
+  }
+
+  const h = headline(bookies, poly);
+  return (
+    <>
+      <p>
+        Bookies: {resultName(h.outcome, m)} {pct(h.bookies)}
+        <BookiesInfo id={m.id} /> · Polymarket: {resultName(h.outcome, m)} {pct(h.poly)}
+        <Info id={`poly-${m.id}`} label="What is Polymarket?">
+          Polymarket is a site where people put real money on what will happen. Its price shows the chance they give each
+          result.
+        </Info>
+      </p>
+      {r.poly_status === "thin_market" && (
+        <p className="text-sm">Not much money on Polymarket for this game yet, so its price can jump around.</p>
+      )}
+      <SuiProof reading={r} />
+      <Suspense fallback={<p className="text-sm">Checking past games…</p>}>
+        <Score match={m} band={h.band} />
+      </Suspense>
+    </>
+  );
+}
+
+async function Score({ match: m, band }: { match: UpcomingMatch; band: Parameters<typeof bandScore>[1] }) {
+  let score;
+  try {
+    score = await bandScore(m.leagueCode, band);
+  } catch (e) {
+    console.error("bandScore", e);
+    return <p>Couldn&apos;t load past games right now. Try again in a minute.</p>;
+  }
 
   return (
     <>
-      <div className="flex items-center justify-between gap-3">
-        <Link href="/predictions/new" className="border px-4 py-2">
-          New pick
-        </Link>
-        <form action={signOut} className="flex items-center gap-2 text-sm">
-          <span>{user.email}</span>
-          <button className="underline">Log out</button>
-        </form>
-      </div>
-
-      {predictions.length === 0 ? (
-        <p>No picks yet. Tap &ldquo;New pick&rdquo;, choose a match from this week&apos;s fixtures, and say who you think wins.</p>
+      {score.games >= MIN_GAMES_FOR_SCORE ? (
+        <>
+          <p className="font-bold">
+            Bookies vs Polymarket: {score.bookies} – {score.polymarket}
+            <Info id={`score-${m.id}`} label="About this score">
+              After every game, we check who got closer to the real result. This is the score so far in games like this
+              one.
+            </Info>
+          </p>
+          <p className="text-sm">
+            in {score.games} {m.leagueName} games where they disagreed this much
+            {score.level > 0 && `. ${score.level} ${score.level === 1 ? "was" : "were"} level`}
+          </p>
+        </>
       ) : (
-        <ul className="flex flex-col gap-2">
-          {predictions.map((p) => {
-            const latest = p.versions.at(-1);
-            return (
-              <li key={p.id} className="border p-3">
-                <Link href={`/predictions/${p.id}`} className="font-bold underline">
-                  {p.home_team} vs {p.away_team}
-                </Link>
-                <p className="text-sm">
-                  {p.league} · <LocalTime iso={p.kickoff_at} />
-                </p>
-                {latest && (
-                  <p>
-                    {pickLabel(latest.pick, p.home_team, p.away_team)}, {latest.confidence}% sure
-                    {latest.version > 1 && ` (version ${latest.version})`}
-                  </p>
-                )}
-                <p className="text-sm">
-                  {p.origin === "imported"
-                    ? "Imported from our spreadsheet"
-                    : isLocked(p.kickoff_at)
-                      ? "Locked at kickoff"
-                      : "You can still change this until kickoff"}
-                </p>
+        <p>Not enough games like this yet. We&apos;ll show the score once we have {MIN_GAMES_FOR_SCORE}.</p>
+      )}
+      {score.recalled.length > 0 && (
+        <details className="text-sm">
+          <summary className="cursor-pointer underline">
+            See the {score.recalled.length} past {score.recalled.length === 1 ? "game" : "games"} we compared
+          </summary>
+          <ul className="mt-2 flex flex-col gap-2">
+            {score.recalled.map((g) => (
+              <li key={g.blobId} className="border-l-2 pl-2">
+                <p className="font-bold">{g.label}</p>
+                <p>{g.text}</p>
+                <p className="opacity-70">Saved on Walrus: {g.blobId}</p>
               </li>
-            );
-          })}
-        </ul>
+            ))}
+          </ul>
+        </details>
       )}
     </>
+  );
+}
+
+/** Every reading's fingerprint is stamped on Sui before kickoff. This links to the proof. */
+function SuiProof({ reading }: { reading: ReadingRow }) {
+  if (reading.sui_status !== "stamped" || !reading.sui_digest) return <p className="text-sm">Not stamped yet</p>;
+  return (
+    <p className="text-sm">
+      Stamped on Sui before kickoff ·{" "}
+      <a href={explorerTxUrl(reading.sui_digest)} target="_blank" rel="noreferrer" className="underline">
+        see proof
+      </a>
+    </p>
   );
 }

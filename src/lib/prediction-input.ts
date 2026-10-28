@@ -26,7 +26,7 @@ export type FixtureLike = {
 export type PickInput = {
   pick: Pick;
   confidence: number;
-  reason: string;
+  reason: string | null;
   source: string | null;
 };
 
@@ -106,7 +106,6 @@ export function parsePick(raw: Record<string, unknown>): Result<PickInput> {
   const pick = clean(raw.pick);
   const confidenceText = clean(raw.confidence);
   const confidence = Number(confidenceText);
-  const reason = clean(raw.reason);
   // "mine" = the user's own call. "tip" = someone else's tip, and then we need their name.
   const isTip = clean(raw.sourceType) === "tip";
   const source = isTip ? clean(raw.source) : "";
@@ -115,15 +114,13 @@ export function parsePick(raw: Record<string, unknown>): Result<PickInput> {
   if (!confidenceText || !Number.isInteger(confidence) || confidence < 1 || confidence > 100) {
     errors.confidence = "Enter a whole number from 1 to 100.";
   }
-  if (reason.length < 3) errors.reason = "Add a few words on why.";
-  else if (reason.length > 280) errors.reason = "Keep it under 280 characters.";
   if (isTip && source.length < 2) errors.source = "Whose tip is it? Add their name or account.";
   else if (source.length > 120) errors.source = "Keep the name under 120 characters.";
 
   if (Object.keys(errors).length > 0) return { ok: false, errors };
   return {
     ok: true,
-    value: { pick: pick as Pick, confidence, reason, source: source || null },
+    value: { pick: pick as Pick, confidence, reason: null, source: source || null },
   };
 }
 

@@ -8,7 +8,7 @@ import { NewPredictionForm } from "./new-prediction-form";
 export default function NewPredictionPage() {
   return (
     <main className="mx-auto flex max-w-xl flex-col gap-4 p-4">
-      <Link href="/" className="underline">
+      <Link href="/picks" className="underline">
         ← Your picks
       </Link>
       <h1 className="text-2xl font-bold">New pick</h1>

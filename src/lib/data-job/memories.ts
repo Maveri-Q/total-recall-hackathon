@@ -34,6 +34,7 @@ export type ReadingRow = {
   usable: boolean;
   content_hash: string;
   sui_digest: string | null;
+  sui_status?: "pending" | "stamped" | "failed";
   bookie_brier?: number | string | null;
   poly_brier?: number | string | null;
   closer?: "bookies" | "polymarket" | "tie" | null;
@@ -261,4 +262,9 @@ export function similarCasesQuery(m: MatchInfo, gap: { outcome: Outcome; points:
 /** What to ask Walrus for when looking up a league's source record. */
 export function sourceRecordQuery(leagueName: string): string {
   return `Source record, ${leagueName}: how often Polymarket and the bookies were closer.`;
+}
+
+/** What to ask Walrus for when scoring the sources on past games like this one: same league, similar gap. */
+export function bandCasesQuery(leagueName: string, band: GapBand): string {
+  return `Graded match in the ${leagueName}. Bookies and Polymarket disagreed by a ${BAND_TEXT[band]}. Who was closer?`;
 }

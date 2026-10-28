@@ -7,7 +7,7 @@ export function FieldError({ text }: { text?: string }) {
   return text ? <span className="text-sm text-red-700">{text}</span> : null;
 }
 
-/** The pick, confidence, reason and "whose pick" inputs. Shared by the new-pick and edit forms. */
+/** The pick, confidence and "whose pick" inputs. Shared by the new-pick and edit forms. */
 export function PickFields({
   homeTeam,
   awayTeam,
@@ -55,19 +55,6 @@ export function PickFields({
           className="w-32 border p-2"
         />
         <FieldError text={errors.confidence} />
-      </label>
-
-      <label className="flex flex-col gap-1">
-        <span className="font-bold">Why this pick?</span>
-        <input
-          name="reason"
-          required
-          maxLength={280}
-          defaultValue={values.reason}
-          placeholder="e.g. Chelsea are missing both centre-backs"
-          className="border p-2"
-        />
-        <FieldError text={errors.reason} />
       </label>
 
       <fieldset className="flex flex-col gap-1">

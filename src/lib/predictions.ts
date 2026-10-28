@@ -11,7 +11,7 @@ export type PredictionVersion = {
   version: number;
   pick: Pick;
   confidence: number;
-  reason: string;
+  reason: string | null;
   source: string | null;
   content_hash: string;
   created_at: string;

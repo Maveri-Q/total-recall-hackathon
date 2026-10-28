@@ -86,12 +86,12 @@ describe("matchFromFixture", () => {
 });
 
 describe("parsePick", () => {
-  const good = { pick: "draw", confidence: "60", reason: "Both sides tired after Europe", sourceType: "mine" };
+  const good = { pick: "draw", confidence: "60", sourceType: "mine" };
 
   it("accepts the user's own pick with no source", () => {
     expect(parsePick(good)).toEqual({
       ok: true,
-      value: { pick: "draw", confidence: 60, reason: "Both sides tired after Europe", source: null },
+      value: { pick: "draw", confidence: 60, reason: null, source: null },
     });
   });
 
@@ -113,10 +113,10 @@ describe("parsePick", () => {
     expect(r.ok).toBe(false);
   });
 
-  it("rejects an unknown pick, empty reason and long tipster name", () => {
-    const r = parsePick({ pick: "win", confidence: "50", reason: " ", sourceType: "tip", source: "x".repeat(121) });
+  it("rejects an unknown pick and a long tipster name", () => {
+    const r = parsePick({ pick: "win", confidence: "50", sourceType: "tip", source: "x".repeat(121) });
     expect(r.ok).toBe(false);
-    if (!r.ok) expect(Object.keys(r.errors).sort()).toEqual(["pick", "reason", "source"]);
+    if (!r.ok) expect(Object.keys(r.errors).sort()).toEqual(["pick", "source"]);
   });
 });
 
