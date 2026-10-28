@@ -260,3 +260,9 @@ Each league must pass three checks: The Odds API covers it, Polymarket has match
 - Each reading gets `bookie_brier` and `poly_brier`. `closer` is set only for usable readings. Maths in `src/lib/data-job/grading.ts` + `src/lib/scoring.ts`, tested with hand-worked sums.
 - First real grades, 27 Oct Serie A: Polymarket was closer in all 6 readings (3 matches × 2 readings). Very early, tiny sample.
 - **On-time trigger:** migration 0004 makes Supabase (pg_cron + pg_net) start the GitHub workflow at :17 every hour, using a fine-grained GitHub token (Actions read/write, this repo only, expires 30 Nov 2026) kept in Supabase Vault as `github_dispatch_token`. GitHub's own timer stays as a backup.
+
+### Walrus Memory (keys checked 28 Oct 2026)
+- SDK `@mysten-incubation/memwal@0.1.8` (pinned; needs `@mysten/seal@1.5.0` to match `@mysten/sui@2.36.0`). The SDK is ESM-only, so `src/lib/walrus.ts` imports it on first use.
+- Mainnet relayer `https://relayer.memory.walrus.xyz` (Walrus Foundation pays WAL + gas, sees plaintext: public data only). Sign-in on the dashboard was with Google.
+- `npx tsx scripts/check-walrus.mts`: health ok (relayer 0.1.0, production), first test memory saved in 29s and recalled. Blob `IHl-i6yLVe48UVLgbWjoYFY3SqP38iRYhW_AfnQq0JA`, downloadable (encrypted, 360 bytes) from the Walrus Mainnet aggregator. Memory owner address `0x7621926d20615240c28ed1c0d6a393530f900e06b95c9cb0544ab56026a746ba`.
+- Namespaces: `total-recall` for real memories, `checks` for key tests (don't count tests towards the 10 required).
