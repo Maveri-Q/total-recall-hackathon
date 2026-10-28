@@ -292,3 +292,8 @@ Each league must pass three checks: The Odds API covers it, Polymarket has match
 - Google sign-in through Supabase: button on `/login`, server action `signInWithGoogle`, callback `src/app/auth/callback/route.ts`. Google Cloud project "Total Recall", web client "Total Recall web", published (External). Redirect URI `https://eeeamsgqcjfbifgatcze.supabase.co/auth/v1/callback`, JS origin `http://localhost:3000`. Supabase redirect URL `http://localhost:3000/auth/callback`.
 - All 4 tests passed on localhost: new Google account; sign out and back in; still logged in after closing the tab; an email-and-password account then "Continue with Google" with the same Gmail was linked onto the same account (now email + google), no duplicate.
 - **Still to do when the site goes live:** add the live address in Google Cloud (JS origin) and Supabase (redirect URL), replace the Google client secret once, and repeat the 4 tests on the live site, as the brief asks.
+
+### Your call (tested live, 28 Oct 2026)
+- Real call on AC Milan v Bologna, changed twice before kickoff: 3 versions (AC Milan win, Bologna win, Draw), each with its own Sui stamp (kind 2), fingerprints recomputed and matching. Each call is one transaction for about 0.0001 SUI.
+- Speed: a fresh gRPC connection to Tatum takes about 2.7s, later requests about 0.3s. The tap now lights up instantly (useOptimistic), the Sui connection opens while the call saves, and the stamp runs in `after()`. Last change: saved in 2.1s, stamped 4.9s after (first call was 10.4s / 6.9s).
+- Test account `yourcall-test@total-recall.test` exists (scripts/create-test-user.mts, password only in .env.local). Claude can't read the password back, so logged-in checks are done by Maverick.
