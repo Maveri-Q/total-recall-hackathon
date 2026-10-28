@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { callLabel, callOutcome, callRecord, isCall } from "./call-result";
+import { againstRecord, callLabel, callOutcome, callRecord, isCall } from "./call-result";
 
 describe("callLabel", () => {
   it("names the buttons after the teams", () => {
@@ -49,5 +49,18 @@ describe("callRecord", () => {
       right: 2,
       settled: 3,
     });
+  });
+});
+
+describe("againstRecord", () => {
+  it("counts settled calls that went against the source's favourite (hand-checked)", () => {
+    const r = againstRecord([
+      { call: "away", outcome: "called_it", favourite: "home" }, // against, right
+      { call: "draw", outcome: "not_this_time", favourite: "home" }, // against, wrong
+      { call: "home", outcome: "called_it", favourite: "home" }, // agreed: not counted
+      { call: "away", outcome: "waiting", favourite: "home" }, // not settled
+      { call: "away", outcome: "called_it", favourite: null }, // no market
+    ]);
+    expect(r).toEqual({ right: 1, total: 2 });
   });
 });

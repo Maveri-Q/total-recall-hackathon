@@ -37,3 +37,17 @@ export function callRecord(outcomes: CallOutcome[]): { right: number; settled: n
   const settled = outcomes.filter((o) => o === "called_it" || o === "not_this_time");
   return { right: settled.filter((o) => o === "called_it").length, settled: settled.length };
 }
+
+/**
+ * "When you went against Polymarket, you were right 3 of 11 times."
+ * A call goes against a source when it isn't that source's most likely result before kickoff.
+ * Only settled calls count, and only where we had that source's chances.
+ */
+export function againstRecord(
+  calls: { call: Call; outcome: CallOutcome; favourite: Outcome | null }[],
+): { right: number; total: number } {
+  const against = calls.filter(
+    (c) => c.favourite !== null && c.call !== c.favourite && (c.outcome === "called_it" || c.outcome === "not_this_time"),
+  );
+  return { right: against.filter((c) => c.outcome === "called_it").length, total: against.length };
+}

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Suspense } from "react";
 import { connection } from "next/server";
 import { bandScore, bookiesOf, getUpcomingMatches, polyOf, type UpcomingMatch } from "@/lib/coming-up";
@@ -11,16 +10,12 @@ import { myCallsOn, type CallVersion, type MyCall } from "@/lib/calls";
 import { Info } from "./info";
 import { KickoffTime } from "./kickoff-time";
 import { YourCall } from "./your-call";
+import { PageHeader } from "./nav";
 
 export default function ComingUp() {
   return (
     <main className="mx-auto flex w-full max-w-xl flex-col gap-4 p-4">
-      <div className="flex items-baseline justify-between">
-        <h1 className="text-2xl font-bold">Coming up</h1>
-        <Link href="/calls" className="underline">
-          Your calls
-        </Link>
-      </div>
+      <PageHeader title="Coming up" current="/" />
       <Suspense fallback={<p>Loading games…</p>}>
         <Matches />
       </Suspense>

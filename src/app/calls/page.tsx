@@ -8,17 +8,13 @@ import { explorerTxUrl } from "@/lib/sui-stamp";
 import { getCurrentUser } from "@/lib/supabase/server";
 import { signOut } from "../login/actions";
 import { KickoffTime } from "../kickoff-time";
+import { PageHeader } from "../nav";
 import { LocalTime } from "../local-time";
 
 export default function YourCalls() {
   return (
     <main className="mx-auto flex w-full max-w-xl flex-col gap-4 p-4">
-      <div className="flex items-baseline justify-between">
-        <h1 className="text-2xl font-bold">Your calls</h1>
-        <Link href="/" className="underline">
-          Coming up
-        </Link>
-      </div>
+      <PageHeader title="Your calls" current="/calls" />
       <Suspense fallback={<p>Loading your calls…</p>}>
         <Calls />
       </Suspense>
