@@ -287,3 +287,8 @@ Each league must pass three checks: The Odds API covers it, Polymarket has match
 - **First run: 16 memories saved on Walrus Mainnet** (11 readings, 3 graded matches, 2 source records). The required 10 is met. A second run queued nothing new.
 - Recall check (`npx tsx scripts/recall-demo.mts`): for tonight's AC Milan v Bologna, Walrus returned the 3 past Serie A cases and the Serie A record first.
 - GitHub secrets now also include FOOTBALL_DATA_API_KEY, MEMWAL_DELEGATE_KEY, MEMWAL_ACCOUNT_ID.
+
+### Sign-in (tested locally, 28 Oct 2026)
+- Google sign-in through Supabase: button on `/login`, server action `signInWithGoogle`, callback `src/app/auth/callback/route.ts`. Google Cloud project "Total Recall", web client "Total Recall web", published (External). Redirect URI `https://eeeamsgqcjfbifgatcze.supabase.co/auth/v1/callback`, JS origin `http://localhost:3000`. Supabase redirect URL `http://localhost:3000/auth/callback`.
+- All 4 tests passed on localhost: new Google account; sign out and back in; still logged in after closing the tab; an email-and-password account then "Continue with Google" with the same Gmail was linked onto the same account (now email + google), no duplicate.
+- **Still to do when the site goes live:** add the live address in Google Cloud (JS origin) and Supabase (redirect URL), replace the Google client secret once, and repeat the 4 tests on the live site, as the brief asks.
