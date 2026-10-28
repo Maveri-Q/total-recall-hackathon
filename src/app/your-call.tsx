@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useOptimistic, useState, useTransition } from "react";
 import { callLabel, CALLS, type Call } from "@/lib/call-result";
 import { makeCallAction } from "./calls/actions";
 
@@ -24,6 +24,8 @@ export function YourCall({
   stamping: boolean;
 }) {
   const [pending, startTransition] = useTransition();
+  // Light up the tapped button straight away. If saving fails, it falls back to the saved call.
+  const [shown, setShown] = useOptimistic(current);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
@@ -41,6 +43,7 @@ export function YourCall({
   const choose = (pick: Call) =>
     startTransition(async () => {
       setError(null);
+      setShown(pick);
       const state = await makeCallAction(matchId, pick);
       if (state.error) setError(state.error);
     });
@@ -51,7 +54,7 @@ export function YourCall({
         <span className="font-bold">Your call:</span>
         {CALLS.map((pick) => {
           const label = callLabel(pick, homeTeam, awayTeam);
-          const chosen = current === pick;
+          const chosen = shown === pick;
           return signedIn ? (
             <button
               key={pick}

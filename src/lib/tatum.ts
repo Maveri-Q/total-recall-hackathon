@@ -207,3 +207,11 @@ export async function publishPackage(modules: string[], dependencies: string[]):
   if (!pkg) throw new Error(`Published, but no package id found in transaction ${result.Transaction.digest}`);
   return { packageId: pkg.objectId, digest: result.Transaction.digest };
 }
+
+/**
+ * Opens the gRPC connection to Tatum ahead of time. The first request on a fresh connection takes
+ * about 2.7 seconds; later ones about 0.3. Fire and forget: a failure here just means no head start.
+ */
+export function warmUpSui(): void {
+  if (stampingConfigured()) suiClient().core.getReferenceGasPrice().catch(() => {});
+}

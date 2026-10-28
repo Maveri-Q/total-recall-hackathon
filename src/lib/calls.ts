@@ -9,7 +9,7 @@ import { leagueByCode } from "./leagues";
 import type { Outcome } from "./odds";
 import { createAdminClient } from "./supabase/admin";
 import { createClient } from "./supabase/server";
-import { stampHashes, stampingConfigured } from "./tatum";
+import { stampHashes, stampingConfigured, warmUpSui } from "./tatum";
 
 export type CallVersion = {
   id: string;
@@ -97,6 +97,8 @@ function errorText(message: string | undefined): string {
  * is from before kickoff. If the stamp fails, the call is still saved and the hourly job retries.
  */
 export async function makeCall(userId: string, matchId: string, pick: Call): Promise<{ ok: true } | { ok: false; error: string }> {
+  // Open the Sui connection now, so it is ready by the time the call is saved and needs stamping.
+  warmUpSui();
   const supabase = await createClient();
   const { data: match, error: matchError } = await supabase
     .from("matches")
