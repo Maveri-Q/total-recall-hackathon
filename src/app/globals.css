@@ -1,215 +1,277 @@
 @import "tailwindcss";
 
-/* Design tokens (UI.md). Values are copied from design-reference/. */
+/* Design tokens (UI.md v2, white redesign). Values are copied from design-reference/. */
 @theme {
-  --color-ground: #0a1712;
-  --color-ground-top: #143528;
-  --color-chalk: #f2f5f1;
-  --color-muted: #c9d6ce;
-  --color-faint: #9db1a6;
-  --color-fainter: #7f978a;
-  --color-bookies: #f5a524;
-  --color-poly: #8fd3ff;
+  --color-page: #f3f6f4;
+  --color-ink: #0b1a14;
+  --color-ink-2: #2b3a33;
+  --color-muted: #4f6158;
+  --color-faint: #5f6f67;
+  --color-hero-number: #0e7a4f;
+  --color-hero-muted: #3f5a4c;
+  --color-bookies: #1e2b25;
+  --color-bookies-2: #6f7c75;
+  --color-bookies-3: #d5dbd8;
+  --color-poly: #0fa968;
+  --color-poly-2: #7fd8b0;
+  --color-poly-3: #d3f2e4;
+  --color-poly-text: #0a7a4c;
   --color-lime: #c6f36b;
   --color-mint: #4fe0b5;
-  --color-ink-soft: #5b6b63;
-  --color-error: #ff9b8f;
+  --color-win: #0e7a4f;
+  --color-loss: #c0362c;
+  /* Sign-in page only (dark floodlit pitch) */
+  --color-chalk: #f2f5f1;
+  --color-panel-text: #b9c7bf;
 
   --font-display: var(--font-archivo), system-ui, sans-serif;
   --font-sans: var(--font-schibsted), system-ui, sans-serif;
 }
 
 @layer base {
-html {
-  background: var(--color-ground);
-}
-
-body {
-  background: radial-gradient(120% 50% at 50% 0%, var(--color-ground-top) 0%, var(--color-ground) 60%) no-repeat,
-    var(--color-ground);
-  color: var(--color-chalk);
-  font-family: var(--font-sans);
-  font-size: 15px;
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-}
-
-a {
-  color: var(--color-lime);
-}
-a:hover {
-  color: #ddf9a0;
-}
-button {
-  font: inherit;
-  -webkit-tap-highlight-color: transparent;
-}
-button:focus-visible,
-a:focus-visible,
-input:focus-visible,
-summary:focus-visible {
-  outline: 2px solid var(--color-chalk);
-  outline-offset: 3px;
-}
+  html {
+    background: var(--color-page);
+  }
+  body {
+    background: var(--color-page);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  a {
+    color: var(--color-ink);
+  }
+  button {
+    font: inherit;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  summary:focus-visible,
+  [role="tab"]:focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 3px;
+  }
 }
 
 @layer components {
+  /* Plain numbers line up. Not used on times: it puts wide gaps around the colon ("1 : 30pm"). */
+  .num {
+    font-variant-numeric: tabular-nums;
+  }
 
-/* Every number lines up. */
-.num {
-  font-variant-numeric: tabular-nums;
-}
+  .glass {
+    background: rgba(255, 255, 255, 0.62);
+    border: 1px solid rgba(255, 255, 255, 0.95);
+    box-shadow: 0 1px 0 rgba(11, 26, 20, 0.04), 0 12px 32px rgba(11, 26, 20, 0.07);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    backdrop-filter: blur(18px) saturate(140%);
+  }
+  .lite {
+    background: rgba(255, 255, 255, 0.78);
+    border: 1px solid rgba(255, 255, 255, 0.95);
+    box-shadow: 0 1px 0 rgba(11, 26, 20, 0.03), 0 10px 28px rgba(11, 26, 20, 0.06);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    backdrop-filter: blur(16px) saturate(140%);
+  }
 
-.glass {
-  background: rgba(255, 255, 255, 0.045);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  -webkit-backdrop-filter: blur(14px);
-  backdrop-filter: blur(14px);
-}
-.deep {
-  background: rgba(6, 17, 13, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-}
-.lime-mint {
-  background: linear-gradient(120deg, var(--color-lime) 0%, var(--color-mint) 100%);
-  color: var(--color-ground);
-}
+  /* Square for bookies, circle for Polymarket: the sources differ by shape, not just colour. */
+  .mark-bookies {
+    display: inline-block;
+    flex-shrink: 0;
+    width: 9px;
+    height: 9px;
+    background: var(--color-bookies);
+  }
+  .mark-poly {
+    display: inline-block;
+    flex-shrink: 0;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--color-poly);
+  }
 
-/* Square for bookies, circle for Polymarket: the two sources differ by shape, not just colour. */
-.mark-bookies {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  background: var(--color-bookies);
-}
-.mark-poly {
-  display: inline-block;
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: var(--color-poly);
-}
+  .press {
+    transition: transform 120ms ease, background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+  }
+  .press:active {
+    transform: scale(0.97);
+  }
 
-.press {
-  transition: transform 120ms ease, background-color 160ms ease, color 160ms ease, border-color 160ms ease;
-}
-.press:active {
-  transform: scale(0.97);
-}
-.slider {
-  transition: transform 520ms cubic-bezier(0.65, 0, 0.35, 1);
-}
-.reveal {
-  animation: slideOpen 220ms ease-out both;
-}
-@keyframes slideOpen {
-  0% { opacity: 0; transform: translateY(-4px); }
-  100% { opacity: 1; transform: none; }
-}
-.bump {
-  animation: bump 420ms cubic-bezier(0.2, 1.6, 0.4, 1) both;
-}
-@keyframes bump {
-  0% { transform: scale(1); color: var(--color-chalk); }
-  40% { transform: scale(1.14); color: var(--color-lime); }
-  100% { transform: scale(1); color: var(--color-chalk); }
-}
-.rolling {
-  filter: blur(0.6px);
-  opacity: 0.85;
-}
-.pop {
-  animation: pop 300ms ease-out both;
-}
-@keyframes pop {
-  0% { opacity: 0; transform: translateY(4px); }
-  100% { opacity: 1; transform: none; }
-}
-.slide-out {
-  animation: slideOut 250ms ease-in both;
-}
-@keyframes slideOut {
-  to { opacity: 0; transform: translateX(-24px); }
-}
-.slide-in {
-  animation: slideIn 300ms ease-out both;
-}
-@keyframes slideIn {
-  from { opacity: 0; transform: translateX(24px); }
-  to { opacity: 1; transform: none; }
-}
-/* The stamp card lands: drops with a tilt, squashes on impact, bounces, settles (480ms). */
-.land {
-  animation: land 480ms cubic-bezier(0.3, 0.9, 0.4, 1) both;
-  transform-origin: 50% 100%;
-}
-@keyframes land {
-  0% { opacity: 0; transform: translateY(-64px) scale(1.06) rotate(-3deg); }
-  55% { opacity: 1; transform: translateY(0) scale(1.03, 0.93) rotate(0); }
-  75% { transform: translateY(-4px) scale(0.99, 1.01); }
-  100% { opacity: 1; transform: none; }
-}
-/* Dust from the bottom edge at the moment of impact. */
-.dust {
-  animation: dust 560ms 270ms ease-out both;
-}
-@keyframes dust {
-  0% { opacity: 0; transform: translate(0, 0) scale(0.6); }
-  15% { opacity: 0.9; }
-  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(1.4); }
-}
-/* The Your call row feels the landing. */
-.thud {
-  animation: thud 260ms 260ms ease-out both;
-}
-@keyframes thud {
-  0%, 100% { transform: none; }
-  35% { transform: translateY(2px); }
-}
+  /* Hero "lamp": invisible until the pointer is over the card, then a soft circle follows it. */
+  .lamp {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: var(--o, 0);
+    transition: opacity 320ms ease;
+    -webkit-mask-image: radial-gradient(circle 150px at var(--mx, 50%) var(--my, 50%), #000 0%, rgba(0, 0, 0, 0.5) 45%, transparent 100%);
+    mask-image: radial-gradient(circle 150px at var(--mx, 50%) var(--my, 50%), #000 0%, rgba(0, 0, 0, 0.5) 45%, transparent 100%);
+  }
 
-/* Sign-in floodlight: the lit layer shows only inside a soft 220px circle. Position is set from script. */
-.floodlit {
-  -webkit-mask-image: radial-gradient(circle closest-side, #000 0%, #000 40%, transparent 100%);
-  mask-image: radial-gradient(circle closest-side, #000 0%, #000 40%, transparent 100%);
-  -webkit-mask-size: 220px 220px;
-  mask-size: 220px 220px;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-}
-.bob1 { animation: bob1 7s ease-in-out infinite; }
-.bob2 { animation: bob2 9s ease-in-out infinite; }
-.bob3 { animation: bob3 11s ease-in-out infinite; }
-@keyframes bob1 { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-16px); } }
-@keyframes bob2 { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(14px); } }
-@keyframes bob3 { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(10px, -12px); } }
-.sway { animation: sway 6s ease-in-out infinite; transform-style: preserve-3d; }
-.sway2 { animation: sway 8s ease-in-out -3s infinite; transform-style: preserve-3d; }
-@keyframes sway { 0%, 100% { transform: rotateY(-28deg) rotateZ(-6deg); } 50% { transform: rotateY(28deg) rotateZ(6deg); } }
-.spin { animation: spin 9s linear infinite; transform-box: fill-box; transform-origin: center; }
-.spin2 { animation: spin 14s linear infinite reverse; transform-box: fill-box; transform-origin: center; }
-@keyframes spin { to { transform: rotate(360deg); } }
+  /* Page title: each word slides up from behind a mask. */
+  .word {
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: bottom;
+    padding-bottom: 4px;
+  }
+  .word > span {
+    display: inline-block;
+    animation: wordUp 620ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+  }
+  .word.w2 > span {
+    animation-delay: 90ms;
+  }
+  @keyframes wordUp {
+    0% { transform: translateY(105%); }
+    100% { transform: none; }
+  }
 
-/* One soft lime pulse on the newest memory. */
-.fresh {
-  animation: fresh 1400ms ease-out 1 both;
-}
-@keyframes fresh {
-  0% { box-shadow: 0 0 0 0 rgba(198, 243, 107, 0.5); }
-  100% { box-shadow: 0 0 0 14px rgba(198, 243, 107, 0); }
-}
+  .aurora {
+    animation: aurora 22s ease-in-out infinite alternate;
+  }
+  @keyframes aurora {
+    0% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(40px, 30px) scale(1.12); }
+    100% { transform: translate(-30px, 10px) scale(0.95); }
+  }
 
-/* Chips scroll sideways without a visible scrollbar. */
-.no-scrollbar {
-  scrollbar-width: none;
-}
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
+  .bar-grow {
+    animation: grow 700ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+    transform-origin: left center;
+  }
+  @keyframes grow {
+    0% { transform: scaleX(0); }
+    100% { transform: none; }
+  }
+
+  /* Rolling counter: digits spin, then land with a pop and a green flash. */
+  .rolling {
+    filter: blur(0.6px);
+    opacity: 0.85;
+  }
+  .bump {
+    animation: bump 420ms cubic-bezier(0.2, 1.6, 0.4, 1) both;
+  }
+  @keyframes bump {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.14); color: var(--color-poly); }
+    100% { transform: scale(1); }
+  }
+
+  .reveal {
+    animation: slideOpen 240ms ease-out both;
+  }
+  @keyframes slideOpen {
+    0% { opacity: 0; transform: translateY(-4px); }
+    100% { opacity: 1; transform: none; }
+  }
+
+  /* The stamp card lands: drops with a tilt, squashes on impact, bounces, settles (480ms). */
+  .land {
+    animation: land 480ms cubic-bezier(0.3, 0.9, 0.4, 1) both;
+    transform-origin: 50% 100%;
+  }
+  @keyframes land {
+    0% { opacity: 0; transform: translateY(-64px) scale(1.06) rotate(-3deg); }
+    55% { opacity: 1; transform: translateY(0) scale(1.03, 0.93) rotate(0); }
+    75% { transform: translateY(-4px) scale(0.99, 1.01); }
+    100% { opacity: 1; transform: none; }
+  }
+  .dust {
+    animation: dust 560ms 270ms ease-out both;
+  }
+  @keyframes dust {
+    0% { opacity: 0; transform: translate(0, 0) scale(0.6); }
+    15% { opacity: 0.8; }
+    100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(1.4); }
+  }
+  .thud {
+    animation: thud 260ms 260ms ease-out both;
+  }
+  @keyframes thud {
+    0%, 100% { transform: none; }
+    35% { transform: translateY(2px); }
+  }
+  .spinner {
+    animation: spinner 800ms linear infinite;
+  }
+  @keyframes spinner {
+    to { transform: rotate(360deg); }
+  }
+
+  /* My calls: form tiles pop in, the corner stamp lands tilted. */
+  .tok {
+    animation: tok 360ms cubic-bezier(0.2, 1.5, 0.4, 1) both;
+  }
+  @keyframes tok {
+    0% { opacity: 0; transform: translateY(10px) scale(0.7); }
+    100% { opacity: 1; transform: none; }
+  }
+  .stamp-in {
+    animation: stampIn 320ms cubic-bezier(0.2, 1.5, 0.4, 1) both;
+  }
+  @keyframes stampIn {
+    0% { opacity: 0; transform: scale(1.4) rotate(-14deg); }
+    100% { opacity: 1; transform: scale(1) rotate(-8deg); }
+  }
+
+  /* Proof: a mint dot runs down the line between the steps; the newest memory pulses once. */
+  .flow {
+    animation: flow 1.8s linear infinite;
+  }
+  @keyframes flow {
+    0% { top: 0; }
+    100% { top: 100%; }
+  }
+  .fresh {
+    animation: fresh 1400ms ease-out 1 both;
+  }
+  @keyframes fresh {
+    0% { box-shadow: 0 0 0 0 rgba(79, 224, 181, 0.55); }
+    100% { box-shadow: 0 0 0 14px rgba(79, 224, 181, 0); }
+  }
+
+  /* Sign-in floodlight: the lit layer shows only inside a soft 220px circle. Position is set from script. */
+  .floodlit {
+    -webkit-mask-image: radial-gradient(circle closest-side, #000 0%, #000 40%, transparent 100%);
+    mask-image: radial-gradient(circle closest-side, #000 0%, #000 40%, transparent 100%);
+    -webkit-mask-size: 220px 220px;
+    mask-size: 220px 220px;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+  }
+  .bob1 { animation: bob1 7s ease-in-out infinite; }
+  .bob2 { animation: bob2 9s ease-in-out infinite; }
+  .bob3 { animation: bob3 11s ease-in-out infinite; }
+  @keyframes bob1 { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-16px); } }
+  @keyframes bob2 { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(14px); } }
+  @keyframes bob3 { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(10px, -12px); } }
+  .sway { animation: sway 6s ease-in-out infinite; transform-style: preserve-3d; }
+  .sway2 { animation: sway 8s ease-in-out -3s infinite; transform-style: preserve-3d; }
+  @keyframes sway { 0%, 100% { transform: rotateY(-28deg) rotateZ(-6deg); } 50% { transform: rotateY(28deg) rotateZ(6deg); } }
+  .spin { animation: spin 9s linear infinite; transform-box: fill-box; transform-origin: center; }
+  .spin2 { animation: spin 14s linear infinite reverse; transform-box: fill-box; transform-origin: center; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Tabs scroll sideways without a visible scrollbar. */
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bump, .pop, .reveal, .slide-out, .slide-in, .land, .thud, .fresh,
+  .word > span, .aurora, .bar-grow, .bump, .reveal, .land, .thud, .spinner, .tok, .stamp-in, .flow, .fresh,
   .bob1, .bob2, .bob3, .sway, .sway2, .spin, .spin2 { animation: none; }
-  .dust { display: none; }
-  .slider, .press { transition: none; }
+  .dust, .flow { display: none; }
+  .press, .lamp { transition: none; }
+  .rolling { filter: none; opacity: 1; }
 }

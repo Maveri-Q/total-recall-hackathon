@@ -330,3 +330,14 @@ Each league must pass three checks: The Odds API covers it, Polymarket has match
 - Real call on AC Milan v Bologna, changed twice before kickoff: 3 versions (AC Milan win, Bologna win, Draw), each with its own Sui stamp (kind 2), fingerprints recomputed and matching. Each call is one transaction for about 0.0001 SUI.
 - Speed: a fresh gRPC connection to Tatum takes about 2.7s, later requests about 0.3s. The tap now lights up instantly (useOptimistic), the Sui connection opens while the call saves, and the stamp runs in `after()`. Last change: saved in 2.1s, stamped 4.9s after (first call was 10.4s / 6.9s).
 - Test account `yourcall-test@total-recall.test` exists (scripts/create-test-user.mts, password only in .env.local). Claude can't read the password back, so logged-in checks are done by Maverick.
+
+### UI v2, white redesign (29 Oct 2026)
+- Pages: Matches `/`, My calls `/calls`, Records `/records`, Proof `/proof` (old `/scorecard` and `/memory` redirect). Shared pieces in `src/app/ui/` (header, page shell, lamp card, rolling number, local time `When`).
+- **Whole week:** the data job now saves games up to 7 days ahead (listing is a free Odds API call; odds are still only fetched when a reading is due, so no extra credits). Matches lists them by league and day. Used The Odds API's event list rather than football-data.org fixtures, because a call needs a row in our `matches` table.
+- **Local time:** every time is shown in the viewer's zone with its short name (`src/lib/local-time.ts`, tested), rendered only in the browser so the server never shows UTC.
+- **Stamping:** the tap shows the stamp card at once ("Stamping on Sui..."), the server answers when Sui confirms, Walrus saves in the background. Measured on localhost: card in 65ms, "Stamped" in 2.5s (save 1.1s + Sui 1.2s). Logged as `[call] ...` on the server.
+- **Sign in to lock:** signed out, a pick opens a sign-in card. `next` comes back through Google (short-lived `od_next` cookie) or email (`?next=`), then the pick is stamped on arrival (`?call=<match>.<pick>`). Tested end to end with email on localhost.
+- Only the user's own calls show anywhere. No raw Walrus IDs on screen: "Check" / "Remembered on Walrus" links instead.
+- The gap and the record use the outcome the sources disagree on most (as the record bands do), not always the home win.
+- Kept from the agreed CLAUDE.md wording: "Saving to Walrus..." until the Walrus save is real, then "Saved on Walrus."
+- Proof counter "Polymarket checks via Tatum today" counts today's readings that fetched Polymarket prices (the honest number we have; we don't log every Tatum request).

@@ -1,8 +1,9 @@
 "use server";
 
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { NEXT_COOKIE, safeNext } from "@/lib/next-path";
 
 // `done` tells the form to do a full page load to /calls. A soft (in-app) move could reuse a stale
 // copy of /calls from before the login and bounce the user back here.
@@ -56,8 +57,10 @@ export async function signOut() {
   redirect("/login");
 }
 
-/** Starts Google sign-in. Google sends the user back to /auth/callback. */
-export async function signInWithGoogle() {
+/** Starts Google sign-in. `next` (from the form) is where to land afterwards, kept in a short-lived cookie. */
+export async function signInWithGoogle(formData?: FormData) {
+  const next = safeNext(formData?.get("next"));
+  (await cookies()).set(NEXT_COOKIE, next, { httpOnly: true, sameSite: "lax", secure: true, maxAge: 600, path: "/" });
   const origin = (await headers()).get("origin") ?? process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithOAuth({

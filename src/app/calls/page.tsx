@@ -1,27 +1,61 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
-import { callLabel, callRecord } from "@/lib/call-result";
-import { listMyCalls, type CallVersion, type MyCall } from "@/lib/calls";
-import { explorerTxUrl } from "@/lib/sui-stamp";
+import { listMyCalls } from "@/lib/calls";
+import { getMyScorecard } from "@/lib/scorecard";
 import { getCurrentUser } from "@/lib/supabase/server";
-import { signOut } from "../login/actions";
-import { KickoffTime } from "../kickoff-time";
 import { BottomNav } from "../bottom-nav";
-import { LocalTime } from "../local-time";
+import { AppHeader } from "../ui/app-header";
+import { LampCard } from "../ui/lamp-card";
+import { RollingNumber } from "../ui/rolling-number";
+import { PageTitle, Shell } from "../ui/shell";
+import { CallsView, type CallCardView } from "./calls-view";
 
-export const metadata: Metadata = { title: "Your calls" };
+export const metadata: Metadata = { title: "My calls" };
 
-export default function YourCalls() {
+export default function MyCalls() {
   return (
-    <main className="mx-auto flex w-full max-w-[480px] flex-col gap-[22px] px-[18px] pb-[calc(110px+env(safe-area-inset-bottom))] pt-[calc(18px+env(safe-area-inset-top))]">
-      <h1 className="m-0 font-display text-[30px] font-bold leading-[1.05] tracking-[-0.02em]">Your calls</h1>
-      <Suspense fallback={<p className="text-faint">Loading your calls…</p>}>
+    <Shell blobs={["lime", "green"]}>
+      <Suspense fallback={<AppHeader email={null} next="/calls" />}>
         <Calls />
       </Suspense>
-    </main>
+      <BottomNav current="/calls" />
+    </Shell>
+  );
+}
+
+/** Your form, newest last: one tile per recent finished call, empty tiles where there's no call yet. */
+function Form({ results }: { results: boolean[] }) {
+  const tiles = [...results.slice(-5), ...Array(Math.max(0, 5 - results.length)).fill(null)] as (boolean | null)[];
+  return (
+    <div className="flex flex-col gap-2">
+      <span className="text-[12px] font-bold text-hero-muted">Your form, newest last</span>
+      <div className="grid grid-cols-5 gap-1.5">
+        {tiles.map((t, i) => (
+          <span
+            key={i}
+            role="img"
+            aria-label={t === null ? "No call yet" : t ? "Spot on" : "Missed it"}
+            className={`tok inline-flex h-10 items-center justify-center rounded-xl ${
+              t === null ? "border-[1.5px] border-dashed border-[rgba(11,26,20,0.2)] bg-white/50" : t ? "bg-[rgba(15,169,104,0.14)] text-poly-text" : "bg-[rgba(192,54,44,0.1)] text-loss"
+            }`}
+            style={{ animationDelay: `${i * 70}ms` }}
+          >
+            {t === true && (
+              <svg width="16" height="16" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                <path d="M3 7.5 L6 10 L11 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            )}
+            {t === false && (
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                <path d="M4 4l6 6M10 4l-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+            )}
+          </span>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -29,100 +63,55 @@ async function Calls() {
   // Calls are personal and lock at kickoff, so always render them fresh.
   await connection();
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
-  const calls = await listMyCalls();
-  const record = callRecord(calls.map((c) => c.outcome));
+  if (!user) redirect("/login?next=/calls");
+  const [calls, me] = await Promise.all([listMyCalls(), getMyScorecard()]);
+
+  const views: CallCardView[] = calls.map((c) => ({
+    id: c.id,
+    leagueName: c.league,
+    kickoffAt: c.kickoffAt,
+    homeTeam: c.homeTeam,
+    awayTeam: c.awayTeam,
+    outcome: c.outcome,
+    scored: c.matchId !== null, // calls from before "Your call" existed aren't scored
+    score: c.game?.home_goals != null ? `${c.game.home_goals}-${c.game.away_goals}` : null,
+    result: c.game?.result ?? null,
+    versions: c.versions.map((v) => ({ pick: v.pick, at: v.created_at, digest: v.sui_status === "stamped" ? v.sui_digest : null })),
+  }));
+  const form = views
+    .filter((c) => c.scored && (c.outcome === "called_it" || c.outcome === "not_this_time"))
+    .sort((a, b) => a.kickoffAt.localeCompare(b.kickoffAt))
+    .map((c) => c.outcome === "called_it");
+  const rate = me.settled ? Math.round((me.right / me.settled) * 100) : null;
 
   return (
     <>
-      <form action={signOut} className="-mt-2 flex items-center justify-between gap-2 text-[13px] text-faint">
-        <span className="min-w-0 truncate">{user.email}</span>
-        <button className="press min-h-11 cursor-pointer rounded-full border border-white/15 px-3 text-chalk">Log out</button>
-      </form>
-      <Link href="/scorecard" className="inline-flex min-h-11 items-center self-start text-[14px] font-medium">
-        See the scorecard: how the bookies and Polymarket are doing
-      </Link>
-      <BottomNav current="/calls" signedIn />
-
-      {record.settled > 0 && (
-        <p className="font-bold">
-          You&apos;ve called {record.right} of {record.settled} right so far.
-        </p>
-      )}
-
-      {calls.length === 0 ? (
-        <p>
-          No calls yet. Make one on{" "}
-          <Link href="/" className="underline">
-            Coming up
-          </Link>
-          .
-        </p>
-      ) : (
-        <ul className="flex flex-col gap-3">
-          {calls.map((c) => (
-            <CallCard key={c.id} call={c} />
-          ))}
-        </ul>
-      )}
+      <AppHeader email={user.email} next="/calls" />
+      <div className="pt-2.5">
+        <PageTitle text="My calls" />
+      </div>
+      <LampCard className="lite flex flex-col gap-4 rounded-[28px] p-[18px]">
+        <div className="flex flex-col gap-4">
+          <div className="flex items-end justify-between gap-3">
+            <span className="flex flex-col gap-1">
+              <span className="flex items-baseline gap-1.5 font-display font-black tracking-[-0.05em]">
+                <RollingNumber value={me.right} seed={3} className="text-[68px] leading-[0.85] text-hero-number" />
+                <span className="num text-[28px] text-hero-muted">of {me.settled}</span>
+              </span>
+              <span className="text-[14px] font-semibold text-hero-muted">finished calls right</span>
+            </span>
+            {rate !== null && <span className="num rounded-2xl bg-ink px-3 py-2 font-display text-[22px] font-black tracking-[-0.03em] text-white">{rate}%</span>}
+          </div>
+          <Form results={form} />
+          {me.againstPolymarket.total > 0 && (
+            <span className="inline-flex items-center gap-[7px] self-start rounded-full bg-[rgba(15,169,104,0.1)] px-3 py-[7px] text-[13px] font-bold text-poly-text">
+              <span aria-hidden="true" className="mark-poly" />
+              Went against Polymarket&apos;s pick: right {me.againstPolymarket.right} of {me.againstPolymarket.total}
+            </span>
+          )}
+        </div>
+      </LampCard>
+      <CallsView calls={views} />
     </>
   );
-}
-
-function CallCard({ call: c }: { call: MyCall }) {
-  const latest = c.versions.at(-1)!;
-  const score = c.game?.home_goals != null ? `Full time: ${c.homeTeam} ${c.game.home_goals}-${c.game.away_goals} ${c.awayTeam}. ` : "";
-  const status = !c.matchId
-    ? "Made before Your call existed, so it won't be scored."
-    : {
-        open: "You can change it until kickoff.",
-        waiting: "Locked at kickoff. Waiting for full time.",
-        called_it: `${score}You called it.`,
-        not_this_time: `${score}Not this time.`,
-        postponed: "Game postponed. This one won't count.",
-        cancelled: "Game cancelled. This one won't count.",
-      }[c.outcome];
-
-  return (
-    <li className="glass flex flex-col gap-1.5 rounded-[24px] px-4 py-[18px]">
-      <p className="font-bold">
-        {c.homeTeam} vs {c.awayTeam} · <KickoffTime iso={c.kickoffAt} />
-      </p>
-      <p>Your call: {callLabel(latest.pick, c.homeTeam, c.awayTeam)}</p>
-      <p className={c.outcome === "called_it" || c.outcome === "not_this_time" ? "font-bold" : ""}>{status}</p>
-      <p className="text-sm">
-        <Proof version={latest} />
-      </p>
-      {c.versions.length > 1 && (
-        <details className="text-sm">
-          <summary className="cursor-pointer underline">
-            You changed your call {c.versions.length - 1} {c.versions.length === 2 ? "time" : "times"} before kickoff
-          </summary>
-          <ol className="mt-1 flex flex-col gap-1">
-            {c.versions.map((v) => (
-              <li key={v.id}>
-                {callLabel(v.pick, c.homeTeam, c.awayTeam)}, saved <LocalTime iso={v.created_at} /> · <Proof version={v} />
-              </li>
-            ))}
-          </ol>
-        </details>
-      )}
-    </li>
-  );
-}
-
-function Proof({ version: v }: { version: CallVersion }) {
-  if (v.sui_status === "stamped" && v.sui_digest) {
-    return (
-      <>
-        Stamped on Sui ·{" "}
-        <a href={explorerTxUrl(v.sui_digest)} target="_blank" rel="noreferrer" className="underline">
-          see proof
-        </a>
-      </>
-    );
-  }
-  if (v.sui_status === "failed") return <>Couldn&apos;t stamp on Sui yet. We&apos;ll try again.</>;
-  if (v.sui_status === "not_applicable") return <>Imported, so never stamped on Sui.</>;
-  return <>Not stamped on Sui yet.</>;
 }

@@ -81,11 +81,12 @@ export async function listMyCalls(now: Date = new Date()): Promise<MyCall[]> {
 }
 
 /** The user's call on each of these games, by game id. */
-export async function myCallsOn(matchIds: string[], now: Date = new Date()): Promise<Map<string, MyCall>> {
+export async function myCallsOn(matchIds: string[], now: Date = new Date(), { walrus = true } = {}): Promise<Map<string, MyCall>> {
   if (matchIds.length === 0) return new Map();
   const { data, error } = await (await createClient()).from("predictions").select(SELECT).in("match_id", matchIds);
   if (error) throw new Error(`Couldn't load calls: ${error.message}`);
-  const calls = await withWalrus((data as unknown as Row[]).filter((r) => r.versions.length > 0).map((r) => toCall(r, now)));
+  const rows = (data as unknown as Row[]).filter((r) => r.versions.length > 0).map((r) => toCall(r, now));
+  const calls = walrus ? await withWalrus(rows) : rows;
   return new Map(calls.map((c) => [c.matchId!, c]));
 }
 
@@ -99,24 +100,31 @@ function errorText(message: string | undefined): string {
 }
 
 /**
- * Saves a call (or a change to it) on one game, then stamps it on Sui within seconds so the proof
+ * Saves a call (or a change to it) on one game and stamps it on Sui before answering, so the proof
  * is from before kickoff. If the stamp fails, the call is still saved and the hourly job retries.
  */
-export async function makeCall(userId: string, matchId: string, pick: Call): Promise<{ ok: true } | { ok: false; error: string }> {
+export type CallResult =
+  | { ok: true; stamp: { digest: string; stampedAt: string } | null }
+  | { ok: false; error: string };
+
+export async function makeCall(userId: string, matchId: string, pick: Call): Promise<CallResult> {
+  const started = Date.now();
   // Open the Sui connection now, so it is ready by the time the call is saved and needs stamping.
   warmUpSui();
   const supabase = await createClient();
-  const { data: match, error: matchError } = await supabase
-    .from("matches")
-    .select("id, league_code, home_team, away_team, kickoff_at")
-    .eq("id", matchId)
-    .maybeSingle();
+  // The game and any earlier call on it, side by side (each is a round trip to the database).
+  const [{ data: match, error: matchError }, mine] = await Promise.all([
+    supabase.from("matches").select("id, league_code, home_team, away_team, kickoff_at").eq("id", matchId).maybeSingle(),
+    myCallsOn([matchId], new Date(), { walrus: false }),
+  ]);
   if (matchError || !match) return { ok: false, error: "We couldn't find this game." };
   if (Date.now() >= Date.parse(match.kickoff_at)) return { ok: false, error: "Too late. This game has kicked off." };
 
-  const existing = (await myCallsOn([matchId])).get(matchId);
+  const existing = mine.get(matchId);
   const latest = existing?.versions.at(-1);
-  if (latest?.pick === pick) return { ok: true };
+  if (latest?.pick === pick) {
+    return { ok: true, stamp: latest.sui_digest && latest.stamped_at ? { digest: latest.sui_digest, stampedAt: latest.stamped_at } : null };
+  }
 
   const predictionId = existing?.id ?? randomUUID();
   const version = (latest?.version ?? 0) + 1;
@@ -134,54 +142,67 @@ export async function makeCall(userId: string, matchId: string, pick: Call): Pro
     source: null,
   });
 
+  // A change gets its id here, so stamping doesn't need to look it up. A first call's id comes from create_call.
+  const versionId = existing ? randomUUID() : undefined;
   const { error } = existing
-    ? await supabase.from("prediction_versions").insert({ prediction_id: predictionId, user_id: userId, version, pick, content_hash: hash })
+    ? await supabase.from("prediction_versions").insert({ id: versionId, prediction_id: predictionId, user_id: userId, version, pick, content_hash: hash })
     : await supabase.rpc("create_call", { p_id: predictionId, p_match_id: matchId, p_league: league, p_pick: pick, p_content_hash: hash });
   if (error) {
     console.error("makeCall", error.message);
     return { ok: false, error: errorText(error.message) };
   }
 
-  // Stamp once the tap has answered, so the button responds straight away. The page checks back for the proof.
-  after(() => stampCallVersion(predictionId, version, hash));
-  return { ok: true };
+  const saved = Date.now();
+  // Stamp now and answer as soon as Sui confirms (about a second). Walrus is saved afterwards, in the background.
+  const stamp = await stampCallVersion(predictionId, version, hash, versionId);
+  console.log(`[call] saved in ${saved - started}ms, stamped on Sui in ${Date.now() - saved}ms, total ${Date.now() - started}ms`);
+  return { ok: true, stamp };
 }
 
-/** Stamps one call version on Sui. Uses the secret key: users can't change stamp fields themselves. */
-async function stampCallVersion(predictionId: string, version: number, hash: string) {
+/**
+ * Stamps one call version on Sui and returns once Sui confirms it. Then saves it to Walrus in the background
+ * (the hourly job retries anything that didn't make it). Uses the secret key: users can't change stamp fields.
+ */
+async function stampCallVersion(
+  predictionId: string,
+  version: number,
+  hash: string,
+  knownId?: string,
+): Promise<{ digest: string; stampedAt: string } | null> {
   const admin = createAdminClient();
-  const { data: row } = await admin
-    .from("prediction_versions")
-    .select("id")
-    .eq("prediction_id", predictionId)
-    .eq("version", version)
-    .single();
-  if (!row || !stampingConfigured()) return;
+  const row = knownId
+    ? { id: knownId }
+    : (await admin.from("prediction_versions").select("id").eq("prediction_id", predictionId).eq("version", version).single()).data;
+  if (!row || !stampingConfigured()) return null;
   try {
     const { digest } = await stampHashes([{ kind: "pick", hash, refId: row.id }]);
-    await admin
-      .from("prediction_versions")
-      .update({ sui_status: "stamped", sui_digest: digest, stamped_at: new Date().toISOString(), sui_error: null })
-      .eq("id", row.id);
-    // Then remember it on Walrus. A failure here only delays it: the hourly job sends anything left queued.
-    await rememberCallNow(admin, row.id).catch((e) => console.error("remember call", e instanceof Error ? e.message : e));
+    const stampedAt = new Date().toISOString();
+    await admin.from("prediction_versions").update({ sui_status: "stamped", sui_digest: digest, stamped_at: stampedAt, sui_error: null }).eq("id", row.id);
+    after(async () => {
+      const t = Date.now();
+      await rememberCallNow(admin, row.id).catch((e) => console.error("remember call", e instanceof Error ? e.message : e));
+      console.log(`[call] saved on Walrus in ${Date.now() - t}ms`);
+    });
+    return { digest, stampedAt };
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     console.error("stamp call", message);
     await admin.from("prediction_versions").update({ sui_status: "failed", sui_error: message.slice(0, 500) }).eq("id", row.id);
+    return null;
   }
 }
 
 /** "Try again" after a failed stamp: stamps the user's latest call on this game again. */
-export async function retryCallStamp(matchId: string): Promise<{ ok: true } | { ok: false; error: string }> {
+export async function retryCallStamp(matchId: string): Promise<CallResult> {
   const call = (await myCallsOn([matchId])).get(matchId);
   const latest = call?.versions.at(-1);
   if (!call || !latest) return { ok: false, error: "We couldn't find your call." };
-  if (latest.sui_status === "stamped") return { ok: true };
+  if (latest.sui_status === "stamped" && latest.sui_digest && latest.stamped_at) {
+    return { ok: true, stamp: { digest: latest.sui_digest, stampedAt: latest.stamped_at } };
+  }
   if (Date.now() >= Date.parse(call.kickoffAt)) return { ok: false, error: "Too late. This game has kicked off." };
   warmUpSui();
-  after(() => stampCallVersion(call.id, latest.version, latest.content_hash));
-  return { ok: true };
+  return { ok: true, stamp: await stampCallVersion(call.id, latest.version, latest.content_hash) };
 }
 
 /** Adds each call version's Walrus memory status (calls are saved to Walrus after their Sui stamp). */

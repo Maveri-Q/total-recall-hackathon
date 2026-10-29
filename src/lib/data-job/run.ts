@@ -27,8 +27,12 @@ import { buildReading } from "./reading";
 import { queueMemories, sendPendingMemories } from "./remember";
 import { dueReadings, type ReadingKind } from "./schedule";
 
-/** Only matches this close are saved; nothing further away can be due. */
-const LOOKAHEAD_MS = 26 * 60 * 60 * 1000;
+/**
+ * Games up to a week ahead are saved, so the Matches page can show the whole week and people can make a call
+ * early. Listing them is free. Odds are only fetched when a reading is due (see schedule.ts), so this costs
+ * no Odds API credits.
+ */
+const LOOKAHEAD_MS = 7 * 24 * 60 * 60 * 1000;
 
 type MatchRow = {
   id: string;

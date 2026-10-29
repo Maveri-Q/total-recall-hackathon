@@ -11,7 +11,8 @@ import { LEAGUES } from "./leagues";
 import { favourite } from "./scoreline";
 import { createAdminClient } from "./supabase/admin";
 
-export type LeagueRecord = { code: string; name: string; record: SourceRecord; blobId: string | null };
+export type RecentGame = { label: string; kickoffAt: string; closer: Verdict["closer"] };
+export type LeagueRecord = { code: string; name: string; record: SourceRecord; blobId: string | null; recent: RecentGame[] };
 
 /** Every league with at least one counted game, plus "All leagues" first. Cached for 15 minutes. */
 export async function getSourceScorecard(): Promise<LeagueRecord[]> {
@@ -21,17 +22,21 @@ export async function getSourceScorecard(): Promise<LeagueRecord[]> {
   const db = createAdminClient();
   const { data: matches, error } = await db
     .from("matches")
-    .select("league_code, readings(*)")
+    .select("league_code, home_team, away_team, home_goals, away_goals, kickoff_at, readings(*)")
     .eq("result_status", "finished")
     .not("graded_at", "is", null);
   if (error) throw new Error(`loading graded matches: ${error.message}`);
 
   const verdicts = new Map<string, Verdict[]>([["ALL", []]]);
+  const recent = new Map<string, RecentGame[]>([["ALL", []]]);
   for (const m of matches ?? []) {
     const v = matchVerdict(m.readings as ReadingRow[]);
     if (!v) continue;
     verdicts.set(m.league_code, [...(verdicts.get(m.league_code) ?? []), v]);
     verdicts.get("ALL")!.push(v);
+    const game = { label: `${m.home_team} ${m.home_goals}-${m.away_goals} ${m.away_team}`, kickoffAt: m.kickoff_at, closer: v.closer };
+    recent.set(m.league_code, [...(recent.get(m.league_code) ?? []), game]);
+    recent.get("ALL")!.push(game);
   }
 
   // The newest saved Walrus record for each league ("SA:3" is the Serie A record after 3 games).
@@ -46,6 +51,7 @@ export async function getSourceScorecard(): Promise<LeagueRecord[]> {
       name: code === "ALL" ? "All leagues" : (LEAGUES.find((l) => l.code === code)?.name ?? code),
       record: sourceRecord(vs),
       blobId: blobFor(code, vs.length),
+      recent: (recent.get(code) ?? []).sort((a, b) => b.kickoffAt.localeCompare(a.kickoffAt)).slice(0, 3),
     }))
     .sort((a, b) => (a.code === "ALL" ? -1 : b.code === "ALL" ? 1 : b.record.matches - a.record.matches));
 }
