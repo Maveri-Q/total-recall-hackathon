@@ -40,11 +40,12 @@ function Team({ team }: { team: TeamLook }) {
 function OddsDue({ kickoffAt }: { kickoffAt: string }) {
   const now = useNow();
   const due = firstReadingAt(kickoffAt);
-  if (now !== null && now > due.getTime() + 15 * 60_000) return <>Odds are on their way. We check every hour.</>;
+  // One span, so the card's flex gap doesn't split the sentence around the time.
+  if (now !== null && now > due.getTime() + 15 * 60_000) return <span>Odds are on their way. We check every hour.</span>;
   return (
-    <>
+    <span>
       Odds come in around <When iso={due.toISOString()} format="weekdayTime" />.
-    </>
+    </span>
   );
 }
 
