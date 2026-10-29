@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Records</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&amp;family=Schibsted+Grotesk:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#F3F6F4}
+a{color:#0B1A14}
+button{font:inherit;-webkit-tap-highlight-color:transparent}
+button:focus-visible,a:focus-visible{outline:2px solid #0B1A14;outline-offset:3px}
+.glass{background:rgba(255,255,255,0.62);border:1px solid rgba(255,255,255,0.95);box-shadow:0 1px 0 rgba(11,26,20,0.04),0 12px 32px rgba(11,26,20,0.07);-webkit-backdrop-filter:blur(18px) saturate(140%);backdrop-filter:blur(18px) saturate(140%)}
+.press{transition:transform 120ms ease,background-color 160ms ease,color 160ms ease}
+.press:active{transform:scale(0.97)}
+.word{display:inline-block;overflow:hidden;vertical-align:bottom;padding-bottom:4px}
+.word > span{display:inline-block;animation:wordUp 620ms cubic-bezier(.2,.9,.2,1) both}
+@keyframes wordUp{0%{transform:translateY(105%)}100%{transform:none}}
+.bar{transition:width 600ms cubic-bezier(.2,.9,.2,1)}
+.lite{background:rgba(255,255,255,0.78);border:1px solid rgba(255,255,255,0.95);box-shadow:0 1px 0 rgba(11,26,20,0.03),0 10px 28px rgba(11,26,20,0.06);-webkit-backdrop-filter:blur(16px) saturate(140%);backdrop-filter:blur(16px) saturate(140%)}
+.lamp{position:absolute;inset:0;pointer-events:none;opacity:var(--o,0);transition:opacity 320ms ease;-webkit-mask-image:radial-gradient(circle 150px at var(--mx,50%) var(--my,50%),#000 0%,rgba(0,0,0,0.55) 45%,transparent 100%);mask-image:radial-gradient(circle 150px at var(--mx,50%) var(--my,50%),#000 0%,rgba(0,0,0,0.55) 45%,transparent 100%)}
+.bump{animation:bump 420ms cubic-bezier(.2,1.6,.4,1) both}
+@keyframes bump{0%{transform:scale(1)}40%{transform:scale(1.14);color:#0E7A4F}100%{transform:scale(1)}}
+.rolling{filter:blur(0.6px);opacity:.85}
+.reveal{animation:slideOpen 220ms ease-out both}
+@keyframes slideOpen{0%{opacity:0;transform:translateY(-4px)}100%{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){.word > span,.reveal{animation:none}.bar,.press{transition:none}}
+</style>
+</helmet>
+<div style="position: relative; width: 390px; min-height: 1560px; box-sizing: border-box; overflow: hidden; background: #F3F6F4; color: #0B1A14; font-family: 'Schibsted Grotesk', system-ui, sans-serif; font-size: 15px">
+  <div aria-hidden="true" style="position: absolute; left: -130px; top: -110px; width: 360px; height: 360px; border-radius: 50%; background: #0FA968; opacity: 0.2; filter: blur(70px)"></div>
+  <div aria-hidden="true" style="position: absolute; right: -130px; top: -60px; width: 360px; height: 360px; border-radius: 50%; background: #C6F36B; opacity: 0.25; filter: blur(70px)"></div>
+
+  <div style="position: relative; padding: 18px 18px 120px; display: flex; flex-direction: column; gap: 22px">
+    <span style="display: inline-flex; align-items: center; gap: 8px; font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 18px; letter-spacing: -0.03em">
+      <svg width="26" height="26" viewBox="0 0 120 120" aria-hidden="true"><rect width="120" height="120" rx="28" fill="#0B1A14"></rect><g transform="translate(6 6) scale(0.9) rotate(-5 60 60)"><path d="M14 44 Q14 34 26 33 L94 33 Q106 34 106 44 L102 80 Q100 90 88 90 L32 90 Q20 90 18 80 Z" fill="none" stroke="#F2F5F1" stroke-width="11" stroke-linejoin="round"></path><rect x="40" y="46" width="14" height="14" fill="#F5A524"></rect><circle cx="72" cy="72" r="13" fill="#8FD3FF"></circle></g></svg>
+      oddsight</span>
+
+    <div style="display: flex; flex-direction: column; gap: 8px; padding-top: 10px">
+      <h1 style="margin: 0; font-family: 'Archivo', sans-serif; font-weight: 900; font-size: 52px; letter-spacing: -0.045em; line-height: 0.95"><span class="word"><span>Records</span></span></h1>
+      <p style="margin: 0; font-size: 16px; line-height: 1.45; color: #4F6158">After every game, we check who got closer to the real result.</p>
+    </div>
+
+    <section class="lite" onPointerMove="{{lampMove}}" onPointerLeave="{{lampLeave}}" style="position: relative; overflow: hidden; border-radius: 28px; color: #0B1A14; padding: 18px; display: flex; flex-direction: column; gap: 14px">
+      <div aria-hidden="true" class="lamp"><div style="position: absolute; inset: 0; background: radial-gradient(circle 170px at var(--mx,50%) var(--my,50%), rgba(198,243,107,0.6), rgba(15,169,104,0.18) 55%, transparent 80%)"></div><svg width="100%" height="100%" viewBox="0 0 354 240" preserveAspectRatio="xMidYMid slice" style="position: absolute; inset: 0"><g fill="none" stroke="#0B1A14" stroke-opacity="0.18" stroke-width="1.5"><rect x="10" y="10" width="334" height="220" rx="6"></rect><line x1="177" y1="10" x2="177" y2="230"></line><circle cx="177" cy="120" r="40"></circle><rect x="10" y="72" width="46" height="96"></rect><rect x="298" y="72" width="46" height="96"></rect></g></svg></div>
+      <div style="position: relative; display: flex; justify-content: space-between; align-items: center">
+        <span style="font-size: 13px; font-weight: 600; color: #3F5A4C">{{gapTitle}}</span>
+        <span style="font-size: 12px; font-weight: 700; color: #FFFFFF; background: #0B1A14; border-radius: 999px; padding: 4px 10px">{{signal}}</span>
+      </div>
+      <div style="position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: end">
+        <span style="display: flex; flex-direction: column; gap: 4px">
+          <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #1E2B25"><span aria-hidden="true" style="width: 9px; height: 9px; background: #1E2B25; display: inline-block"></span>Bookies</span>
+          <span class="{{roll}}" style="font-family: 'Archivo', sans-serif; font-weight: 900; font-size: 76px; letter-spacing: -0.05em; line-height: 0.82; font-variant-numeric: tabular-nums">{{dispB}}</span>
+        </span>
+        <span style="font-size: 12px; font-weight: 600; color: #3F5A4C; text-align: center; padding-bottom: 6px">of {{dispN}}<br>games</span>
+        <span style="display: flex; flex-direction: column; gap: 4px; align-items: flex-end">
+          <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #0A7A4C">Polymarket<span aria-hidden="true" style="width: 10px; height: 10px; border-radius: 50%; background: #0FA968; display: inline-block"></span></span>
+          <span class="{{roll}}" style="font-family: 'Archivo', sans-serif; font-weight: 900; font-size: 76px; letter-spacing: -0.05em; line-height: 0.82; font-variant-numeric: tabular-nums">{{dispP}}</span>
+        </span>
+      </div>
+      <div style="position: relative; display: flex; height: 10px; border-radius: 999px; overflow: hidden; background: rgba(11,26,20,0.08); gap: 2px">
+        <span class="bar" style="{{barB}}"></span><span class="bar" style="{{barP}}"></span>
+      </div>
+      <sc-if value="{{isEmpty}}" hint-placeholder-val="{{false}}">
+        <span style="position: relative; font-size: 14px; color: #3F5A4C">No games with a gap this big yet. Check back after the weekend.</span>
+      </sc-if>
+    </section>
+
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <div style="display: flex; flex-direction: column; gap: 2px">
+        <h2 style="margin: 0; font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 24px; letter-spacing: -0.035em">Does the gap matter?</h2>
+        <span style="font-size: 14px; color: #4F6158">Pick how far apart they were before kickoff.</span>
+      </div>
+      <div role="tablist" aria-label="Gap size" class="glass" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 18px">
+        <sc-for list="{{gaps}}" as="g" hint-placeholder-count="4">
+          <button type="button" role="tab" class="press" aria-selected="{{g.sel}}" onClick="{{g.pick}}" style="{{g.style}}"><span>{{g.label}}</span><span style="font-size: 11px; font-weight: 600; opacity: 0.75">{{g.sub}}</span></button>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <h2 style="margin: 0; font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 24px; letter-spacing: -0.035em">By league</h2>
+      <sc-for list="{{leagues}}" as="l" hint-placeholder-count="3">
+        <div class="glass" style="border-radius: 22px; overflow: hidden">
+          <button type="button" onClick="{{l.toggle}}" aria-expanded="{{l.openStr}}" style="width: 100%; border: none; background: transparent; color: #0B1A14; padding: 14px 16px; cursor: pointer; display: flex; flex-direction: column; gap: 10px; text-align: left">
+            <span style="display: flex; justify-content: space-between; align-items: baseline; width: 100%">
+              <span style="font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 17px; letter-spacing: -0.02em">{{l.name}}</span>
+              <span style="font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 17px; font-variant-numeric: tabular-nums"><span style="color: #B46F00">{{l.b}}</span> <span style="color: #9AA8A1">-</span> <span style="color: #1F6FB8">{{l.p}}</span></span>
+            </span>
+            <sc-if value="{{l.has}}" hint-placeholder-val="{{true}}">
+              <span style="display: flex; height: 8px; width: 100%; border-radius: 999px; overflow: hidden; gap: 2px; background: rgba(11,26,20,0.06)"><span style="{{l.barB}}"></span><span style="{{l.barP}}"></span></span>
+            </sc-if>
+            <span style="font-size: 12px; font-weight: 600; color: #5F6F67">{{l.note}}</span>
+          </button>
+          <sc-if value="{{l.open}}" hint-placeholder-val="{{false}}">
+            <div class="reveal" style="padding: 0 16px 12px; display: flex; flex-direction: column">
+              <sc-for list="{{l.recent}}" as="r" hint-placeholder-count="3">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-top: 1px solid rgba(11,26,20,0.06); font-size: 13px">
+                  <span style="font-weight: 600; font-variant-numeric: tabular-nums">{{r.match}}</span>
+                  <span style="display: inline-flex; align-items: center; gap: 6px; color: #2B3A33"><span aria-hidden="true" style="{{r.dot}}"></span>{{r.closer}}</span>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <h2 style="margin: 0; font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 24px; letter-spacing: -0.035em">You vs the market</h2>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+        <div class="glass" style="border-radius: 20px; padding: 14px 10px; display: flex; flex-direction: column; gap: 4px">
+          <span style="font-family: 'Archivo', sans-serif; font-weight: 900; font-size: 28px; letter-spacing: -0.04em; font-variant-numeric: tabular-nums">1/2</span>
+          <span style="font-size: 12px; font-weight: 600; color: #4F6158; line-height: 1.3">Your calls right</span>
+        </div>
+        <div class="glass" style="border-radius: 20px; padding: 14px 10px; display: flex; flex-direction: column; gap: 4px; border-color: rgba(15,169,104,0.4)">
+          <span style="font-family: 'Archivo', sans-serif; font-weight: 900; font-size: 28px; letter-spacing: -0.04em; color: #1F6FB8; font-variant-numeric: tabular-nums">1/1</span>
+          <span style="font-size: 12px; font-weight: 600; color: #4F6158; line-height: 1.3">When you picked differently from Polymarket</span>
+        </div>
+        <div class="glass" style="border-radius: 20px; padding: 14px 10px; display: flex; flex-direction: column; gap: 4px; border-color: rgba(30,43,37,0.5)">
+          <span style="font-family: 'Archivo', sans-serif; font-weight: 900; font-size: 28px; letter-spacing: -0.04em; color: #B46F00; font-variant-numeric: tabular-nums">0/1</span>
+          <span style="font-size: 12px; font-weight: 600; color: #4F6158; line-height: 1.3">When you picked differently from the bookies</span>
+        </div>
+      </div>
+      <a href="Proof.dc.html" style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; text-decoration: none; padding: 6px 0"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><rect x="1.5" y="2.5" width="11" height="9" rx="2.2" stroke="currentColor" stroke-width="1.4"></rect><path d="M4 6h6M4 8.5h3.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path></svg>Every record here is saved on Walrus. See the proof.</a>
+    </div>
+
+    <p style="margin: 0; font-size: 12px; color: #5F6F67; text-align: center">Sample data for this mockup.</p>
+  </div>
+
+  <nav aria-label="Main" class="glass" style="position: absolute; left: 14px; right: 14px; bottom: 18px; border-radius: 26px; padding: 6px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px">
+    <a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 54px; border-radius: 20px; color: #2B3A33; text-decoration: none; font-size: 12px; font-weight: 600"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="7.5" stroke="currentColor" stroke-width="1.6"></circle><path d="M10 6 L13.2 8.3 L12 12 H8 L6.8 8.3 Z" fill="currentColor"></path></svg>Matches</a>
+    <a href="Calls.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 54px; border-radius: 20px; color: #2B3A33; text-decoration: none; font-size: 12px; font-weight: 600"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="3.5" y="2.5" width="13" height="15" rx="3" stroke="currentColor" stroke-width="1.6"></rect><path d="M7 9.5l2 2 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>My calls</a>
+    <a href="#" aria-current="page" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 54px; border-radius: 20px; background: #0B1A14; color: #FFFFFF; text-decoration: none; font-size: 12px; font-weight: 600"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 16V9M10 16V4M16 16v-5" stroke="#C6F36B" stroke-width="2" stroke-linecap="round"></path></svg>Records</a>
+    <a href="Proof.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 54px; border-radius: 20px; color: #2B3A33; text-decoration: none; font-size: 12px; font-weight: 600"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 2.5 L16 5 V10 C16 13.6 13.4 16.4 10 17.5 C6.6 16.4 4 13.6 4 10 V5 Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"></path><path d="M7.3 10l1.9 1.9 3.6-3.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>Proof</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1560}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { gap: 'all', open: {}, e: 0 };
+  }
+  componentDidMount() { this.runCount(); }
+  componentWillUnmount() { if (this.raf) cancelAnimationFrame(this.raf); }
+  runCount() {
+    var self = this;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) { this.setState({ e: 99999 }); return; }
+    if (this.raf) cancelAnimationFrame(this.raf);
+    var start = performance.now();
+    var tick = function () { var e = performance.now() - start; self.setState({ e: e }); if (e < 1000) self.raf = requestAnimationFrame(tick); };
+    this.raf = requestAnimationFrame(tick);
+  }
+  renderVals() {
+    var self = this;
+    var s = this.state;
+    var rec = { all: { b: 2, p: 6, n: 8, t: 'All graded games' }, small: { b: 2, p: 6, n: 8, t: 'When they were under 5 points apart' }, mid: { b: 0, p: 0, n: 0, t: 'When they were 5 to 10 points apart' }, big: { b: 0, p: 0, n: 0, t: 'When they were 10+ points apart' } };
+    var cur = rec[s.gap];
+    var t = Math.min(1, s.e / 800); t = 1 - Math.pow(1 - t, 2.2);
+    var done = s.e >= 800;
+    var gOn = 'display: flex; flex-direction: column; align-items: center; gap: 1px; min-height: 52px; border-radius: 14px; border: none; background: #0B1A14; color: #FFFFFF; font-size: 13px; font-weight: 700; cursor: pointer; padding: 4px 2px';
+    var gOff = 'display: flex; flex-direction: column; align-items: center; gap: 1px; min-height: 52px; border-radius: 14px; border: none; background: transparent; color: #2B3A33; font-size: 13px; font-weight: 700; cursor: pointer; padding: 4px 2px';
+    var gaps = [['all', 'All', 'any gap'], ['small', 'Close', 'under 5'], ['mid', 'Medium', '5 to 10'], ['big', 'Big', '10+']].map(function (g) {
+      var on = s.gap === g[0];
+      return { label: g[1], sub: g[2], sel: on ? 'true' : 'false', style: on ? gOn : gOff, pick: function () { self.setState({ gap: g[0] }); self.runCount(); } };
+    });
+    function roll(v, k) { if (s.e >= 900) return v; return (Math.floor(s.e / 40) * 7 + k) % Math.max(10, v + 6); }
+    var lampMove = function (ev) { var el = ev.currentTarget; var r = el.getBoundingClientRect(); var z = el.offsetWidth ? r.width / el.offsetWidth : 1; el.style.setProperty('--mx', ((ev.clientX - r.left) / z) + 'px'); el.style.setProperty('--my', ((ev.clientY - r.top) / z) + 'px'); el.style.setProperty('--o', '1'); };
+    var lampLeave = function (ev) { ev.currentTarget.style.setProperty('--o', '0'); };
+    var pb = cur.n ? Math.round(cur.b / cur.n * 100) : 0, pp = cur.n ? 100 - pb : 0;
+    function lg(name, b, p, n, recent, id) {
+      var open = !!s.open[id];
+      var w = n ? Math.round(b / n * 100) : 0;
+      return { name: name, b: b, p: p, has: n > 0, note: n ? n + ' games' + (n < 10 ? '. Early signal, under 10 games.' : '') : 'No finished games yet.',
+        barB: 'width: ' + w + '%; background: #1E2B25; border-radius: 999px', barP: 'width: ' + (n ? 100 - w : 0) + '%; background: #0FA968; border-radius: 999px',
+        open: open && n > 0, openStr: open ? 'true' : 'false',
+        toggle: function () { self.setState(function (st) { var o = Object.assign({}, st.open); o[id] = !o[id]; return { open: o }; }); },
+        recent: recent.map(function (r) { return { match: r[0], closer: r[1] === 'p' ? 'Polymarket closer' : 'Bookies closer', dot: r[1] === 'p' ? 'width: 9px; height: 9px; border-radius: 50%; background: #0FA968; display: inline-block' : 'width: 8px; height: 8px; background: #1E2B25; display: inline-block' }; }) };
+    }
+    var leagues = [
+      lg('Serie A', 2, 6, 8, [['Genoa 0-2 Juventus', 'p'], ['AC Milan 2-4 Bologna', 'p'], ['Lazio 1-1 Torino', 'b']], 'sa'),
+      lg('Premier League', 0, 0, 0, [], 'pl'),
+      lg('La Liga', 0, 0, 0, [], 'll')
+    ];
+    return {
+      gapTitle: cur.t, signal: cur.n === 0 ? 'No games yet' : (cur.n < 10 ? 'Early signal' : cur.n + ' games'),
+      dispB: roll(cur.b, 1), dispP: roll(cur.p, 4), dispN: roll(cur.n, 2),
+      roll: s.e >= 900 ? 'bump' : 'rolling', lampMove: lampMove, lampLeave: lampLeave, isEmpty: cur.n === 0,
+      barB: 'width: ' + pb + '%; background: #1E2B25; border-radius: 999px', barP: 'width: ' + pp + '%; background: #0FA968; border-radius: 999px',
+      gaps: gaps, leagues: leagues
+    };
+  }
+}
+</script>
+</body>
+</html>

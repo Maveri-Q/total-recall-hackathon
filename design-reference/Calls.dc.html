@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>My calls</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&amp;family=Schibsted+Grotesk:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#F3F6F4}
+a{color:#0B1A14}
+button{font:inherit;-webkit-tap-highlight-color:transparent}
+button:focus-visible,a:focus-visible{outline:2px solid #0B1A14;outline-offset:3px}
+.glass{background:rgba(255,255,255,0.62);border:1px solid rgba(255,255,255,0.95);box-shadow:0 1px 0 rgba(11,26,20,0.04),0 12px 32px rgba(11,26,20,0.07);-webkit-backdrop-filter:blur(18px) saturate(140%);backdrop-filter:blur(18px) saturate(140%)}
+.press{transition:transform 120ms ease,background-color 160ms ease,color 160ms ease}
+.press:active{transform:scale(0.97)}
+.word{display:inline-block;overflow:hidden;vertical-align:bottom;padding-bottom:4px}
+.word > span{display:inline-block;animation:wordUp 620ms cubic-bezier(.2,.9,.2,1) both}
+.word.w2 > span{animation-delay:90ms}
+@keyframes wordUp{0%{transform:translateY(105%)}100%{transform:none}}
+.lite{background:rgba(255,255,255,0.78);border:1px solid rgba(255,255,255,0.95);box-shadow:0 1px 0 rgba(11,26,20,0.03),0 10px 28px rgba(11,26,20,0.06);-webkit-backdrop-filter:blur(16px) saturate(140%);backdrop-filter:blur(16px) saturate(140%)}
+.lamp{position:absolute;inset:0;pointer-events:none;opacity:var(--o,0);transition:opacity 320ms ease;-webkit-mask-image:radial-gradient(circle 150px at var(--mx,50%) var(--my,50%),#000 0%,rgba(0,0,0,0.55) 45%,transparent 100%);mask-image:radial-gradient(circle 150px at var(--mx,50%) var(--my,50%),#000 0%,rgba(0,0,0,0.55) 45%,transparent 100%)}
+.tok{animation:tok 360ms cubic-bezier(.2,1.5,.4,1) both}
+@keyframes tok{0%{opacity:0;transform:translateY(10px) scale(.7)}100%{opacity:1;transform:none}}
+.rolling{filter:blur(0.6px);opacity:.85}
+.ring{animation:ring 900ms cubic-bezier(.2,.9,.2,1) both}
+@keyframes ring{0%{stroke-dashoffset:264}}
+.stampIn{animation:stampIn 320ms cubic-bezier(.2,1.5,.4,1) both}
+@keyframes stampIn{0%{opacity:0;transform:scale(1.4) rotate(-14deg)}100%{opacity:1;transform:scale(1) rotate(-8deg)}}
+.reveal{animation:slideOpen 220ms ease-out both}
+@keyframes slideOpen{0%{opacity:0;transform:translateY(-4px)}100%{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){.word > span,.ring,.stampIn,.reveal{animation:none}.press{transition:none}}
+</style>
+</helmet>
+<div style="position: relative; width: 390px; min-height: 1400px; box-sizing: border-box; overflow: hidden; background: #F3F6F4; color: #0B1A14; font-family: 'Schibsted Grotesk', system-ui, sans-serif; font-size: 15px">
+  <div aria-hidden="true" style="position: absolute; right: -120px; top: -120px; width: 360px; height: 360px; border-radius: 50%; background: #C6F36B; opacity: 0.3; filter: blur(70px)"></div>
+  <div aria-hidden="true" style="position: absolute; left: -140px; top: 520px; width: 340px; height: 340px; border-radius: 50%; background: #0FA968; opacity: 0.12; filter: blur(80px)"></div>
+
+  <div style="position: relative; padding: 18px 18px 120px; display: flex; flex-direction: column; gap: 22px">
+    <div style="display: flex; justify-content: space-between; align-items: center">
+      <span style="display: inline-flex; align-items: center; gap: 8px; font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 18px; letter-spacing: -0.03em">
+        <svg width="26" height="26" viewBox="0 0 120 120" aria-hidden="true"><rect width="120" height="120" rx="28" fill="#0B1A14"></rect><g transform="translate(6 6) scale(0.9) rotate(-5 60 60)"><path d="M14 44 Q14 34 26 33 L94 33 Q106 34 106 44 L102 80 Q100 90 88 90 L32 90 Q20 90 18 80 Z" fill="none" stroke="#F2F5F1" stroke-width="11" stroke-linejoin="round"></path><rect x="40" y="46" width="14" height="14" fill="#F5A524"></rect><circle cx="72" cy="72" r="13" fill="#8FD3FF"></circle></g></svg>
+        oddsight</span>
+      <button type="button" class="press glass" aria-label="Your profile" style="width: 42px; height: 42px; border-radius: 50%; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; padding: 0; color: #0B1A14">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="7" r="3.5" stroke="currentColor" stroke-width="1.6"></circle><path d="M3.5 17c1.2-3 3.7-4.5 6.5-4.5s5.3 1.5 6.5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path></svg>
+      </button>
+    </div>
+
+    <h1 style="margin: 10px 0 0; font-family: 'Archivo', sans-serif; font-weight: 900; font-size: 52px; letter-spacing: -0.045em; line-height: 0.95"><span class="word"><span>My</span></span> <span class="word w2"><span>calls</span></span></h1>
+
+    <section class="lite" onPointerMove="{{lampMove}}" onPointerLeave="{{lampLeave}}" style="position: relative; overflow: hidden; border-radius: 28px; color: #0B1A14; padding: 18px; display: flex; flex-direction: column; gap: 16px">
+      <div aria-hidden="true" class="lamp"><div style="position: absolute; inset: 0; background: radial-gradient(circle 170px at var(--mx,50%) var(--my,50%), rgba(198,243,107,0.6), rgba(15,169,104,0.18) 55%, transparent 80%)"></div><svg width="100%" height="100%" viewBox="0 0 354 240" preserveAspectRatio="xMidYMid slice" style="position: absolute; inset: 0"><g fill="none" stroke="#0B1A14" stroke-opacity="0.18" stroke-width="1.5"><rect x="10" y="10" width="334" height="220" rx="6"></rect><line x1="177" y1="10" x2="177" y2="230"></line><circle cx="177" cy="120" r="40"></circle><rect x="10" y="72" width="46" height="96"></rect><rect x="298" y="72" width="46" height="96"></rect></g></svg></div>
+      <div style="position: relative; display: flex; justify-content: space-between; align-items: flex-end; gap: 12px">
+        <span style="display: flex; flex-direction: column; gap: 4px">
+          <span style="display: flex; align-items: baseline; gap: 6px; font-family: 'Archivo', sans-serif; font-weight: 900; letter-spacing: -0.05em; font-variant-numeric: tabular-nums"><span class="{{roll}}" style="font-size: 68px; line-height: 0.85; color: #0E7A4F">{{dispRight}}</span><span style="font-size: 28px; color: #3F5A4C">of {{dispDone}}</span></span>
+          <span style="font-size: 14px; font-weight: 600; color: #3F5A4C">finished calls right</span>
+        </span>
+        <span style="font-family: 'Archivo', sans-serif; font-weight: 900; font-size: 22px; letter-spacing: -0.03em; color: #FFFFFF; background: #0B1A14; border-radius: 16px; padding: 8px 12px">50%</span>
+      </div>
+      <div style="position: relative; display: flex; flex-direction: column; gap: 8px">
+        <span style="font-size: 12px; font-weight: 700; color: #3F5A4C">Your form, newest last</span>
+        <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px">
+          <sc-for list="{{form}}" as="f" hint-placeholder-count="5">
+            <span class="tok" role="img" aria-label="{{f.aria}}" style="{{f.style}}">
+              <sc-if value="{{f.win}}" hint-placeholder-val="{{false}}"><svg width="18" height="18" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M3 7.5 L6 10 L11 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if>
+              <sc-if value="{{f.loss}}" hint-placeholder-val="{{false}}"><svg width="16" height="16" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M4 4 L10 10 M10 4 L4 10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"></path></svg></sc-if>
+            </span>
+          </sc-for>
+        </div>
+      </div>
+      <span style="position: relative; align-self: flex-start; display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 700; color: #0A7A4C; background: rgba(15,169,104,0.1); border: none; border-radius: 999px; padding: 7px 12px"><span aria-hidden="true" style="width: 10px; height: 10px; border-radius: 50%; background: #0FA968; display: inline-block"></span>Went against Polymarket's pick: right 1 of 1</span>
+    </section>
+
+    <div role="tablist" aria-label="Calls" class="glass" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 18px">
+      <sc-for list="{{tabs}}" as="t" hint-placeholder-count="2">
+        <button type="button" role="tab" class="press" aria-selected="{{t.sel}}" onClick="{{t.pick}}" style="{{t.style}}">{{t.label}}</button>
+      </sc-for>
+    </div>
+
+    <sc-for list="{{calls}}" as="c" hint-placeholder-count="2">
+      <article class="glass" style="position: relative; border-radius: 24px; padding: 16px; display: flex; flex-direction: column; gap: 14px">
+        <span class="stampIn" style="{{c.stampStyle}}">{{c.stamp}}</span>
+        <div style="display: flex; flex-direction: column; gap: 2px; padding-right: 110px">
+          <span style="font-size: 12px; font-weight: 700; color: #5F6F67">{{c.meta}}</span>
+          <span style="font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 20px; letter-spacing: -0.03em">{{c.match}}</span>
+          <sc-if value="{{c.hasScore}}" hint-placeholder-val="{{false}}"><span style="font-size: 14px; font-weight: 600; color: #2B3A33">Full time {{c.score}}</span></sc-if>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px">
+          <sc-for list="{{c.opts}}" as="o" hint-placeholder-count="3">
+            <span style="{{o.style}}">{{o.label}}<sc-if value="{{o.mine}}" hint-placeholder-val="{{false}}"><span style="font-size: 10px; font-weight: 700; opacity: 0.8">Your call</span></sc-if><sc-if value="{{o.result}}" hint-placeholder-val="{{false}}"><span style="font-size: 10px; font-weight: 700; color: #0E7A4F">Result</span></sc-if></span>
+          </sc-for>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+          <a href="https://suiscan.xyz/mainnet/tx/8a1fc2d4" target="_blank" rel="noopener" style="display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 12px; border-radius: 999px; background: #0B1A14; color: #FFFFFF; font-size: 12px; font-weight: 700; text-decoration: none">Sui proof<svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M3 7 L7 3 M4 3 H7 V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg></a>
+          <a href="Proof.dc.html" style="display: inline-flex; align-items: center; min-height: 34px; padding: 0 12px; border-radius: 999px; background: rgba(11,26,20,0.06); font-size: 12px; font-weight: 700; text-decoration: none">On Walrus</a>
+          <sc-if value="{{c.hasHistory}}" hint-placeholder-val="{{false}}">
+            <button type="button" class="press" onClick="{{c.toggle}}" aria-expanded="{{c.openStr}}" style="min-height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid rgba(11,26,20,0.12); background: transparent; color: #0B1A14; font-size: 12px; font-weight: 700; cursor: pointer">{{c.historyLabel}}</button>
+          </sc-if>
+        </div>
+        <sc-if value="{{c.open}}" hint-placeholder-val="{{false}}">
+          <ol class="reveal" style="margin: 0; padding: 0 0 0 4px; list-style: none; display: flex; flex-direction: column; gap: 0">
+            <sc-for list="{{c.history}}" as="h" hint-placeholder-count="2">
+              <li style="display: grid; grid-template-columns: 14px minmax(0, 1fr) auto; gap: 10px; align-items: start; padding: 6px 0">
+                <span aria-hidden="true" style="{{h.dot}}"></span>
+                <span style="font-size: 13px; color: #2B3A33">{{h.text}}</span>
+                <span style="font-size: 12px; color: #5F6F67; font-variant-numeric: tabular-nums">{{h.time}}</span>
+              </li>
+            </sc-for>
+          </ol>
+        </sc-if>
+      </article>
+    </sc-for>
+
+    <p style="margin: 0; font-size: 12px; color: #5F6F67; text-align: center">Sample data for this mockup.</p>
+  </div>
+
+  <nav aria-label="Main" class="glass" style="position: absolute; left: 14px; right: 14px; bottom: 18px; border-radius: 26px; padding: 6px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px">
+    <a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 54px; border-radius: 20px; color: #2B3A33; text-decoration: none; font-size: 12px; font-weight: 600"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="7.5" stroke="currentColor" stroke-width="1.6"></circle><path d="M10 6 L13.2 8.3 L12 12 H8 L6.8 8.3 Z" fill="currentColor"></path></svg>Matches</a>
+    <a href="#" aria-current="page" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 54px; border-radius: 20px; background: #0B1A14; color: #FFFFFF; text-decoration: none; font-size: 12px; font-weight: 600"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="3.5" y="2.5" width="13" height="15" rx="3" stroke="#C6F36B" stroke-width="1.6"></rect><path d="M7 9.5l2 2 4-4" stroke="#C6F36B" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>My calls</a>
+    <a href="Records.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 54px; border-radius: 20px; color: #2B3A33; text-decoration: none; font-size: 12px; font-weight: 600"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 16V9M10 16V4M16 16v-5" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>Records</a>
+    <a href="Proof.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 54px; border-radius: 20px; color: #2B3A33; text-decoration: none; font-size: 12px; font-weight: 600"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 2.5 L16 5 V10 C16 13.6 13.4 16.4 10 17.5 C6.6 16.4 4 13.6 4 10 V5 Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"></path><path d="M7.3 10l1.9 1.9 3.6-3.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>Proof</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1400}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { tab: 'up', open: {}, e: 0 };
+  }
+  componentDidMount() {
+    var self = this;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) { this.setState({ e: 99999 }); return; }
+    var start = performance.now();
+    var tick = function () { var e = performance.now() - start; self.setState({ e: e }); if (e < 1000) self.raf = requestAnimationFrame(tick); };
+    this.raf = requestAnimationFrame(tick);
+  }
+  componentWillUnmount() { if (this.raf) cancelAnimationFrame(this.raf); }
+  renderVals() {
+    var self = this;
+    var s = this.state;
+    var all = [
+      { id: 'fro', when: 'up', meta: 'Serie A, today 5:30pm WAT', home: 'Frosinone', away: 'Lecce', pick: 1, history: [['Called Frosinone win', '10:05am'], ['Changed to Draw', '10:41am']] },
+      { id: 'ars', when: 'up', meta: 'Premier League, Sat 5:30pm WAT', home: 'Arsenal', away: 'Chelsea', pick: 0, history: [['Called Arsenal win', '9:12am']] },
+      { id: 'gen', when: 'done', meta: 'Serie A, Tue 28 Oct', home: 'Genoa', away: 'Juventus', pick: 2, result: 2, score: '0-2', history: [['Called Juventus win', 'Mon 8:30pm']] },
+      { id: 'mil', when: 'done', meta: 'Serie A, Tue 28 Oct', home: 'AC Milan', away: 'Bologna', pick: 1, result: 2, score: '2-4', history: [['Called AC Milan win', 'Mon 7:02pm'], ['Changed to Bologna win', 'Mon 7:40pm'], ['Changed to Draw', 'Tue 4:15pm']] }
+    ];
+    var upN = all.filter(function (c) { return c.when === 'up'; }).length;
+    var doneN = all.length - upN;
+    var tOn = 'min-height: 44px; border-radius: 14px; border: none; background: #0B1A14; color: #FFFFFF; font-size: 14px; font-weight: 700; cursor: pointer';
+    var tOff = 'min-height: 44px; border-radius: 14px; border: none; background: transparent; color: #2B3A33; font-size: 14px; font-weight: 600; cursor: pointer';
+    var tabs = [{ k: 'up', label: 'Upcoming ' + upN }, { k: 'done', label: 'Finished ' + doneN }].map(function (t) {
+      var on = s.tab === t.k;
+      return { label: t.label, sel: on ? 'true' : 'false', style: on ? tOn : tOff, pick: function () { self.setState({ tab: t.k }); } };
+    });
+    var stampBase = 'position: absolute; right: 14px; top: 16px; transform: rotate(-8deg); font-family: Archivo, sans-serif; font-weight: 900; font-size: 15px; letter-spacing: 0.01em; padding: 6px 10px; border-radius: 10px; ';
+    var calls = all.filter(function (c) { return c.when === s.tab; }).map(function (c) {
+      var labels = [c.home, 'Draw', c.away];
+      var right = c.when === 'done' && c.pick === c.result;
+      var stamp = c.when === 'up' ? 'Locked' : (right ? 'Spot on' : 'Missed it');
+      var stampStyle = stampBase + (c.when === 'up' ? 'border: 2.5px solid #0B1A14; color: #0B1A14; background: #C6F36B' : (right ? 'border: 2.5px solid #0E7A4F; color: #0E7A4F; background: rgba(14,122,79,0.08)' : 'border: 2.5px solid #C0362C; color: #C0362C; background: rgba(192,54,44,0.06)'));
+      var open = !!s.open[c.id];
+      return {
+        meta: c.meta, match: c.home + ' v ' + c.away, hasScore: c.when === 'done', score: c.score || '',
+        stamp: stamp, stampStyle: stampStyle,
+        opts: labels.map(function (l, i) {
+          var mine = i === c.pick, res = c.when === 'done' && i === c.result;
+          var st = 'display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 52px; border-radius: 14px; font-size: 13px; font-weight: 700; text-align: center; padding: 4px; ';
+          if (mine) st += 'background: #0B1A14; color: #FFFFFF;';
+          else if (res) st += 'background: rgba(14,122,79,0.08); color: #0B1A14; border: 1.5px solid #0E7A4F;';
+          else st += 'background: rgba(11,26,20,0.04); color: #5F6F67;';
+          if (mine && res) st += ' box-shadow: inset 0 0 0 2px #0FA968;';
+          return { label: l, mine: mine, result: res && !mine, style: st };
+        }),
+        hasHistory: c.history.length > 1,
+        historyLabel: open ? 'Hide changes' : 'Changed ' + (c.history.length - 1) + (c.history.length - 1 === 1 ? ' time' : ' times'),
+        open: open, openStr: open ? 'true' : 'false',
+        toggle: function () { self.setState(function (st) { var o = Object.assign({}, st.open); o[c.id] = !o[c.id]; return { open: o }; }); },
+        history: c.history.map(function (h, i) {
+          var last = i === c.history.length - 1;
+          return { text: h[0] + ', stamped on Sui', time: h[1], dot: 'width: 10px; height: 10px; margin-top: 4px; border-radius: 50%; ' + (last ? 'background: #0B1A14' : 'background: transparent; border: 2px solid #9AA8A1') };
+        })
+      };
+    });
+    var e = s.e;
+    function roll(v, k) { if (e >= 900) return v; return (Math.floor(e / 40) * 7 + k) % Math.max(10, v + 6); }
+    var formSpec = ['l', 'w', '', '', ''];
+    var form = formSpec.map(function (x, i) {
+      var st = 'height: 40px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; animation-delay: ' + (i * 70) + 'ms; ';
+      if (x === 'w') st += 'background: rgba(15,169,104,0.14); color: #0A7A4C';
+      else if (x === 'l') st += 'background: rgba(192,54,44,0.1); color: #C0362C';
+      else st += 'background: rgba(255,255,255,0.5); border: 1.5px dashed rgba(11,26,20,0.2)';
+      return { win: x === 'w', loss: x === 'l', aria: x === 'w' ? 'Spot on' : (x === 'l' ? 'Missed it' : 'No call yet'), style: st };
+    });
+    var lampMove = function (ev) { var el = ev.currentTarget; var r = el.getBoundingClientRect(); var z = el.offsetWidth ? r.width / el.offsetWidth : 1; el.style.setProperty('--mx', ((ev.clientX - r.left) / z) + 'px'); el.style.setProperty('--my', ((ev.clientY - r.top) / z) + 'px'); el.style.setProperty('--o', '1'); };
+    var lampLeave = function (ev) { ev.currentTarget.style.setProperty('--o', '0'); };
+    return { tabs: tabs, calls: calls, form: form, dispRight: roll(1, 3), dispDone: roll(2, 5), roll: e >= 900 ? '' : 'rolling', lampMove: lampMove, lampLeave: lampLeave };
+  }
+}
+</script>
+</body>
+</html>

@@ -31,7 +31,7 @@ A feature is "done" only when it has run for real on Mainnet and its tests pass.
 - Submission form also needs: Tatum account ID, Sui address, MEMWAL_AGENT_ID.
 - Judging: Walrus + Tatum integration 30% · Technical quality (clean code, Tatum Sui RPC) 30% · Creativity 20% · Presentation (docs + working demo) 20%.
 
-## The product (name TBD)
+## The product: Oddsight
 **An odds watchdog for football that learns which source to trust.**
 
 The problem it solves: a bettor sees one bookie's odds and has no way to know if the price is fair. Polymarket, where people trade real money on the same match, often gives a different chance. Nobody shows when the two disagree, or which one is usually right.
@@ -110,7 +110,27 @@ Keep this table true. If a build decision would break a row, stop and tell Maver
 - **No scraping** of bookmaker sites (SportyBet, Bet9ja etc.) or X. Use official APIs only.
 - **No prizes or payouts.** No budget for it, and it would blur the "not betting" line.
 - **No Tatum AI Builder** for the main build.
-- **Name:** decided later.
+- **Name:** Oddsight.
+- **No Kalshi.** Kalshi is not onchain, so it doesn't fit "compare bookmaker odds with onchain sources". Only bookies vs Polymarket. Don't add other sources without asking Maverick.
+- **Making a call needs sign-in.** Signed-out users can see everything on the open pages, but tapping a pick shows a sign-in card. The server must also reject calls from signed-out users.
+
+## Stand-out extras
+These help the score. None of them change the core features. Order matters.
+
+**Do now (outside the app, no app code changes):**
+1. **Tests on every push.** Add a GitHub Actions workflow that runs all tests on every push and pull request. Put the test status badge at the top of the README.
+2. **Judge quick start.** At the top of the README: live link, a 60-second tour (what to tap and what you'll see), and "No sign-up needed to look around."
+3. **Mainnet proof section in the README.** Walrus memory count (with the date), `MEMWAL_AGENT_ID`, Sui package ID, 3–5 Suiscan links to real stamps, and a link to the Walrus Memory dashboard. Keep it filled in, never "TODO". Update it right before submitting.
+4. **Real data only.** Say in the README that the live app uses real odds, prices and results, with no demo data. Label anything imported or seeded.
+
+**Do after the core features are finished and tested (small app changes):**
+5. **Show the app learning.** Once a week, save a snapshot of each league's "who's been closer" record, in the database and as a Walrus memory. On the Records page, add one small line, "How this changed", e.g. "Week 1: not enough games. Week 2: Polymarket 6 of 8." Counting stays in the database.
+
+**For the blog and demo video (no app changes):**
+6. **With vs without memory.** For 2–3 real games, show what the app would say with no memory ("Bookies 48%, Polymarket 60%") next to what it says with memory ("...and Polymarket was closer 9 of 14 times"). Use the weekly snapshots to show the advice changing over time.
+7. **Social post.** On submission day, post on X and LinkedIn tagging Tatum, Walrus and Sui. The hackathon lists this as a bonus.
+
+Never let an extra delay a core requirement. If time is short, tell Maverick and drop extras 5–7 first.
 
 ## Honesty rules
 - Never fabricate odds, prices, results or records and present them as real.
@@ -144,6 +164,9 @@ Examples:
 - Good: "Not enough past matches yet. We need about 10 before showing a pattern."
 
 Show Maverick all user-facing text before it's final. He has the last word.
+
+## UI
+The full UI spec is in `UI.md`, with reference mockups in `design-reference/`. Follow it once the core features are done and live. It replaces earlier font and colour suggestions in this file.
 
 ## Suggested tech (confirm with Maverick before installing)
 - Next.js + TypeScript, deployed on Vercel (free).
@@ -186,9 +209,19 @@ Build in this order. Each step builds on the one before. Finish and test a step,
 ## Old Google Sheet
 Maverick may still log personal picks in a Google Sheet as backup. If so, add a simple CSV importer later and label rows "imported" (not stamped before kickoff). This is low priority. The data job is the main data source now.
 
-## New-user experience
-- Anyone can browse matches and source records without signing up.
-- Sign-up (Google or email, via Supabase) is only needed to make a call.
+## New-user experience: what's open vs what needs login
+**Open to everyone (no login):** upcoming matches, bookie vs Polymarket chances, the gap, the "who to trust" note with recalled memories and sample size, and the Sui proof link for each reading. Judges must be able to see the app working within seconds of opening the link, with no sign-up wall.
+
+**Needs login (Google or email, via Supabase):**
+- Making your own picks
+- Your personal record and personal Memory Check notes
+- Full source history pages (every past reading and result per source)
+
+Show a clear, friendly prompt where login is needed, e.g. "Sign in to make your pick." Never block the open pages.
+
+**Two kinds of memory, both stored in Walrus:**
+- **App memory** (no user needed): every reading, result, score and source record from the data job. This is what powers "who to trust".
+- **Personal memory** (logged-in users): each user's picks, reasons, results and patterns, kept separate per user, used for their personal Memory Check. The hackathon theme is "ship something that remembers you", so this must work properly, not be an afterthought.
 - From day one, the app shows real odds, Polymarket prices and gaps, even before much history exists.
 - Patterns appear only once there's enough history, always with the sample size.
 

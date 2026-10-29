@@ -1,184 +1,193 @@
-# UI Spec
+# UI Spec (version 2, white redesign)
 
-Read this together with CLAUDE.md. CLAUDE.md still wins on product rules, honesty and wording.
-The reference mockup files are in `design-reference/` (Main, SignIn, Memory, Logo). They use a mockup format, but the CSS, SVG shapes, colours and animation timings in them are the source of truth. Copy those values; don't copy the file format.
-
-## Name and logo
-- **The app is called Oddsight** (odds + hindsight: it remembers how the same kind of game went before, so you get hindsight before kickoff). Put the name in **one setting** and use it everywhere: page titles, sign-in page, header, README, metadata. Replace every "[App name]".
-- **Wordmark:** "oddsight", all lowercase, Archivo 800, letter-spacing -0.045em, chalk on dark. No tagline.
-- **Logo files are in `brand/`:**
-  - `oddsight-icon.svg`: main app icon (dark). Use it for the app icon, the sign-in page, and social preview images.
-  - `oddsight-icon-lime.svg`: lime version, for light or colourful backgrounds.
-  - `oddsight-favicon.svg`: simplified version for the browser tab and anything under 48px. It drops the pitch lines so it stays readable.
-- **What the logo means** (use this wording in the README and blog): a rear-view mirror, because hindsight means looking back. Inside it is a football pitch, with the bookies' amber square far away and Polymarket's blue circle close up, showing "who's been closer".
-- Use the SVGs as they are. Don't redraw, recolour or stretch them. Export PNGs from them where needed (e.g. 180px apple-touch-icon, 512px for the web app manifest).
+This replaces every earlier UI.md. Read it with CLAUDE.md. CLAUDE.md still wins on product rules, honesty and wording.
+Mockups are in `design-reference/` (Main = Matches, Calls, Records, Proof, SignIn, Logo). Their CSS, SVG, colours and timings are the source of truth. Copy the values, not the mockup file format.
+Logo files are in `brand/`.
 
 ## Ground rules
-1. **Don't change how anything works.** No new features, no changes to the data job, scoring, Sui or Walrus logic. UI only.
-2. **Run all tests after each change.** Check every screen at phone width (390px) first, then desktop.
-3. **Mobile first.** Most users are on phones. Judges will often be on laptops, so desktop must look good too.
-4. **Respect "reduce motion".** Every animation listed here turns off under `prefers-reduced-motion: reduce`. Content still shows, just without movement.
-5. **Fast.** No video, no heavy images, no animation libraries unless already installed. CSS and inline SVG only. The page must show real content within about a second.
-6. **Show Maverick screenshots** of each screen before moving to the next one.
+1. **Keep everything that already works.** Data job, scoring, Sui, Walrus and sign-in logic stay as they are, except the fixes listed in "Fixes to how it works" below.
+2. Run all tests after each change. Check every screen at 360px and 390px wide, then desktop.
+3. Every animation turns off under `prefers-reduced-motion: reduce`.
+4. CSS and inline SVG only. No animation libraries, no video.
+5. Show Maverick screenshots of each screen before moving on.
 
-## Build order
-1. Colours, fonts and spacing (tokens below), applied app-wide
-2. Coming up page: featured card, match cards, sliding odds, the record, Your call
-3. Stamp card landing with dust
-4. Walrus memory pieces (the record and the Memory page)
-5. Bottom navigation
-6. Sign-in page with the floodlight, floating balls and kits
+## Fixes to how it works (do these first)
+1. **Show the whole week, grouped by league.** The Matches page lists every game from today to 7 days ahead, for every covered league, using football-data.org fixtures. Games without odds yet still show, with "Odds come in the day before kickoff." Leagues with no games this week show "No [league] games this week."
+2. **Local time everywhere.** Kickoffs, stamp times and memory times use the viewer's own time zone from the browser, with the zone label (e.g. "5:30pm WAT"). Never show server or UTC time.
+3. **Make stamping feel instant.** When a user taps a call:
+   - Show the stamp card immediately in a "Stamping on Sui..." state (spinner in the check circle).
+   - Send the Sui transaction and return as soon as Sui confirms it (don't wait for extra indexing or the Walrus write). Sui usually confirms in about a second.
+   - Save to Walrus **in the background** after the stamp is confirmed. Retry on failure.
+   - Swap the card to "Stamped on Sui at [local time]. Saved on Walrus." and show "View on Sui".
+   - If stamping fails, show "Couldn't stamp. Try again." with a retry button. Never lose the call.
+   - Log how long each step takes. Target under 3 seconds from tap to "Stamped".
+4. **Only show a user their own calls.** Remove other users' calls ("A fan's call saved") from every page. Other people's calls are private.
+5. **"Biggest gap this week" only when it matters.** Pick from all of this week's games that haven't kicked off and have a Polymarket market above the volume threshold. Only show the card if the gap is **5 points or more**. Otherwise hide it.
+6. **No raw Walrus IDs on screen.** Show "Remembered on Walrus" / "Check" links instead. Put the full ID behind the link (or a copy button on the Proof page).
 
-If time runs short, cut from the bottom of this list, never the top.
+## Pages and navigation
+Four pages, always in the bottom nav, **each with an icon and a label**:
 
-## Tokens
+| Nav label | Page | Replaces |
+|---|---|---|
+| Matches | Coming up (home) | Coming up |
+| My calls | The user's calls | Your calls |
+| Records | Who's been closer, by gap and league, plus "You vs the market" | Scorecard |
+| Proof | How Tatum, Sui and Walrus are used, with live lists to check | Memory |
+
+Sign in lives in the header (a "Sign in" button when logged out, a profile button when logged in). Email and "Log out" move to a profile sheet, not the My calls page.
+
+**Bottom nav:** floating glass bar, 14px from the sides and bottom, radius 26px, 4 equal items. Each item: 20px icon above a 12px label. Active item: ink background (`#0B1A14`), white label, lime icon. Respect `env(safe-area-inset-bottom)`. On desktop, the same bar can sit at the top.
+
+## Look and feel
 
 ### Colours
 | Token | Value | Use |
 |---|---|---|
-| ground | `#0A1712` | Page background |
-| ground-glow | radial `#143528` → `#0A1712` at the top 50% | Subtle light at the top of each page |
-| deep | `rgba(6,17,13,0.6)` | Record panel background |
-| glass | `rgba(255,255,255,0.045)` + border `rgba(255,255,255,0.08)` + `backdrop-filter: blur(14px)` | Cards |
-| chalk | `#F2F5F1` | Main text |
-| muted | `#C9D6CE` | Secondary text |
-| faint | `#9DB1A6` | Labels |
-| fainter | `#7F978A` | Notes, dates (only on dark ground, keep contrast at 4.5:1) |
-| lime-mint | `linear-gradient(120deg, #C6F36B, #4FE0B5)` | Primary buttons, selected states, the featured card. Use sparingly. |
-| bookies | `#F5A524` | Everything about bookies. Marker is a **square**. |
-| polymarket | `#8FD3FF` | Everything about Polymarket. Marker is a **circle**. |
+| page | `#F3F6F4` | Background |
+| glow-lime / glow-sky / glow-amber / glow-mint | `#C6F36B`, `#8FD3FF`, `#FFD58A`, `#4FE0B5` at 35–50% opacity, blurred 70–80px | 2–3 soft colour blobs per page behind the glass, so the glass has something to blur |
+| glass | `rgba(255,255,255,0.62)`, border `rgba(255,255,255,0.95)`, shadow `0 12px 32px rgba(11,26,20,0.07)`, `backdrop-filter: blur(18px) saturate(140%)` | Cards, tabs, nav |
+| ink | `#0B1A14` | Text, primary buttons, active tabs and nav, the stamp card |
+| hero | White glass (same as cards) with **one** soft green glow blob in a corner (`rgba(15,169,104,0.28)` to `rgba(198,243,107,0.2)`, blurred 20px, slow drift). Record card inside an open match: `rgba(15,169,104,0.07)` with a 1px `rgba(15,169,104,0.18)` border. | **Hero cards** (the card that carries the main number on each page, and the record card inside an open match). No multi-colour gradients. |
+| hero-number | `#0E7A4F` | The main number in a hero card |
+| hero-muted | `#3F5A4C` | Secondary text on hero cards |
+| muted | `#4F6158` | Secondary text |
+| faint | `#5F6F67` | Small labels (keep 4.5:1 contrast on white) |
+| bookies | **Charcoal.** Bar shades `#1E2B25` / `#6F7C75` / `#D5DBD8`, text `#1E2B25` | Everything bookies. Marker: **square**. |
+| polymarket | **Green.** Bar shades `#0FA968` / `#7FD8B0` / `#D3F2E4`, text `#0A7A4C`, tint `rgba(15,169,104,0.12)` | Everything Polymarket. Marker: **circle**. |
+| lime-mint | `linear-gradient(120deg, #C6F36B, #4FE0B5)` | Small highlights only: badges, the stamp check, active icon |
+| win / loss | `#0E7A4F` / `#C0362C` | "Spot on" / "Missed it" stamps only |
 
-Bookies vs Polymarket must also differ by **shape** (square vs circle), not just colour.
+**Colour rule (new):** the page is white, ink and one green family. No amber, no blue, no rainbow gradients on data screens. Bookies are charcoal, Polymarket is green, lime `#C6F36B` is for small highlights (badges, stamp check, active nav icon). The logo keeps its own colours. The square vs circle markers still tell the two sources apart for colour-blind users.
 
-### Fonts (Google Fonts)
-| Font | Use |
-|---|---|
-| **Archivo** 600–800, letter-spacing -0.01em to -0.03em | Page titles, team names, kickoff times, percentages, record numbers, the "Locked" card |
-| **Schibsted Grotesk** 400–600 | Everything you read: body, labels, buttons |
+**Hero "lamp" effect (hover or touch only):** every hero card has a hidden layer with a bright lime-to-mint glow and faint pitch markings (touchline, halfway line, centre circle, boxes) in `#0E7A4F` at 50% opacity. It's invisible until the pointer is over the card: then a soft 150px circle of it follows the mouse (or finger while dragging) and fades out 320ms after the pointer leaves. Build it with a CSS radial `mask-image` positioned by `--mx` / `--my` custom properties, set directly on the element in the pointer handler (no React re-render). The card must look complete without it.
 
-Only these two fonts. No Doto, no monospace.
+### Fonts
+- **Archivo** 700–900, tight letter-spacing (-0.02 to -0.05em): titles, team names, all numbers
+- **Schibsted Grotesk** 400–700: everything else
+- `font-variant-numeric: tabular-nums` on every number
 
-Use `font-variant-numeric: tabular-nums` on every number so they line up.
+### Sizes (phone)
+- Page title: Archivo 900, **52px**, line-height 0.95
+- Section title (league names, "By league"): Archivo 800, 24–26px
+- Hero numbers: Archivo 900, 60–76px
+- Team names: Archivo 700, 16px. Kickoff time: Archivo 800, 22px
+- Body 15–16px. Labels 12–13px.
 
-### Type scale (phone)
-- Page title: Archivo 700, 30px
-- Featured card title: Archivo 800, 26px
-- Section heading: Archivo 700, 20px
-- Kickoff time: Archivo 700, 22px
-- Team name: Archivo 600, 16px
-- Percentages in pills: Archivo 700, 17px
-- Body: Schibsted 400, 15px, line-height 1.5
-- Labels and notes: Schibsted 400–500, 12–13px
-- Record numbers (bookies / Polymarket count): Archivo 800, 36px
+### Motion (keep it to these)
+- **Page title:** each word slides up from behind a mask once on load (620ms, second word 90ms later).
+- **Odds bars** grow in from the left once (700ms).
+- **Hero numbers (on every page, every time the page opens):** for about 0.9 seconds the digits **roll rapidly** through different numbers like a fast-spinning counter (change every 40ms, slightly blurred), then land on the real number with a quick pop and a green flash. This must be clearly visible even when the real number is small (e.g. 2). Applies to: the record in an open match, the Records hero, the My calls hero. Re-runs when switching the Records gap tab.
+- **Stamp card:** drops, squashes, settles, with dust from its bottom corners (see Matches).
+- **Records gap tabs:** numbers re-count and the bar slides to the new split when you switch.
+- **Proof page:** a small mint dot runs down the line between the 4 steps; the newest memory pulses once.
+- Buttons press in slightly (scale 0.97) when tapped.
 
-No thin weights below 16px. Make less important text a softer colour, not a lighter weight. No ALL-CAPS labels.
-
-### Shape and spacing
-- Cards: radius 24px, padding 18px 16px
-- Pills and buttons: fully rounded (999px), min height 44–52px (touch targets ≥ 44px)
-- Gap between cards: 22px. Inside cards: 16px.
-
-## Screens
-
-### 1. Coming up (main page)
+## Matches (Coming up)
 Top to bottom:
+1. **Header:** logo icon + "oddsight" wordmark on the left, "Sign in" (ink pill) on the right.
+2. "This week, [date range]" in muted text, then the title **"Coming up"** (52px, animated), then one line: "Bookies vs Polymarket on every big game, and who's been right before."
+3. **League tabs:** All, then each covered league, each with its game count in a small pill. Selected tab is ink. Scrolls sideways.
+4. **Biggest gap this week** (only if 5+ points, see Fixes): white glass hero card with the lamp effect. Top: small ink pill "Biggest gap this week", the match (Archivo 800, 28px), then "Premier League, Sat 5:30pm WAT. Chance Arsenal win." Below, side by side: the gap as a big green number "12" (72px) with "points apart" under it, and two thin labelled bars: Bookies 48% (charcoal, square marker) and Polymarket 60% (green, circle marker). Nothing should wrap awkwardly at 360px.
+5. **League sections**, one per league (or just the selected one): league name as a 26px title with "5 games" on the right. Games grouped under day labels ("Today", "Sat 31 Oct").
+6. **Match card (glass):**
+   - Team row: crest, name | kickoff time + zone | crest, name
+   - **Odds comparison (two stacked rows, always both visible, no sliding):**
+     - Left: a plain label, 96px wide, no chip box: small square + "Bookies" (charcoal), or small circle + "Polymarket" (green).
+     - Right: a 30px bar split into home / draw / away, widths = the chances, numbers inside each part ("57%"). Darkest shade for home, mid for draw, light for away.
+     - Under the bars, small labels lining up: home team, Draw, away team.
+     - Then one verdict pill: "Polymarket rates Roma 8 points higher" (green tint) or "Bookies rate ... higher" (green tint) when the gap is 5+, otherwise "They agree on this one" (grey).
+   - Bookies only: just the bookies row, plus "No Polymarket market for this game yet."
+   - No odds yet: "Odds come in the day before kickoff."
+   - **Every card has a full-width "Make your call" button** under the odds (light grey, ink text, down arrow). It also shows on cards where odds aren't in yet. After a call it reads "Your call: Roma win". Tapping it opens the card, and the button becomes a small "Close". Only one card is open at a time, and none is open when the page loads. Open card shows:
+     - **Record (record card with the lamp effect):** a plain sentence first: "When they disagreed like this before, Polymarket got closer in 9 of 14 Serie A games." Then Bookies number, "of 14 games", Polymarket number (68px, rolling count), and a green "Remembered on Walrus" link to the Proof page. Fewer than 10 games: "Not enough past games like this yet. We need 10 before we show who's been closer."
+     - **Your call:** title, three buttons "[home] win" / "Draw" / "[away] win". Selected is ink.
+     - **Logged out:** the buttons still show. Tapping one does NOT lock anything. It opens a small sign-in card in place: "Sign in to lock \"Roma win\"", one line ("It's free. We need it so your calls are saved to you, and nobody else can make them for you."), "Continue with Google" (ink) and "Continue with email". After sign-in, bring them back to the same game with that pick already chosen, then stamp it. Nothing is stamped or saved for logged-out users. The server must also reject a call with no signed-in user.
+     - **Stamp card:** dark ink card that lands with dust (480ms drop and squash, 12 small dark dust dots from the bottom corners, in front of the card). Content: lime check circle (spinner while stamping), "Locked: Roma win", "Stamped on Sui at 10:42am WAT. Saved on Walrus.", lime "View on Sui" button linking to `https://suiscan.xyz/mainnet/tx/<digest>`.
+7. **Spacing:** sections are tight. 10px between a league title and its cards, 18px between sections. Leagues with **no games** don't get a section. Put them in one line at the bottom: "No games this week: Ligue 1, Bundesliga" (small grey pills). A league with one game is just its title plus that card, no extra space under it.
+8. Crests: real club crests from football-data.org, matched by team ID (see the crest rules from before: check script, fallback to initials, alt text, README note).
 
-**Header:** small day label ("Thursday evening"), "Coming up" title, round glass profile button on the right.
+## My calls
+1. Header, title **"My calls"** (animated).
+2. **White glass hero card with the lamp effect** (no ring):
+   - Top row: a big green "1" (68px, rolling count) with "of 2" beside it, "finished calls right" under it, and an ink pill "50%" on the right.
+   - **"Your form, newest last":** a row of 5 tiles like a football form guide, one per recent finished call. Green tile with a white tick = called it. Red tile with a white cross = not this time. Dashed empty tile = no call yet. They pop in one after another (70ms apart). Each tile has an `aria-label`.
+   - A white pill with a blue border and circle: "Went against Polymarket's pick: right 1 of 1".
+3. **Tabs:** "Upcoming 2" / "Finished 2" (glass segmented control, active is ink).
+4. **Call card (glass):**
+   - League and kickoff (local time), match name, and for finished games "Full time 2-4".
+   - **A stamp in the top-right corner**, tilted -8°, that lands with a small bounce: "Locked" (lime fill, ink border) for upcoming, "Spot on" (green) or "Missed it" (red) for finished.
+   - Three result tiles: home / Draw / away. Your pick is ink with "Your call" under it. On finished games, the actual result has a green border and "Result" under it.
+   - Buttons: "Sui proof" (ink pill, opens Suiscan), "On Walrus" (grey pill, opens Proof), and "Changed 2 times" if the call was edited.
+   - "Changed" opens a small timeline: each version with its time, newest filled.
+5. Remove the old line "Made before Your call existed, so it won't be scored". If imported or legacy calls exist, label them "Not scored" in the stamp instead.
 
-**League chips:** a row that scrolls sideways: All, Premier League, Serie A, La Liga, Ligue 1, Bundesliga, plus whatever leagues the data job covers. Selected chip is chalk with dark text. Filters the list.
+## Records
+1. Header, title **"Records"**, line "After every game, we check who got closer to the real result."
+2. **White glass hero card with the lamp effect:** label for the current filter ("All graded games"), an ink "Early signal" pill if under 10 games, big Bookies and Polymarket numbers (76px, rolling count every time the page opens or the tab changes), "of 8 games", and a split bar (amber / blue on a light track) showing the share.
+3. **"Does the gap matter?"** with "Pick how far apart they were before kickoff." and a 4-part segmented control: **All** (any gap), **Close** (under 5), **Medium** (5 to 10), **Big** (10+). Switching re-counts the hero numbers and slides the bar. Empty: "No games with a gap this big yet. Check back after the weekend." This replaces the old "When they disagreed" list. It's the same data, but now it answers one clear question.
+4. **By league:** one glass row per league with the name, "2 - 6" in source colours, a thin split bar, and "8 games. Early signal, under 10 games." Tap to see the last 3 games and who was closer. Leagues with none: "No finished games yet."
+5. **You vs the market:** three glass tiles: "1/2 Your calls right", "1/1 When you picked differently from Polymarket" (green), "0/1 When you picked differently from the bookies" (charcoal). Logged out: a "Sign in to see your record" tile.
+6. One link at the end: "Every record here is saved on Walrus. See the proof." No raw IDs.
 
-**Featured card, "Biggest gap today":** lime-mint gradient card, dark text. Shows the match with the biggest bookies-vs-Polymarket gap today: pill "Biggest gap today", league and kickoff, the match name, then the gap as the hero: a big **"8"** (Archivo 800, 56px) with "points apart" beside it, and on the right "Bookies 58%" and "Polymarket 66%". Under it: "Chance Roma win. The bookies and Polymarket disagree most on this game today." No lines or icons. Tapping it opens that match's card.
-  - **It updates by itself.** Recalculate it from the latest readings every time the data job saves new ones, and whenever the page loads. Pick the match with the biggest gap (using the home-win chance) among today's games that **haven't kicked off yet** and have a Polymarket market above the volume threshold. Ties go to the earlier kickoff. Once that match kicks off, the next biggest gap takes its place.
-  - Show when it was last checked, small: "Updated 20 min ago".
-  - **Motion:** still on page load (the record's count-up is the page's main animation). Animate **only when the featured match changes** while the page is open: the old content slides out to the left and fades (250ms), the new match slides in from the right (300ms, ease-out), and its big gap number counts up quickly from 0 (about 500ms). If only the numbers change for the same match, just count the gap number to its new value. Reduced motion: swap instantly. If no match today has a Polymarket market, hide this card.
+## Proof
+This page is for judges and curious users. It shows exactly how Tatum, Sui and Walrus are used.
+1. Header, title **"Proof"**, line "Where every number comes from, and where you can check it."
+2. **How it works:** 4 numbered steps in one glass card, joined by a vertical line with a moving mint dot:
+   1. **Read the odds** (tag: Tatum). "Polymarket prices via Tatum, bookie odds via The Odds API."
+   2. **Stamp them** (tag: Sui). "Locked on Sui before kickoff, so nobody can change them later."
+   3. **Remember it** (tag: Walrus). "Odds, result and who got closer, saved on Walrus."
+   4. **Use it next time** (tag: Walrus). "Past games like it come back from Walrus to show who to trust."
+   Keep it to these one-liners. The page is mainly for judges, so it stays in its own tab and never interrupts the main pages.
+3. **Three live counters:** Walrus memories, Sui stamps, Tatum data reads today. Real numbers.
+4. **Remembered on Walrus:** tabs "Game memories" / "My memories" (mine only when logged in). Rows: icon tile (% for odds, FT for result, +1 for record, "You" for a call), title, short detail, local time, and a "Check" link to where that memory can be verified.
+5. **Stamped on Sui:** latest stamps. Each row: the match in bold (Archivo 16px, one line, cut with "..." if too long). Under it, a small tag then the local time. Tag is grey "Odds before kickoff" for the app's readings, or lime "Your pick: Frosinone win" for the user's own picks. No "saved by" line. "Suiscan" button on the right. Keep the time display as it is now.
+6. **Live from Tatum:** last Polymarket price check time, last Sui stamp sent, network "Sui Mainnet". Real values from logs.
 
-**Day heading:** "Tonight", "Tomorrow", or the date.
+## Sign in
+- Keep the dark floodlight page exactly as it is (220px smooth-following light, 3D balls and kits, only visible inside the light).
+- **The panel becomes white glass:** `rgba(255,255,255,0.78)`, `backdrop-filter: blur(22px) saturate(150%)`, white border, big soft shadow, ink text.
+- Panel content: Oddsight icon + wordmark, heading "See who's been right before you pick." (Archivo 800, 30px), muted line, "Continue with Google" (ink button), "Continue with email" (white outline button), "Just looking? Browse games" (ink link).
 
-**Match card (glass):**
-- Top row, three columns: home badge and name | league and kickoff time | away badge and name
-- Team badge: a 40px circle in the club's two colours with the first 3 letters (e.g. "ROM"). **No club crests or logos.** Colours come from football-data.org `clubColors`. Fallback: chalk on dark green.
-- **Sliding odds:** three pills (Home / Draw / Away chances). The pills slide between the **Bookies** set and the **Polymarket** set every 3.2 seconds (520ms ease-in-out slide). A label above shows which source is showing (with its square or circle marker) and two small dots show the position. Bookies numbers are amber, Polymarket numbers blue. The slide pauses while the user touches the card, and doesn't run under reduced motion (show both sets stacked instead).
-- Gap sentence: "Polymarket rates Roma 8 points higher than the bookies." or "They nearly agree. Only 3 points apart."
-- No Polymarket market: show bookies pills only, plus "No Polymarket market for this game, so there's nothing to compare yet."
-- Tapping the team row opens the card (only one open at a time). The opened card shows:
-  - The **record** (below)
-  - **Your call** (below)
+## Name and logo
+- App name **Oddsight**, kept in one setting. Wordmark "oddsight" lowercase, Archivo 800, tight. No tagline.
+- `brand/oddsight-icon.svg` main icon, `brand/oddsight-icon-lime.svg` lime version, `brand/oddsight-favicon.svg` for small sizes. Small icon in each page header (26px, the favicon version on ink).
+- Meaning for README and blog: a rear-view mirror (hindsight), with a pitch inside, the bookies' square far away and Polymarket's circle close up.
 
-**Record (who's been closer):** a dark `deep` panel, radius 20px.
-- Label: "Who's been closer when they disagreed like this"
-- Three columns: left "Bookies" (amber square) with a **big number** under it; middle "out of 14 Serie A games"; right "Polymarket" (blue circle) with its **big number**. Numbers: Archivo 800, 72px, tight letter-spacing, chalk.
-- **The count animation:** when the page loads or the card opens, the numbers **count up in fast motion from 0** to the real record (0, 1, 2... 5 and 0, 1, 2... 9; "out of" counts to 14 at the same time). About 1 second, fast at first and slowing as it nears the final number. While counting, the numbers are slightly blurred to feel like they're rolling. When they land, each one does a quick pop and flashes lime for a moment. Then "+1 since last week" / "+3 since last week" fades in under each number. Runs once per open. Reduced motion: show the final numbers straight away.
-- Bottom row: "Built from 14 games remembered on Walrus" and a small **"See them"** button. It opens the 5 most recent games behind the score: match and score, date, the Walrus memory ID as a link, and which source was closer (marker + "Polymarket closer"). Then a link "See all 14 on the Memory page".
-- "Last week" means the record as it stood 7 days ago, so store or compute it. All games come from the **real Walrus recall**, not the database copy.
-- Not enough history: "Not enough games like this yet. We'll show who's been closer once we have 10."
-
-**Your call:** three full-width pills: "Roma win", "Draw", "Cagliari win". Selected pill uses lime-mint. Tapping triggers the real pick flow (sign-in prompt if logged out: "Sign in to make your call").
-
-### 2. Stamp card landing with dust
-Appears right under the Your call buttons after the user taps a call (e.g. "Roma win"), once the Sui transaction succeeds. While waiting, show a small "Stamping..." state on the tapped button. On failure, a clear error with "Try again".
-- **Compact:** one row, about 56px tall. Don't let it take over the card.
-- Contents, left to right: a 36px lime-mint circle with a check; "Locked: Roma win" (Archivo 700, 15px) with "Stamped on Sui at 3:42pm. Saved on Walrus." under it (12px, real time); a dark pill button **"View on Sui"** with an outward-arrow icon that opens the real transaction on the Sui explorer in a new tab: `https://suiscan.xyz/mainnet/tx/<digest>` (use the real transaction digest).
-- **The landing (480ms):** the card drops from about 64px above with a slight tilt, **hits and squashes** (scale 1.03 wide, 0.93 tall, pivot at the bottom edge), bounces up 4px, settles. The Your call row above gives a tiny 2px "thud" at the moment of impact.
-- **Dust (starts at 270ms, lasts 560ms):** about 12 small soft dots (4–6px, light grey, slightly blurred) burst out from the card's **bottom edge**, mostly from the two corners, spreading **sideways and slightly up**, growing a little and fading out. They must render **in front of** the card (z-index above it), otherwise they're hidden. Subtle: it should read as "it landed", not as smoke.
-- Changing the call before kickoff = new stamp = the card lands again (remount it so the animation replays).
-- Reduced motion: the card just appears, no dust.
-
-### 3. Memory page
-Linked from the bottom nav. This page exists so judges can **see** Walrus working.
-- Back link "Coming up", title "Memory", one line: "Every game we check becomes a memory, saved on Walrus. Next time the bookies and Polymarket disagree, we look back at these."
-- **Counter card** (lime-mint): the real total, e.g. "212 memories saved on Walrus", "18 new today", and "Check on Walrus" linking to where the memories can be verified.
-- **How the scores changed:** one row per league: name, current score (bookies amber, Polymarket blue), and history "3 weeks ago 2-3, last week 4-6, now 5-9". Note under it explaining the order and the 5-point rule (use the real threshold).
-- **Latest memories:** filter chips All / App memory / Your memory. A feed of real memory writes, newest first: Record updated, Result graded, Reading saved, Your call saved. Each shows a short detail, time, and "Remembered on Walrus, [memory ID]" as a link. The newest item gets one soft lime pulse when the page opens.
-
-### 4. Bottom navigation
-Floating pill bar fixed at the bottom of the screen, glass style. Items: Coming up (active: lime-mint pill with icon and label), Your calls, Memory, Profile/Sign in (icon only, each with `aria-label`). Stays clear of phone home bars (`env(safe-area-inset-bottom)`).
-
-### 5. Sign-in page
-- **Fully dark** background (`#040907`) with pitch markings barely visible (`#0E1A15`).
-- **The floating footballs and kits are invisible in the dark.** They only appear, in full colour, inside the floodlight.
-- **Floodlight:** a soft circle of light (**about 220px**) that turns the pitch green, lights the markings, and reveals the balls and kits in colour. Build it as one layer (green pitch + markings + floaters) revealed through a CSS radial `mask-image`.
-- **Movement must be smooth, never jumpy:** run one `requestAnimationFrame` loop that eases the light toward a target point (about 22% of the distance per frame while the user is moving, 2% while idle). The pointer (mouse, or finger while dragging) sets the target. When the user stops or lifts their finger, **the light stays where they left it.** After 2.5 seconds with no input, it starts wandering slowly from that exact spot, so there's no jump back to the top. Set the mask position directly on the element (via a ref), not through React state, so it doesn't re-render 60 times a second.
-- **Make them look 3D, not flat:**
-  - Balls: classic patch pattern, a radial shading overlay (light top-left, dark bottom-right), a small white highlight, and the **patches rotate inside the ball while the shading stays fixed**, so it looks like a spinning sphere.
-  - Kits: a left-to-right shading gradient for cloth volume, two faint fold lines, and they **sway in 3D** (`rotateY` ±28° with `perspective: 700px`) as they float.
-  - Depth: far items are smaller and slightly blurred (1–2.5px), near ones bigger and sharp, all with a soft drop shadow underneath.
-  - Everything bobs slowly (7s, 9s, 11s loops).
-- Kits are plain generic shirts in made-up colour pairs with a number. **No real club kits, no logos, no players.**
-- **Glass panel** in the centre: the Oddsight icon and wordmark, heading "See who's been right before you pick.", line "Bookies vs Polymarket on every big game, and a record of your own calls. Free, no wallet needed.", buttons "Continue with Google" (chalk) and "Continue with email" (glass), link "Just looking? Browse games". The panel uses `backdrop-filter: blur(18px)` so the floodlight doesn't distract while reading.
-- Hook these buttons to the existing Supabase sign-in. Don't change the auth logic.
-
-## Assets: hard rules
-- **No real player photos.** No player names or faces in images.
-- **Club crests: Maverick has confirmed, use the real crests for every team.** Get them from football-data.org's team `crest` field. To avoid mistakes:
-  - Match crests by **football-data.org team ID**, never by team name. The odds service and Polymarket spell names differently ("Man City", "Manchester City FC"), so reuse the data job's team matching to link each match to the right football-data.org team ID.
-  - Store each team's crest URL in the database once (when the team is first seen), not on every page load.
-  - Write a check script that lists every team in every covered league with its crest URL, and flags any team with **no crest, a broken URL, or no team ID match**. Run it and fix every flagged team before the UI is done. Show Maverick the list.
-  - Show crests at 40px, `object-fit: contain`, on a soft circle background so they look consistent on the dark UI.
-  - If a crest fails to load, fall back to the two-colour initials badge automatically. Never show a broken image.
-  - Every crest image has `alt` text with the team name.
-  - Add a line in the README: "Club crests belong to their clubs and are shown only to identify teams."
-- **No real kit designs** on the sign-in page. Club colours are fine.
-- **No Polymarket or bookmaker logos.** Use the words and the square/circle markers.
-- Everything is CSS or inline SVG. No image downloads.
+## Assets
+- Real club crests (see Matches). No player photos. No bookmaker or Polymarket logos, use the chips and markers.
 
 ## Wording
-Keep everything already agreed in CLAUDE.md ("Coming up", "Your call", "Bookies vs Polymarket", "You called it" / "Not this time", "Your calls"). Write any new text like a football fan talking to a friend. Show Maverick new text before finalising.
+Plain, short, like a fan talking to a friend (see CLAUDE.md). Cut anything a user doesn't need. Show Maverick any new text first.
 
-## Mobile checks (must pass before the UI is done)
-Many users will be on mid-range Android phones on mobile data. Test for that, not just a laptop's phone view.
-- **Narrow screens:** check at **360px** and 390px wide (360 is common on Android). No text cut off, no sideways scrolling except the league chips. Three "Your call" buttons with long names (e.g. "Wolverhampton win") must still fit: shorten to the short team name if needed.
-- **Touch:** every button and link at least 44px tall. Tapping a match row, a pill, "See them" and "View on Sui" all work with a thumb.
-- **Phone edges:** respect `env(safe-area-inset-*)` so nothing hides under the notch or the home bar. The bottom nav sits above the home bar.
-- **Sign-in floodlight:** follows a dragging finger smoothly, doesn't scroll or zoom the page while dragging (`touch-action: none` on that area only), and the buttons in the glass panel still tap normally.
-- **Speed on a mid-range Android:** blur (`backdrop-filter`) and masks can be slow on cheaper phones. Check that scrolling stays smooth. If it stutters, lower the blur amount or use a solid background instead of blur on Android.
-- **Browser support:** use both `-webkit-mask-*` and `mask-*`, and `-webkit-backdrop-filter` with `backdrop-filter`. Test in Chrome on Android and Safari on iPhone.
-- **Slow data:** with the network throttled to "Fast 3G" in DevTools, the page should show real content (or a simple loading state) within about 3 seconds. Fonts must not block text (`display=swap`).
-- **Real phone:** after deploying, open the live site on Maverick's own phone and go through every screen once.
+## Mobile checks (must pass)
+- 360px and 390px wide: nothing cut off, no sideways scroll except league tabs. Long team names in call buttons shorten to the short name.
+- All buttons 44px+. Safe areas respected. Bottom nav never covers content (add bottom padding).
+- Blur can be slow on cheaper Android phones: if scrolling stutters, lower the blur or drop it on the blobs first.
+- Use both `-webkit-` and standard versions of `backdrop-filter` and `mask`. Test Chrome on Android and Safari on iPhone.
+- Throttled to Fast 3G, real content or a clean loading state within 3 seconds.
+- Maverick checks every screen on his own phone.
 
 ## Done when
-- Every screen matches the reference at 390px and looks good on desktop
-- All existing tests pass, nothing about how the app works has changed
-- Reduced motion turns every animation off
-- Keyboard focus is visible on every button and link
-- Text contrast is at least 4.5:1
-- The live site loads real content in about a second on a phone
+- The 6 fixes work and are tested
+- Every screen matches the mockups at 390px, works at 360px and looks good on desktop
+- Stamping goes from tap to "Stamped" in under 3 seconds in normal conditions
+- All tests pass, contrast is 4.5:1+, keyboard focus is visible, reduced motion turns animations off
+
+
+## Calm colour pass (latest)
+- No multi-colour gradients anywhere. Hero cards are white glass, the same as other cards.
+- Page glow blobs: at most two, green `#0FA968` and lime `#C6F36B`, low opacity (0.2 to 0.3). No sky blue or amber blobs.
+- Hover lamp: soft lime glow, pitch lines in ink at 18% opacity.
+- My calls form tokens: 40px, soft tints with a coloured icon. Right: green tint `rgba(15,169,104,0.14)` + green tick. Wrong: red tint `rgba(192,54,44,0.1)` + red cross. Empty: dashed outline. No solid red or green blocks.
+- "Went against Polymarket's pick" means you picked a different result from the one Polymarket gave the highest chance.
+
+## Proof page: Stamped on Sui labels (latest)
+- Under the "Stamped on Sui" title, one line: "Saved before kickoff, so nobody can change them after the result."
+- Each row says what was saved and who saved it:
+  - App readings: title "Odds before kickoff: Frosinone v Lecce", subline "Saved by the app · Today, 1:30pm WAT"
+  - User calls: title "Your pick: Frosinone win", subline "Saved by you · Today, 10:41am WAT"
+- **Times:** don't use `tabular-nums` on times with a colon. It adds wide gaps ("1 : 30pm"). Times must read "1:30pm". Keep `tabular-nums` only on plain numbers and percentages.
+
+## Sign-in panel (latest)
+The panel is now **dark glass**, not white, so it sits inside the floodlit pitch: background `rgba(8,20,15,0.55)`, blur 18px, border `rgba(255,255,255,0.12)`, white heading, `#B9C7BF` body text. "Continue with Google" is lime `#C6F36B` with ink text. "Continue with email" is a white outline (22%) on a faint white fill. "Just looking? Browse games" is light grey. Logo gets a thin light border so it shows on the dark panel.

@@ -9,339 +9,366 @@
 <x-dc>
 <helmet>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&amp;family=Schibsted+Grotesk:wght@400;500;600&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&amp;family=Schibsted+Grotesk:wght@400;500;600;700&amp;display=swap">
 <style>
-body{margin:0;background:#0A1712}
-a{color:#C6F36B}a:hover{color:#DDF9A0}
+body{margin:0;background:#F7F9F8}
+a{color:#0B1A14}
 button{font:inherit;-webkit-tap-highlight-color:transparent}
-button:focus-visible,a:focus-visible{outline:2px solid #F2F5F1;outline-offset:3px}
-.glass{background:rgba(255,255,255,0.045);border:1px solid rgba(255,255,255,0.08);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+button:focus-visible,a:focus-visible{outline:2px solid #0B1A14;outline-offset:3px}
+.glass{background:rgba(255,255,255,0.72);border:1px solid rgba(255,255,255,0.95);box-shadow:0 1px 0 rgba(11,26,20,0.03),0 10px 28px rgba(11,26,20,0.06);-webkit-backdrop-filter:blur(16px) saturate(140%);backdrop-filter:blur(16px) saturate(140%)}
 .press{transition:transform 120ms ease,background-color 160ms ease,color 160ms ease,border-color 160ms ease}
 .press:active{transform:scale(0.97)}
-.slider{transition:transform 520ms cubic-bezier(.65,0,.35,1)}
+.aurora{animation:aurora 22s ease-in-out infinite alternate}
+@keyframes aurora{0%{transform:translate(0,0) scale(1)}50%{transform:translate(40px,30px) scale(1.12)}100%{transform:translate(-30px,10px) scale(0.95)}}
+.word{display:inline-block;overflow:hidden;vertical-align:bottom;padding-bottom:4px}
+.word > span{display:inline-block;animation:wordUp 620ms cubic-bezier(.2,.9,.2,1) both}
+.word.w2 > span{animation-delay:90ms}
+@keyframes wordUp{0%{transform:translateY(105%)}100%{transform:none}}
+.grow{animation:grow 700ms cubic-bezier(.2,.9,.2,1) both;transform-origin:left center}
+@keyframes grow{0%{transform:scaleX(0)}100%{transform:none}}
 .bump{animation:bump 420ms cubic-bezier(.2,1.6,.4,1) both}
-@keyframes bump{0%{transform:scale(1);color:#F2F5F1}40%{transform:scale(1.14);color:#C6F36B}100%{transform:scale(1);color:#F2F5F1}}
+@keyframes bump{0%{transform:scale(1)}40%{transform:scale(1.14);color:#0FA968}100%{transform:scale(1)}}
 .rolling{filter:blur(0.6px);opacity:.85}
-.pop{animation:pop 300ms ease-out both}
-@keyframes pop{0%{opacity:0;transform:translateY(4px)}100%{opacity:1;transform:none}}
+.lamp{position:absolute;inset:0;pointer-events:none;opacity:var(--o,0);transition:opacity 320ms ease;-webkit-mask-image:radial-gradient(circle 150px at var(--mx,50%) var(--my,50%),#000 0%,rgba(0,0,0,0.5) 45%,transparent 100%);mask-image:radial-gradient(circle 150px at var(--mx,50%) var(--my,50%),#000 0%,rgba(0,0,0,0.5) 45%,transparent 100%)}
 .land{animation:land 480ms cubic-bezier(.3,.9,.4,1) both;transform-origin:50% 100%}
 @keyframes land{0%{opacity:0;transform:translateY(-64px) scale(1.06) rotate(-3deg)}55%{opacity:1;transform:translateY(0) scale(1.03,.93) rotate(0)}75%{transform:translateY(-4px) scale(.99,1.01)}100%{opacity:1;transform:none}}
 .dust{animation:dust 560ms 270ms ease-out both}
-@keyframes dust{0%{opacity:0;transform:translate(0,0) scale(.6)}15%{opacity:.9}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(1.4)}}
-.thud{animation:thud 260ms 260ms ease-out both}
-@keyframes thud{0%,100%{transform:none}35%{transform:translateY(2px)}}
-.reveal{animation:slideOpen 220ms ease-out both}
+@keyframes dust{0%{opacity:0;transform:translate(0,0) scale(.6)}15%{opacity:.8}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(1.4)}}
+.spin{animation:spin 800ms linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.reveal{animation:slideOpen 240ms ease-out both}
 @keyframes slideOpen{0%{opacity:0;transform:translateY(-4px)}100%{opacity:1;transform:none}}
-@media (prefers-reduced-motion: reduce){.bump,.pop,.land,.dust,.thud,.reveal{animation:none}.slider,.press{transition:none}.dust{display:none}}
+@media (prefers-reduced-motion: reduce){.aurora,.word > span,.grow,.bump,.land,.dust,.reveal,.spin{animation:none}.press{transition:none}.dust{display:none}}
 </style>
 </helmet>
-<div style="width: 390px; min-height: 1640px; box-sizing: border-box; background: radial-gradient(120% 50% at 50% 0%, #143528 0%, #0A1712 60%); color: #F2F5F1; font-family: 'Schibsted Grotesk', system-ui, sans-serif; font-size: 15px; padding: 18px 18px 40px; display: flex; flex-direction: column; gap: 22px">
+<div style="position: relative; width: 390px; min-height: 2300px; box-sizing: border-box; overflow: hidden; background: #F7F9F8; color: #0B1A14; font-family: 'Schibsted Grotesk', system-ui, sans-serif; font-size: 15px">
 
-  <div style="display: flex; justify-content: space-between; align-items: center">
-    <div style="display: flex; flex-direction: column; gap: 2px">
-      <span style="font-size: 13px; color: #9DB1A6">Thursday evening</span>
-      <h1 style="margin: 0; font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 30px; letter-spacing: -0.02em; line-height: 1.05">Coming up</h1>
-    </div>
-    <button type="button" class="press glass" aria-label="Your profile" style="width: 44px; height: 44px; border-radius: 50%; color: #F2F5F1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; padding: 0">
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="7" r="3.5" stroke="currentColor" stroke-width="1.5"></circle><path d="M3.5 17c1.2-3 3.7-4.5 6.5-4.5s5.3 1.5 6.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg>
-    </button>
-  </div>
+  <div aria-hidden="true" class="aurora" style="position: absolute; left: -60px; top: -170px; width: 520px; height: 380px; border-radius: 50%; background: radial-gradient(closest-side, rgba(15,169,104,0.32), rgba(198,243,107,0.22) 55%, transparent 100%); filter: blur(30px)"></div>
 
-  <div style="display: flex; gap: 8px; overflow-x: auto; margin: 0 -18px; padding: 0 18px">
-    <sc-for list="{{leagues}}" as="lg" hint-placeholder-count="5">
-      <button type="button" class="press" onClick="{{lg.pick}}" aria-pressed="{{lg.pressed}}" style="{{lg.style}}">{{lg.name}}</button>
-    </sc-for>
-  </div>
+  <div style="position: relative; padding: 18px 18px 120px; display: flex; flex-direction: column; gap: 18px">
 
-  <section aria-label="Biggest gap today" style="border-radius: 24px; background: linear-gradient(120deg, #C6F36B 0%, #4FE0B5 100%); color: #0A1712; padding: 18px; display: flex; flex-direction: column; gap: 14px">
     <div style="display: flex; justify-content: space-between; align-items: center">
-      <span style="font-size: 13px; font-weight: 600; background: rgba(10,23,18,0.12); border-radius: 999px; padding: 4px 10px">Biggest gap today</span>
-      <span style="font-size: 13px; font-weight: 500">Serie A, 6:30pm</span>
+      <span style="display: inline-flex; align-items: center; gap: 8px; font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 18px; letter-spacing: -0.03em">
+        <svg width="26" height="26" viewBox="0 0 120 120" aria-hidden="true"><rect width="120" height="120" rx="28" fill="#0B1A14"></rect><g transform="translate(6 6) scale(0.9) rotate(-5 60 60)"><path d="M14 44 Q14 34 26 33 L94 33 Q106 34 106 44 L102 80 Q100 90 88 90 L32 90 Q20 90 18 80 Z" fill="none" stroke="#F2F5F1" stroke-width="11" stroke-linejoin="round"></path><rect x="40" y="46" width="14" height="14" fill="#F5A524"></rect><circle cx="72" cy="72" r="13" fill="#8FD3FF"></circle></g></svg>
+        oddsight</span>
+      <a href="SignIn.dc.html" class="press" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border-radius: 999px; background: #0B1A14; color: #FFFFFF; font-size: 14px; font-weight: 600; text-decoration: none">Sign in</a>
     </div>
-    <span style="font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 26px; letter-spacing: -0.025em; line-height: 1.05">Roma v Cagliari</span>
-    <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 12px">
-      <span style="display: flex; align-items: baseline; gap: 8px">
-        <span style="font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 56px; letter-spacing: -0.04em; line-height: 0.85; font-variant-numeric: tabular-nums">8</span>
-        <span style="font-size: 15px; font-weight: 600; line-height: 1.2">points<br>apart</span>
-      </span>
-      <span style="display: flex; flex-direction: column; gap: 4px; align-items: flex-end; font-size: 14px; font-weight: 500">
-        <span style="display: inline-flex; align-items: center; gap: 6px">Bookies <span style="font-family: 'Archivo', sans-serif; font-weight: 700; font-variant-numeric: tabular-nums">58%</span></span>
-        <span style="display: inline-flex; align-items: center; gap: 6px">Polymarket <span style="font-family: 'Archivo', sans-serif; font-weight: 700; font-variant-numeric: tabular-nums">66%</span></span>
-      </span>
+
+    <div style="display: flex; flex-direction: column; gap: 6px; padding-top: 12px">
+      <span style="font-size: 14px; font-weight: 600; color: #4F6158">This week, 29 Oct to 4 Nov</span>
+      <h1 style="margin: 0; font-family: 'Archivo', sans-serif; font-weight: 900; font-size: 52px; letter-spacing: -0.045em; line-height: 0.95"><span class="word"><span>Coming</span></span> <span class="word w2"><span>up</span></span></h1>
+      <p style="margin: 4px 0 0; font-size: 16px; line-height: 1.45; color: #4F6158">Bookies vs Polymarket on every big game, and who's been right before.</p>
     </div>
-    <span style="font-size: 13px; opacity: 0.75">Chance Roma win. The bookies and Polymarket disagree most on this game today.</span>
-  </section>
 
-  <h2 style="margin: 6px 0 -8px; font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 20px; letter-spacing: -0.01em">Tonight</h2>
+    <div style="display: flex; gap: 8px; overflow-x: auto; margin: 0 -18px; padding: 2px 18px 4px">
+      <sc-for list="{{tabs}}" as="t" hint-placeholder-count="6">
+        <button type="button" class="press" onClick="{{t.pick}}" aria-pressed="{{t.pressed}}" style="{{t.style}}">{{t.name}}<span style="{{t.countStyle}}">{{t.count}}</span></button>
+      </sc-for>
+    </div>
 
-  <sc-for list="{{items}}" as="item" hint-placeholder-count="3">
-    <article class="glass" style="border-radius: 24px; padding: 18px 16px; display: flex; flex-direction: column; gap: 16px">
-
-      <button type="button" onClick="{{item.toggle}}" aria-expanded="{{item.expandedStr}}" style="display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 8px; width: 100%; border: none; background: transparent; color: #F2F5F1; padding: 0; cursor: pointer; text-align: center">
-        <span style="display: flex; flex-direction: column; align-items: center; gap: 6px">
-          <span aria-hidden="true" style="{{item.homeBadge}}">{{item.homeInit}}</span>
-          <span style="font-family: 'Archivo', sans-serif; font-weight: 600; font-size: 16px; letter-spacing: -0.01em">{{item.home}}</span>
+    <section aria-label="Biggest gap this week" class="glass" onPointerMove="{{lampMove}}" onPointerLeave="{{lampLeave}}" style="position: relative; overflow: hidden; border-radius: 28px; padding: 18px; display: flex; flex-direction: column; gap: 16px">
+      <div aria-hidden="true" class="aurora" style="position: absolute; right: -90px; bottom: -110px; width: 300px; height: 260px; border-radius: 50%; background: radial-gradient(closest-side, rgba(15,169,104,0.28), rgba(198,243,107,0.2) 60%, transparent 100%); filter: blur(20px)"></div>
+      <div aria-hidden="true" class="lamp"><div style="position: absolute; inset: 0; background: radial-gradient(circle 170px at var(--mx,50%) var(--my,50%), rgba(198,243,107,0.75), rgba(15,169,104,0.25) 55%, transparent 80%)"></div><svg width="100%" height="100%" viewBox="0 0 354 240" preserveAspectRatio="xMidYMid slice" style="position: absolute; inset: 0"><g fill="none" stroke="#0B1A14" stroke-opacity="0.25" stroke-width="1.5"><rect x="10" y="10" width="334" height="220" rx="6"></rect><line x1="177" y1="10" x2="177" y2="230"></line><circle cx="177" cy="120" r="40"></circle><rect x="10" y="72" width="46" height="96"></rect><rect x="298" y="72" width="46" height="96"></rect></g></svg></div>
+      <div style="position: relative; display: flex; flex-direction: column; gap: 6px">
+        <span style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: #0B1A14; background: #C6F36B; border-radius: 999px; padding: 5px 11px"><span aria-hidden="true" style="width: 6px; height: 6px; border-radius: 50%; background: #0B1A14"></span>Biggest gap this week</span>
+        <span style="font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 28px; letter-spacing: -0.035em; line-height: 1.05; padding-top: 4px">Arsenal v Chelsea</span>
+        <span style="font-size: 13px; font-weight: 500; color: #4F6158">Premier League, Sat 5:30pm WAT. Chance Arsenal win.</span>
+      </div>
+      <div style="position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 18px; align-items: center">
+        <span style="display: flex; flex-direction: column; gap: 2px">
+          <span style="font-family: 'Archivo', sans-serif; font-weight: 900; font-size: 76px; letter-spacing: -0.06em; line-height: 0.8; font-variant-numeric: tabular-nums">12</span>
+          <span style="font-size: 12px; font-weight: 700; color: #4F6158">points apart</span>
         </span>
-        <span style="display: flex; flex-direction: column; align-items: center; gap: 2px">
-          <span style="font-size: 12px; color: #9DB1A6">{{item.league}}</span>
-          <span style="font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 22px; letter-spacing: -0.02em; font-variant-numeric: tabular-nums">{{item.kickoff}}</span>
+        <span style="display: flex; flex-direction: column; gap: 10px">
+          <span style="display: flex; flex-direction: column; gap: 4px">
+            <span style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 700"><span style="display: inline-flex; align-items: center; gap: 6px"><span aria-hidden="true" style="width: 9px; height: 9px; background: #1E2B25; display: inline-block"></span>Bookies</span><span style="font-family: 'Archivo', sans-serif; font-weight: 800; font-variant-numeric: tabular-nums">48%</span></span>
+            <span style="height: 8px; border-radius: 999px; background: rgba(11,26,20,0.08); overflow: hidden"><span class="grow" style="display: block; width: 48%; height: 100%; border-radius: 999px; background: #1E2B25"></span></span>
+          </span>
+          <span style="display: flex; flex-direction: column; gap: 4px">
+            <span style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; color: #0A7A4C"><span style="display: inline-flex; align-items: center; gap: 6px"><span aria-hidden="true" style="width: 10px; height: 10px; border-radius: 50%; background: #0FA968; display: inline-block"></span>Polymarket</span><span style="font-family: 'Archivo', sans-serif; font-weight: 800; font-variant-numeric: tabular-nums">60%</span></span>
+            <span style="height: 8px; border-radius: 999px; background: rgba(15,169,104,0.12); overflow: hidden"><span class="grow" style="display: block; width: 60%; height: 100%; border-radius: 999px; background: #0FA968"></span></span>
+          </span>
         </span>
-        <span style="display: flex; flex-direction: column; align-items: center; gap: 6px">
-          <span aria-hidden="true" style="{{item.awayBadge}}">{{item.awayInit}}</span>
-          <span style="font-family: 'Archivo', sans-serif; font-weight: 600; font-size: 16px; letter-spacing: -0.01em">{{item.away}}</span>
-        </span>
-      </button>
+      </div>
+    </section>
 
-      <sc-if value="{{item.hasPoly}}" hint-placeholder-val="{{true}}">
-        <div style="display: flex; flex-direction: column; gap: 8px">
-          <div style="display: flex; justify-content: space-between; align-items: center">
-            <span style="{{item.srcStyle}}"><span aria-hidden="true" style="{{item.srcMark}}"></span>{{item.srcName}}</span>
-            <span style="display: flex; gap: 5px" aria-hidden="true"><span style="{{item.dot1}}"></span><span style="{{item.dot2}}"></span></span>
-          </div>
-          <div style="overflow: hidden; border-radius: 14px">
-            <div class="slider" style="{{item.sliderStyle}}">
-              <sc-for list="{{item.sets}}" as="set" hint-placeholder-count="2">
-                <div style="width: 50%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; box-sizing: border-box">
-                  <sc-for list="{{set.pills}}" as="pill" hint-placeholder-count="3">
-                    <span style="{{pill.style}}"><span style="font-size: 12px; color: #9DB1A6">{{pill.label}}</span><span style="font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 17px; font-variant-numeric: tabular-nums; color: {{set.color}}">{{pill.value}}%</span></span>
-                  </sc-for>
-                </div>
-              </sc-for>
-            </div>
-          </div>
-          <span style="font-size: 13px; color: #9DB1A6">{{item.gapText}}</span>
+    <sc-for list="{{sections}}" as="sec" hint-placeholder-count="4">
+      <section style="display: flex; flex-direction: column; gap: 10px">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; padding-top: 6px">
+          <h2 style="margin: 0; font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 24px; letter-spacing: -0.035em">{{sec.name}}</h2>
+          <span style="font-size: 13px; font-weight: 600; color: #5F6F67">{{sec.countText}}</span>
         </div>
-      </sc-if>
 
-      <sc-if value="{{item.noPoly}}" hint-placeholder-val="{{false}}">
-        <div style="display: flex; flex-direction: column; gap: 8px">
-          <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #F5A524"><span aria-hidden="true" style="width: 8px; height: 8px; background: #F5A524; display: inline-block"></span>Bookies</span>
-          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
-            <sc-for list="{{item.bookPills}}" as="pill" hint-placeholder-count="3">
-              <span style="{{pill.style}}"><span style="font-size: 12px; color: #9DB1A6">{{pill.label}}</span><span style="font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 17px; color: #F5A524; font-variant-numeric: tabular-nums">{{pill.value}}%</span></span>
-            </sc-for>
-          </div>
-          <span style="font-size: 13px; color: #9DB1A6">No Polymarket market for this game, so there's nothing to compare yet.</span>
-        </div>
-      </sc-if>
-
-      <sc-if value="{{item.expanded}}" hint-placeholder-val="{{false}}">
-        <div class="reveal" style="display: flex; flex-direction: column; gap: 16px">
-
-          <sc-if value="{{item.hasScore}}" hint-placeholder-val="{{true}}">
-            <div style="border-radius: 20px; background: rgba(6,17,13,0.6); border: 1px solid rgba(255,255,255,0.07); padding: 16px 16px 14px; display: flex; flex-direction: column; gap: 14px">
-              <span style="font-size: 13px; color: #9DB1A6">Who's been closer when they disagreed like this</span>
-
-              <div style="display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: end; gap: 8px">
-                <span style="display: flex; flex-direction: column; gap: 4px">
-                  <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; color: #F5A524"><span aria-hidden="true" style="width: 9px; height: 9px; background: #F5A524; display: inline-block"></span>Bookies</span>
-                  <span class="{{item.bumpB}}" style="align-self: flex-start; font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 72px; letter-spacing: -0.05em; line-height: 0.82; font-variant-numeric: tabular-nums">{{item.dispB}}</span>
+        <sc-for list="{{sec.games}}" as="g" hint-placeholder-count="2">
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <sc-if value="{{g.showDay}}" hint-placeholder-val="{{true}}">
+              <span style="font-size: 13px; font-weight: 700; color: #5F6F67; padding-left: 2px">{{g.day}}</span>
+            </sc-if>
+            <article class="glass" style="border-radius: 24px; padding: 16px; display: flex; flex-direction: column; gap: 14px">
+              <div style="display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 8px; text-align: center">
+                <span style="display: flex; flex-direction: column; align-items: center; gap: 6px">
+                  <span aria-hidden="true" style="{{g.homeBadge}}">{{g.homeInit}}</span>
+                  <span style="font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 16px; letter-spacing: -0.02em">{{g.home}}</span>
                 </span>
-                <span style="display: flex; flex-direction: column; align-items: center; gap: 4px; padding-bottom: 4px; text-align: center">
-                  <span style="font-size: 12px; color: #9DB1A6; line-height: 1.3">out of {{item.dispN}}<br>{{item.league}} games</span>
+                <span style="display: flex; flex-direction: column; align-items: center; gap: 1px">
+                  <span style="font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 22px; letter-spacing: -0.03em; font-variant-numeric: tabular-nums">{{g.time}}</span>
+                  <span style="font-size: 12px; font-weight: 600; color: #5F6F67">WAT</span>
                 </span>
-                <span style="display: flex; flex-direction: column; gap: 4px; align-items: flex-end">
-                  <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; color: #8FD3FF">Polymarket<span aria-hidden="true" style="width: 10px; height: 10px; border-radius: 50%; background: #8FD3FF; display: inline-block"></span></span>
-                  <span class="{{item.bumpP}}" style="align-self: flex-end; font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 72px; letter-spacing: -0.05em; line-height: 0.82; font-variant-numeric: tabular-nums">{{item.dispP}}</span>
+                <span style="display: flex; flex-direction: column; align-items: center; gap: 6px">
+                  <span aria-hidden="true" style="{{g.awayBadge}}">{{g.awayInit}}</span>
+                  <span style="font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 16px; letter-spacing: -0.02em">{{g.away}}</span>
                 </span>
               </div>
 
-              <sc-if value="{{item.showDelta}}" hint-placeholder-val="{{true}}">
-                <div class="pop" style="display: flex; justify-content: space-between; font-size: 12px; color: #C9D6CE">
-                  <span>+{{item.deltaB}} since last week</span>
-                  <span>+{{item.deltaP}} since last week</span>
-                </div>
-              </sc-if>
-
-              <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 10px">
-                <span style="font-size: 13px; color: #C9D6CE">Built from {{item.scoreN}} games remembered on Walrus</span>
-                <button type="button" class="press" onClick="{{item.toggleMem}}" aria-expanded="{{item.memStr}}" style="flex-shrink: 0; min-height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.14); background: transparent; color: #F2F5F1; font-size: 13px; font-weight: 500; cursor: pointer">{{item.memBtn}}</button>
-              </div>
-
-              <sc-if value="{{item.memOpen}}" hint-placeholder-val="{{false}}">
-                <div class="reveal" style="display: flex; flex-direction: column; margin-top: -6px">
-                  <sc-for list="{{item.recent}}" as="p" hint-placeholder-count="5">
-                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid rgba(255,255,255,0.05)">
-                      <span style="display: flex; flex-direction: column; gap: 1px">
-                        <span style="font-size: 14px; font-weight: 500; font-variant-numeric: tabular-nums">{{p.match}}</span>
-                        <span style="font-size: 12px; color: #7F978A">{{p.date}}, <a href="#">{{p.mem}}</a></span>
-                      </span>
-                      <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #DCE7E0; white-space: nowrap"><span aria-hidden="true" style="{{p.dot}}"></span>{{p.closer}}</span>
+              <sc-if value="{{g.hasRows}}" hint-placeholder-val="{{true}}">
+                <div style="display: flex; flex-direction: column; gap: 8px">
+                  <sc-for list="{{g.rows}}" as="r" hint-placeholder-count="2">
+                    <div style="display: grid; grid-template-columns: 96px minmax(0, 1fr); align-items: center; gap: 8px">
+                      <span style="{{r.labelStyle}}"><span aria-hidden="true" style="{{r.mark}}"></span>{{r.name}}</span>
+                      <div class="grow" style="display: flex; height: 30px; border-radius: 9px; overflow: hidden; gap: 2px">
+                        <sc-for list="{{r.segs}}" as="sg" hint-placeholder-count="3">
+                          <span style="{{sg.style}}">{{sg.label}}</span>
+                        </sc-for>
+                      </div>
                     </div>
                   </sc-for>
-                  <a href="Memory.dc.html" style="font-size: 13px; font-weight: 500; padding-top: 8px">See all {{item.scoreN}} on the Memory page</a>
+                  <div style="display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 8px; font-size: 11px; font-weight: 600; color: #5F6F67">
+                    <span></span>
+                    <span style="display: flex; justify-content: space-between"><span>{{g.home}}</span><span>Draw</span><span>{{g.away}}</span></span>
+                  </div>
+                  <span style="{{g.verdictStyle}}">{{g.verdict}}</span>
                 </div>
               </sc-if>
-            </div>
-          </sc-if>
 
-          <sc-if value="{{item.noScore}}" hint-placeholder-val="{{false}}">
-            <p style="margin: 0; font-size: 14px; line-height: 1.5; color: #9DB1A6">Not enough games like this yet. We'll show who's been closer once we have 10.</p>
-          </sc-if>
+              <sc-if value="{{g.later}}" hint-placeholder-val="{{false}}">
+                <span style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: #4F6158"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.3" stroke="currentColor" stroke-width="1.4"></circle><path d="M8 4.5V8l2.4 1.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path></svg>Odds come in the day before kickoff.</span>
+              </sc-if>
 
-          <div class="{{item.thud}}" style="display: flex; flex-direction: column; gap: 8px">
-            <span style="font-size: 13px; font-weight: 600; color: #9DB1A6">Your call</span>
-            <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
-              <sc-for list="{{item.options}}" as="opt" hint-placeholder-count="3">
-                <button type="button" class="press" onClick="{{opt.pick}}" aria-pressed="{{opt.pressed}}" style="{{opt.style}}">{{opt.label}}</button>
-              </sc-for>
-            </div>
+              <button type="button" class="press" onClick="{{g.toggle}}" aria-expanded="{{g.openStr}}" style="{{g.ctaStyle}}">{{g.ctaLabel}}<svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true" style="{{g.chev}}"><path d="M3 5l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+
+              <sc-if value="{{g.open}}" hint-placeholder-val="{{false}}">
+                <div class="reveal" style="display: flex; flex-direction: column; gap: 14px">
+                  <sc-if value="{{g.hasRecord}}" hint-placeholder-val="{{true}}">
+                    <div onPointerMove="{{g.lampMove}}" onPointerLeave="{{g.lampLeave}}" style="position: relative; overflow: hidden; border-radius: 20px; background: rgba(15,169,104,0.07); border: 1px solid rgba(15,169,104,0.18); padding: 16px">
+                      <div aria-hidden="true" class="lamp"><div style="position: absolute; inset: 0; background: radial-gradient(circle 150px at var(--mx,50%) var(--my,50%), rgba(198,243,107,0.7), rgba(15,169,104,0.22) 55%, transparent 80%)"></div></div>
+                      <div style="position: relative; display: flex; flex-direction: column; gap: 12px">
+                        <span style="font-size: 14px; font-weight: 600; line-height: 1.4">{{g.recordLine}}</span>
+                        <div style="display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: end">
+                          <span style="display: flex; flex-direction: column; gap: 4px">
+                            <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700"><span aria-hidden="true" style="width: 9px; height: 9px; background: #1E2B25; display: inline-block"></span>Bookies</span>
+                            <span class="{{g.rollB}}" style="align-self: flex-start; font-family: 'Archivo', sans-serif; font-weight: 900; font-size: 64px; letter-spacing: -0.05em; line-height: 0.82; font-variant-numeric: tabular-nums">{{g.dispB}}</span>
+                          </span>
+                          <span style="font-size: 12px; font-weight: 600; color: #4F6158; text-align: center; padding-bottom: 4px">of {{g.dispN}}<br>games</span>
+                          <span style="display: flex; flex-direction: column; gap: 4px; align-items: flex-end">
+                            <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: #0A7A4C">Polymarket<span aria-hidden="true" style="width: 10px; height: 10px; border-radius: 50%; background: #0FA968; display: inline-block"></span></span>
+                            <span class="{{g.rollP}}" style="align-self: flex-end; font-family: 'Archivo', sans-serif; font-weight: 900; font-size: 64px; letter-spacing: -0.05em; line-height: 0.82; color: #0A7A4C; font-variant-numeric: tabular-nums">{{g.dispP}}</span>
+                          </span>
+                        </div>
+                        <a href="Proof.dc.html" style="display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; font-size: 12px; font-weight: 600; color: #0A7A4C; text-decoration: none"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><rect x="1.5" y="2.5" width="11" height="9" rx="2.2" stroke="currentColor" stroke-width="1.4"></rect><path d="M4 6h6M4 8.5h3.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path></svg>Remembered on Walrus</a>
+                      </div>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{g.noRecord}}" hint-placeholder-val="{{false}}">
+                    <p style="margin: 0; padding: 12px 14px; border-radius: 16px; background: rgba(11,26,20,0.04); font-size: 14px; line-height: 1.5; color: #4F6158">Not enough past games like this yet to say who's been closer.</p>
+                  </sc-if>
+
+                  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+                    <sc-for list="{{g.options}}" as="o" hint-placeholder-count="3">
+                      <button type="button" class="press" onClick="{{o.pick}}" aria-pressed="{{o.pressed}}" style="{{o.style}}">{{o.label}}</button>
+                    </sc-for>
+                  </div>
+
+                  <sc-if value="{{g.needSign}}" hint-placeholder-val="{{false}}">
+                    <div class="reveal glass" role="dialog" aria-label="Sign in to make your call" style="border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 12px; border: 1px solid rgba(11,26,20,0.1)">
+                      <span style="display: flex; flex-direction: column; gap: 4px">
+                        <span style="font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 18px; letter-spacing: -0.02em">Sign in to lock "{{g.askLabel}}"</span>
+                        <span style="font-size: 14px; line-height: 1.45; color: #4F6158">It's free. We need it so your calls are saved to you, and nobody else can make them for you.</span>
+                      </span>
+                      <a href="SignIn.dc.html" class="press" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; border-radius: 14px; background: #0B1A14; color: #FFFFFF; font-size: 15px; font-weight: 700; text-decoration: none">Continue with Google</a>
+                      <a href="SignIn.dc.html" class="press" style="display: inline-flex; align-items: center; justify-content: center; min-height: 44px; border-radius: 14px; border: 1px solid rgba(11,26,20,0.14); color: #0B1A14; font-size: 14px; font-weight: 600; text-decoration: none">Continue with email</a>
+                      <button type="button" onClick="{{g.skipSign}}" style="align-self: center; background: none; border: none; padding: 6px; font-size: 12px; font-weight: 600; color: #5F6F67; text-decoration: underline; cursor: pointer">Mockup only: pretend I'm signed in</button>
+                    </div>
+                  </sc-if>
+
+                  <sc-if value="{{g.locked}}" hint-placeholder-val="{{false}}">
+                    <div style="position: relative">
+                      <div class="land" style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 18px; background: #0B1A14; color: #FFFFFF; box-shadow: 0 12px 24px rgba(11,26,20,0.22)">
+                        <span aria-hidden="true" style="flex-shrink: 0; width: 36px; height: 36px; border-radius: 50%; background: #C6F36B; display: inline-flex; align-items: center; justify-content: center">
+                          <sc-if value="{{g.stamped}}" hint-placeholder-val="{{true}}"><svg width="16" height="16" viewBox="0 0 14 14" fill="none"><path d="M3 7.5 L6 10 L11 4" stroke="#0B1A14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if>
+                          <sc-if value="{{g.stamping}}" hint-placeholder-val="{{false}}"><svg class="spin" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2a6 6 0 1 1-6 6" stroke="#0B1A14" stroke-width="2" stroke-linecap="round"></path></svg></sc-if>
+                        </span>
+                        <span style="display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1">
+                          <span style="font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 15px">Locked: {{g.pickLabel}}</span>
+                          <span style="font-size: 12px; color: #C9D6CE">{{g.stampText}}</span>
+                        </span>
+                        <sc-if value="{{g.stamped}}" hint-placeholder-val="{{true}}">
+                          <a href="https://suiscan.xyz/mainnet/tx/8a1fc2d4" target="_blank" rel="noopener" style="flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px; min-height: 36px; padding: 0 11px; border-radius: 999px; background: #C6F36B; color: #0B1A14; font-size: 12px; font-weight: 700; text-decoration: none">View on Sui<svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M3 7 L7 3 M4 3 H7 V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg></a>
+                        </sc-if>
+                      </div>
+                      <sc-for list="{{dust}}" as="d" hint-placeholder-count="12">
+                        <span class="dust" aria-hidden="true" style="{{d.style}}"></span>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-if>
+            </article>
           </div>
+        </sc-for>
+      </section>
+    </sc-for>
 
-          <sc-if value="{{item.locked}}" hint-placeholder-val="{{false}}">
-            <div style="position: relative; padding-bottom: 2px">
-              <div class="land" style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 16px; background: #F2F5F1; color: #0A1712; box-shadow: 0 8px 18px rgba(0,0,0,0.3)">
-                <span aria-hidden="true" style="flex-shrink: 0; width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(120deg, #C6F36B, #4FE0B5); display: inline-flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 14 14" fill="none"><path d="M3 7.5 L6 10 L11 4" stroke="#0A1712" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
-                <span style="display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1">
-                  <span style="font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 15px; letter-spacing: -0.01em">Locked: {{item.pickLabel}}</span>
-                  <span style="font-size: 12px; color: #5B6B63; font-variant-numeric: tabular-nums">Stamped on Sui at 3:42pm. Saved on Walrus.</span>
-                </span>
-                <a href="https://suiscan.xyz/mainnet/tx/8a1fc2d4" target="_blank" rel="noopener" style="flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px; min-height: 36px; padding: 0 10px; border-radius: 999px; background: #0A1712; color: #F2F5F1; font-size: 12px; font-weight: 600; text-decoration: none">View on Sui<svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M3 7 L7 3 M4 3 H7 V6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"></path></svg></a>
-              </div>
-              <sc-for list="{{dust}}" as="d" hint-placeholder-count="12">
-                <span class="dust" aria-hidden="true" style="{{d.style}}"></span>
-              </sc-for>
-            </div>
-          </sc-if>
-        </div>
-      </sc-if>
-    </article>
-  </sc-for>
+    <sc-if value="{{hasEmpty}}" hint-placeholder-val="{{true}}">
+      <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding-top: 4px">
+        <span style="font-size: 13px; font-weight: 600; color: #5F6F67">No games this week:</span>
+        <sc-for list="{{empties}}" as="em" hint-placeholder-count="1">
+          <span style="font-size: 13px; font-weight: 600; padding: 5px 11px; border-radius: 999px; background: rgba(11,26,20,0.05); color: #2B3A33">{{em.name}}</span>
+        </sc-for>
+      </div>
+    </sc-if>
 
-  <p style="margin: 0; font-size: 12px; color: #7F978A; text-align: center">Sample data for this mockup.</p>
+    <p style="margin: 0; font-size: 12px; color: #5F6F67; text-align: center">Sample data for this mockup. Initials stand in for club crests.</p>
+  </div>
 
-  <nav aria-label="Main" style="align-self: center; margin-top: 8px; display: flex; gap: 6px; padding: 6px; border-radius: 999px; background: rgba(20,40,32,0.85); border: 1px solid rgba(255,255,255,0.08)">
-    <a href="#" aria-current="page" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 999px; background: linear-gradient(120deg, #C6F36B, #4FE0B5); color: #0A1712; font-weight: 600; font-size: 14px; text-decoration: none">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.2" stroke="currentColor" stroke-width="1.5"></circle><path d="M8 4.6 L10.6 6.5 L9.6 9.6 H6.4 L5.4 6.5 Z" fill="currentColor"></path></svg>Coming up</a>
-    <a href="#" aria-label="Your calls" style="width: 44px; height: 44px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: #C9D6CE"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><rect x="3" y="2.5" width="12" height="13" rx="2.5" stroke="currentColor" stroke-width="1.5"></rect><path d="M6 7.5l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg></a>
-    <a href="Memory.dc.html" aria-label="Memory" style="width: 44px; height: 44px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: #C9D6CE"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><rect x="2.5" y="3.5" width="13" height="11" rx="2.5" stroke="currentColor" stroke-width="1.5"></rect><path d="M5.5 7.5h7M5.5 10.5h4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg></a>
-    <a href="SignIn.dc.html" aria-label="Sign in" style="width: 44px; height: 44px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: #C9D6CE"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><circle cx="9" cy="6.5" r="3.2" stroke="currentColor" stroke-width="1.5"></circle><path d="M3 15.5c1.1-2.7 3.4-4 6-4s4.9 1.3 6 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg></a>
+  <nav aria-label="Main" class="glass" style="position: absolute; left: 14px; right: 14px; bottom: 18px; border-radius: 26px; padding: 6px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px">
+    <a href="#" aria-current="page" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 54px; border-radius: 20px; background: #0B1A14; color: #FFFFFF; text-decoration: none; font-size: 12px; font-weight: 600">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="7.5" stroke="#C6F36B" stroke-width="1.6"></circle><path d="M10 6 L13.2 8.3 L12 12 H8 L6.8 8.3 Z" fill="#C6F36B"></path></svg>Matches</a>
+    <a href="Calls.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 54px; border-radius: 20px; color: #2B3A33; text-decoration: none; font-size: 12px; font-weight: 600">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="3.5" y="2.5" width="13" height="15" rx="3" stroke="currentColor" stroke-width="1.6"></rect><path d="M7 9.5l2 2 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>My calls</a>
+    <a href="Records.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 54px; border-radius: 20px; color: #2B3A33; text-decoration: none; font-size: 12px; font-weight: 600">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 16V9M10 16V4M16 16v-5" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>Records</a>
+    <a href="Proof.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 54px; border-radius: 20px; color: #2B3A33; text-decoration: none; font-size: 12px; font-weight: 600">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 2.5 L16 5 V10 C16 13.6 13.4 16.4 10 17.5 C6.6 16.4 4 13.6 4 10 V5 Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"></path><path d="M7.3 10l1.9 1.9 3.6-3.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>Proof</a>
   </nav>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1640}}'>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":2300}}'>
 class Component extends DCLogic {
   constructor(props) {
     super(props);
-    this.state = { slide: 0, open: 'roma', mem: {}, picks: {}, league: 'All', e: 0 };
-    this.animStart = 0;
+    this.state = { tab: 'All', open: null, picks: {}, stamped: {}, e: 0, signedIn: false, ask: null };
   }
-  componentDidMount() {
-    var self = this;
-    this.timer = setInterval(function () { self.setState(function (s) { return { slide: s.slide ? 0 : 1 }; }); }, 3200);
-    this.runCount();
-  }
-  componentWillUnmount() { clearInterval(this.timer); if (this.raf) cancelAnimationFrame(this.raf); }
+  componentDidMount() { this.runCount(); }
+  componentWillUnmount() { if (this.raf) cancelAnimationFrame(this.raf); }
   runCount() {
     var self = this;
-    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) { this.setState({ e: 99999 }); return; }
     if (this.raf) cancelAnimationFrame(this.raf);
-    if (reduce) { this.setState({ e: 99999 }); return; }
-    this.animStart = performance.now();
-    var tick = function () {
-      var e = performance.now() - self.animStart;
-      self.setState({ e: e });
-      if (e < 1500) self.raf = requestAnimationFrame(tick);
-    };
+    var start = performance.now();
+    var tick = function () { var e = performance.now() - start; self.setState({ e: e }); if (e < 1100) self.raf = requestAnimationFrame(tick); };
     this.raf = requestAnimationFrame(tick);
   }
   renderVals() {
     var self = this;
     var s = this.state;
-    var leagueNames = ['All', 'Premier League', 'Serie A', 'La Liga', 'Ligue 1', 'Bundesliga'];
-    var leagues = leagueNames.map(function (n) {
-      var on = s.league === n;
-      return { name: n, pressed: on ? 'true' : 'false',
-        style: 'flex-shrink: 0; min-height: 40px; padding: 0 16px; border-radius: 999px; font-size: 14px; font-weight: 500; cursor: pointer; white-space: nowrap; ' + (on ? 'border: 1px solid transparent; background: #F2F5F1; color: #0A1712' : 'border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: #C9D6CE'),
-        pick: function () { self.setState({ league: n }); } };
+    var data = [
+      { name: 'Premier League', games: [
+        { id: 'ars', day: 'Sat 31 Oct', home: 'Arsenal', away: 'Chelsea', time: '5:30pm', c: ['#DB0007', '#FFFFFF', '#034694', '#FFFFFF'], book: [48, 27, 25], poly: [60, 22, 18], rec: null },
+        { id: 'liv', day: 'Sun 1 Nov', home: 'Liverpool', away: 'Brighton', time: '3:00pm', c: ['#C8102E', '#F6EB61', '#0057B8', '#FFFFFF'], later: true }
+      ] },
+      { name: 'Champions League', games: [
+        { id: 'rma', day: 'Tue 3 Nov', home: 'Real Madrid', away: 'Juventus', time: '9:00pm', c: ['#FEBE10', '#00529F', '#111111', '#FFFFFF'], later: true }
+      ] },
+      { name: 'Serie A', games: [
+        { id: 'fro', day: 'Today', home: 'Frosinone', away: 'Lecce', time: '5:30pm', c: ['#F7E200', '#0057A8', '#FFD600', '#E10600'], book: [57, 22, 21], poly: [59, 22, 19], rec: null },
+        { id: 'roma', day: 'Sat 31 Oct', home: 'Roma', away: 'Cagliari', time: '6:30pm', c: ['#8E1F2F', '#F0BC42', '#A6192E', '#1E2A5A'], book: [58, 24, 18], poly: [66, 20, 14], rec: { b: 5, p: 9, n: 14 } }
+      ] },
+      { name: 'La Liga', games: [
+        { id: 'bar', day: 'Sun 1 Nov', home: 'Barcelona', away: 'Sevilla', time: '9:00pm', c: ['#A50044', '#EDBB00', '#D8000F', '#FFFFFF'], book: [71, 17, 12], poly: null, rec: null }
+      ] },
+      { name: 'Ligue 1', games: [] },
+      { name: 'Bundesliga', games: [] }
+    ];
+    var total = 0; data.forEach(function (d) { total += d.games.length; });
+    var tOn = 'flex-shrink: 0; display: inline-flex; align-items: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 999px; border: 1px solid #0B1A14; background: #0B1A14; color: #FFFFFF; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap';
+    var tOff = 'flex-shrink: 0; display: inline-flex; align-items: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.95); background: rgba(255,255,255,0.72); color: #0B1A14; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; box-shadow: 0 4px 14px rgba(11,26,20,0.05)';
+    var tabs = [{ name: 'All', count: total }].concat(data.filter(function (d) { return d.games.length; }).map(function (d) { return { name: d.name, count: d.games.length }; })).map(function (t) {
+      var on = s.tab === t.name;
+      return { name: t.name, count: t.count, pressed: on ? 'true' : 'false', style: on ? tOn : tOff,
+        countStyle: 'font-size: 12px; font-weight: 700; padding: 1px 7px; border-radius: 999px; ' + (on ? 'background: rgba(255,255,255,0.16)' : 'background: rgba(11,26,20,0.06)'),
+        pick: function () { self.setState({ tab: t.name }); } };
     });
-    var romaRecent = [
-      ['Udinese 0-2 Atalanta', '25 Oct', 'p', 'mem d81c'], ['Verona 1-1 Napoli', '19 Oct', 'b', 'mem 6e2b'], ['Lazio 2-0 Genoa', '12 Oct', 'p', 'mem 3f9a'],
-      ['Como 2-0 Cagliari', '5 Oct', 'p', 'mem c3f5'], ['Inter 1-1 Torino', '5 Oct', 'b', 'mem 81c2']
-    ];
-    var base = [
-      { id: 'roma', home: 'Roma', away: 'Cagliari', hc1: '#8E1F2F', hc2: '#F0BC42', ac1: '#A6192E', ac2: '#1E2A5A', kickoff: '6:30pm', league: 'Serie A',
-        book: [58, 24, 18], poly: [66, 20, 14], score: { b: 5, p: 9, n: 14 }, last: { b: 4, p: 6, n: 10 }, recent: romaRecent },
-      { id: 'torino', home: 'Torino', away: 'Como', hc1: '#7A1E1E', hc2: '#F2F2F2', ac1: '#1B4F9C', ac2: '#F2F2F2', kickoff: '8:45pm', league: 'Serie A',
-        book: [41, 30, 29], poly: [44, 29, 27], score: null, recent: [] },
-      { id: 'lens', home: 'Lens', away: 'Brest', hc1: '#F2C200', hc2: '#D11B24', ac1: '#E2001A', ac2: '#F2F2F2', kickoff: '9:00pm', league: 'Ligue 1',
-        book: [47, 27, 26], poly: null, score: null, recent: [] }
-    ];
-    var pillStyle = 'display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 9px 4px; border-radius: 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.07)';
-    var dotOn = 'width: 16px; height: 5px; border-radius: 3px; background: #F2F5F1; transition: width 300ms';
-    var dotOff = 'width: 5px; height: 5px; border-radius: 3px; background: rgba(242,245,241,0.3); transition: width 300ms';
-    var idle = 'min-height: 46px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.04); color: #F2F5F1; font-size: 14px; font-weight: 500; cursor: pointer; padding: 0 6px';
-    var chosen = 'min-height: 46px; border-radius: 999px; border: 1px solid transparent; background: linear-gradient(120deg, #C6F36B, #4FE0B5); color: #0A1712; font-size: 14px; font-weight: 600; cursor: pointer; padding: 0 6px';
     function badge(c1, c2) {
-      return 'width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-family: Archivo, sans-serif; font-weight: 700; font-size: 13px; color: ' + c2 + '; background: ' + c1 + '; box-shadow: inset 0 0 0 3px ' + c2;
+      return 'width: 44px; height: 44px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-family: Archivo, sans-serif; font-weight: 800; font-size: 13px; color: ' + c2 + '; background: ' + c1 + '; box-shadow: 0 6px 14px rgba(11,26,20,0.12), inset 0 0 0 3px ' + c2;
     }
+    function segs(vals, src) {
+      var bg = src === 'b' ? ['#1E2B25', '#6F7C75', '#D5DBD8'] : ['#0FA968', '#7FD8B0', '#D3F2E4'];
+      var tx = src === 'b' ? ['#FFFFFF', '#FFFFFF', '#1E2B25'] : ['#FFFFFF', '#06331F', '#06331F'];
+      return vals.map(function (v, i) {
+        return { label: v + '%', style: 'width: ' + v + '%; min-width: 30px; display: inline-flex; align-items: center; justify-content: center; font-family: Archivo, sans-serif; font-weight: 800; font-size: 13px; font-variant-numeric: tabular-nums; background: ' + bg[i] + '; color: ' + tx[i] };
+      });
+    }
+    var labB = 'display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 700; color: #1E2B25';
+    var labP = 'display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 700; color: #0A7A4C';
+    var markB = 'width: 9px; height: 9px; background: #1E2B25; display: inline-block; flex-shrink: 0';
+    var markP = 'width: 10px; height: 10px; border-radius: 50%; background: #0FA968; display: inline-block; flex-shrink: 0';
+    var optIdle = 'min-height: 48px; border-radius: 16px; border: 1px solid rgba(11,26,20,0.12); background: rgba(255,255,255,0.8); color: #0B1A14; font-size: 14px; font-weight: 600; cursor: pointer; padding: 0 6px';
+    var optOn = 'min-height: 48px; border-radius: 16px; border: 1px solid #0B1A14; background: #0B1A14; color: #FFFFFF; font-size: 14px; font-weight: 700; cursor: pointer; padding: 0 6px';
+    var ctaClosed = 'display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; border-radius: 14px; border: 1px solid rgba(11,26,20,0.1); background: rgba(11,26,20,0.04); color: #0B1A14; font-size: 14px; font-weight: 700; cursor: pointer';
+    var ctaOpen = 'display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 36px; border-radius: 12px; border: none; background: transparent; color: #4F6158; font-size: 13px; font-weight: 600; cursor: pointer';
     var e = s.e;
-    var items = base.map(function (m) {
-      var open = s.open === m.id;
-      var memOpen = !!s.mem[m.id];
-      var pick = s.picks[m.id];
-      var labels = [m.home + ' win', 'Draw', m.away + ' win'];
-      var shortL = [m.home, 'Draw', m.away];
-      var src = s.slide;
-      var sets = [];
-      if (m.poly) {
-        sets = [
-          { color: '#F5A524', pills: m.book.map(function (v, i) { return { label: shortL[i], value: v, style: pillStyle }; }) },
-          { color: '#8FD3FF', pills: m.poly.map(function (v, i) { return { label: shortL[i], value: v, style: pillStyle }; }) }
-        ];
-      }
-      var diff = m.poly ? m.poly[0] - m.book[0] : 0;
-      var gap = Math.abs(diff);
-      var dispB = 0, dispP = 0, dispN = 0, phase = 'now';
-      if (m.score) {
-        if (e < 1000) {
-          var t = e / 1000; t = 1 - Math.pow(1 - t, 2.2);
-          dispB = Math.floor(m.score.b * t); dispP = Math.floor(m.score.p * t); dispN = Math.floor(m.score.n * t); phase = 'count';
-        } else {
-          dispB = m.score.b; dispP = m.score.p; dispN = m.score.n; phase = 'now';
-        }
-      }
-      return {
-        home: m.home, away: m.away, kickoff: m.kickoff, league: m.league,
-        homeInit: m.home.slice(0, 3).toUpperCase(), awayInit: m.away.slice(0, 3).toUpperCase(),
-        homeBadge: badge(m.hc1, m.hc2), awayBadge: badge(m.ac1, m.ac2),
-        expanded: open, expandedStr: open ? 'true' : 'false',
-        toggle: function () { var willOpen = s.open !== m.id; self.setState({ open: willOpen ? m.id : null }); if (willOpen) self.runCount(); },
-        hasPoly: !!m.poly, noPoly: !m.poly,
-        srcName: src === 0 ? 'Bookies' : 'Polymarket',
-        srcStyle: 'display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; color: ' + (src === 0 ? '#F5A524' : '#8FD3FF'),
-        srcMark: src === 0 ? 'width: 8px; height: 8px; background: #F5A524; display: inline-block' : 'width: 9px; height: 9px; border-radius: 50%; background: #8FD3FF; display: inline-block',
-        dot1: src === 0 ? dotOn : dotOff, dot2: src === 1 ? dotOn : dotOff,
-        sliderStyle: 'display: flex; width: 200%; transform: translateX(' + (src === 0 ? '0' : '-50%') + ')',
-        sets: sets,
-        bookPills: m.book.map(function (v, i) { return { label: shortL[i], value: v, style: pillStyle }; }),
-        gapText: gap >= 5 ? (diff > 0 ? 'Polymarket rates ' + m.home + ' ' + gap + ' points higher than the bookies.' : 'The bookies rate ' + m.home + ' ' + gap + ' points higher.') : 'They nearly agree. Only ' + gap + ' points apart.',
-        hasScore: !!m.score, noScore: !m.score && !!m.poly,
-        scoreN: m.score ? m.score.n : 0,
-        dispB: dispB, dispP: dispP, dispN: dispN,
-        bumpB: phase === 'now' ? 'bump' : 'rolling',
-        bumpP: phase === 'now' ? 'bump' : 'rolling',
-        showDelta: phase === 'now' && !!m.score,
-        deltaB: m.score ? m.score.b - m.last.b : 0, deltaP: m.score ? m.score.p - m.last.p : 0,
-        memOpen: memOpen, memStr: memOpen ? 'true' : 'false', memBtn: memOpen ? 'Hide' : 'See them',
-        toggleMem: function () { self.setState(function (st) { var o = Object.assign({}, st.mem); o[m.id] = !o[m.id]; return { mem: o }; }); },
-        recent: m.recent.map(function (p) {
-          return { match: p[0], date: p[1], mem: p[3], closer: p[2] === 'p' ? 'Polymarket closer' : 'Bookies closer',
-            dot: p[2] === 'p' ? 'width: 8px; height: 8px; border-radius: 50%; background: #8FD3FF; display: inline-block' : 'width: 7px; height: 7px; background: #F5A524; display: inline-block' };
-        }),
-        options: labels.map(function (l, i) {
-          return { label: l, pressed: pick === i ? 'true' : 'false', style: pick === i ? chosen : idle,
-            pick: function () { self.setState(function (st) { var o = Object.assign({}, st.picks); o[m.id] = i; return { picks: o }; }); } };
-        }),
-        locked: pick !== undefined, pickLabel: pick !== undefined ? labels[pick] : '',
-        thud: pick !== undefined ? 'thud' : ''
-      };
+    function roll(v, k) { if (e >= 900) return v; return (Math.floor(e / 40) * 7 + k) % Math.max(10, v + 6); }
+    var lampMove = function (ev) { var el = ev.currentTarget; var r = el.getBoundingClientRect(); var z = el.offsetWidth ? r.width / el.offsetWidth : 1; el.style.setProperty('--mx', ((ev.clientX - r.left) / z) + 'px'); el.style.setProperty('--my', ((ev.clientY - r.top) / z) + 'px'); el.style.setProperty('--o', '1'); };
+    var lampLeave = function (ev) { ev.currentTarget.style.setProperty('--o', '0'); };
+    var withGames = data.filter(function (d) { return d.games.length; });
+    var sections = withGames.filter(function (d) { return s.tab === 'All' || s.tab === d.name; }).map(function (d) {
+      var lastDay = '';
+      var games = d.games.map(function (g) {
+        var showDay = g.day !== lastDay; lastDay = g.day;
+        var open = s.open === g.id;
+        var pick = s.picks[g.id];
+        var labels = [g.home + ' win', 'Draw', g.away + ' win'];
+        var rows = [];
+        if (g.book) rows.push({ name: 'Bookies', labelStyle: labB, mark: markB, segs: segs(g.book, 'b') });
+        if (g.poly) rows.push({ name: 'Polymarket', labelStyle: labP, mark: markP, segs: segs(g.poly, 'p') });
+        var diff = g.poly ? g.poly[0] - g.book[0] : 0, gap = Math.abs(diff);
+        var verdict = !g.poly ? 'No Polymarket market for this game yet' : (gap >= 5 ? (diff > 0 ? 'Polymarket rates ' + g.home + ' ' + gap + ' points higher' : 'Bookies rate ' + g.home + ' ' + gap + ' points higher') : 'They agree on this one');
+        var vStyle = 'align-self: flex-start; font-size: 13px; font-weight: 700; padding: 6px 11px; border-radius: 999px; ' + (g.poly && gap >= 5 ? 'background: rgba(15,169,104,0.12); color: #0A7A4C' : 'background: rgba(11,26,20,0.05); color: #4F6158');
+        var isStamped = !!s.stamped[g.id];
+        return {
+          lampMove: lampMove, lampLeave: lampLeave,
+          showDay: showDay, day: g.day, home: g.home, away: g.away, time: g.time,
+          homeInit: g.home.slice(0, 3).toUpperCase(), awayInit: g.away.slice(0, 3).toUpperCase(),
+          homeBadge: badge(g.c[0], g.c[1]), awayBadge: badge(g.c[2], g.c[3]),
+          open: open, openStr: open ? 'true' : 'false',
+          toggle: function () { var will = s.open !== g.id; self.setState({ open: will ? g.id : null }); if (will) self.runCount(); },
+          ctaLabel: open ? 'Close' : (pick !== undefined ? 'Your call: ' + labels[pick] : 'Make your call'),
+          ctaStyle: open ? ctaOpen : ctaClosed,
+          chev: open ? 'transform: rotate(180deg)' : '',
+          hasRows: rows.length > 0, later: !!g.later,
+          rows: rows, verdict: verdict, verdictStyle: vStyle,
+          hasRecord: !!g.rec, noRecord: !g.rec,
+          recordLine: g.rec ? 'When they disagreed like this before, Polymarket got closer in ' + g.rec.p + ' of ' + g.rec.n + ' ' + d.name + ' games.' : '',
+          dispB: g.rec ? roll(g.rec.b, 1) : 0, dispP: g.rec ? roll(g.rec.p, 4) : 0, dispN: g.rec ? roll(g.rec.n, 2) : 0,
+          rollB: e >= 900 ? 'bump' : 'rolling', rollP: e >= 900 ? 'bump' : 'rolling',
+          options: labels.map(function (l, i) {
+            return { label: l, pressed: pick === i ? 'true' : 'false', style: pick === i ? optOn : optIdle,
+              pick: function () {
+                if (!self.state.signedIn) { self.setState({ ask: { id: g.id, i: i } }); return; }
+                self.setState(function (st) { var o = Object.assign({}, st.picks); o[g.id] = i; var z = Object.assign({}, st.stamped); z[g.id] = false; return { picks: o, stamped: z }; });
+                setTimeout(function () { self.setState(function (st) { var z = Object.assign({}, st.stamped); z[g.id] = true; return { stamped: z }; }); }, 900);
+              } };
+          }),
+          needSign: !s.signedIn && !!s.ask && s.ask.id === g.id,
+          askLabel: s.ask && s.ask.id === g.id ? labels[s.ask.i] : '',
+          skipSign: function () {
+            var a = self.state.ask; if (!a) return;
+            self.setState(function (st) { var o = Object.assign({}, st.picks); o[a.id] = a.i; var z = Object.assign({}, st.stamped); z[a.id] = false; return { signedIn: true, ask: null, picks: o, stamped: z }; });
+            setTimeout(function () { self.setState(function (st) { var z = Object.assign({}, st.stamped); z[a.id] = true; return { stamped: z }; }); }, 900);
+          },
+          locked: pick !== undefined, pickLabel: pick !== undefined ? labels[pick] : '',
+          stamped: isStamped, stamping: pick !== undefined && !isStamped,
+          stampText: isStamped ? 'Stamped on Sui at 10:42am WAT. Saved on Walrus.' : 'Stamping on Sui...'
+        };
+      });
+      return { name: d.name, games: games, countText: d.games.length + (d.games.length === 1 ? ' game' : ' games') };
     });
+    var empties = data.filter(function (d) { return !d.games.length; }).map(function (d) { return { name: d.name }; });
     var dustSpec = [[3, -26, -6, 6], [8, -18, -11, 5], [14, -10, -4, 4], [22, -6, -9, 5], [86, 6, -9, 5], [92, 12, -4, 4], [96, 20, -11, 5], [99, 28, -6, 6], [40, -8, -6, 4], [60, 8, -6, 4], [30, -14, -8, 4], [70, 14, -8, 4]];
     var dust = dustSpec.map(function (d) {
-      return { style: 'position: absolute; bottom: 0; left: ' + d[0] + '%; width: ' + d[3] + 'px; height: ' + d[3] + 'px; margin-left: -' + (d[3] / 2) + 'px; border-radius: 50%; background: rgba(226,234,229,0.75); filter: blur(0.8px); z-index: 2; pointer-events: none; --dx: ' + d[1] + 'px; --dy: ' + d[2] + 'px' };
+      return { style: 'position: absolute; bottom: 0; left: ' + d[0] + '%; width: ' + d[3] + 'px; height: ' + d[3] + 'px; margin-left: -' + (d[3] / 2) + 'px; border-radius: 50%; background: rgba(11,26,20,0.35); filter: blur(0.8px); z-index: 2; pointer-events: none; --dx: ' + d[1] + 'px; --dy: ' + d[2] + 'px' };
     });
-    return { leagues: leagues, items: items, dust: dust };
+    return { tabs: tabs, sections: sections, dust: dust, lampMove: lampMove, lampLeave: lampLeave, empties: empties, hasEmpty: empties.length > 0 && s.tab === 'All' };
   }
 }
 </script>
