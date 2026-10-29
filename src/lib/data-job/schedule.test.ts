@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dueReadings, inSync } from "./schedule";
+import { dueReadings, firstReadingAt, inSync } from "./schedule";
 
 const at = (iso: string) => new Date(iso);
 const kickoff = "2026-10-31T15:00:00Z";
@@ -41,5 +41,23 @@ describe("inSync", () => {
     expect(inSync("2026-10-31T12:00:00Z", "2026-10-31T12:05:00Z")).toBe(true);
     expect(inSync("2026-10-31T12:00:00Z", "2026-10-31T12:05:01Z")).toBe(false);
     expect(inSync("2026-10-31T12:00:00Z", null)).toBe(false);
+  });
+});
+
+describe("firstReadingAt", () => {
+  it("is the first run once kickoff is 24 hours away", () => {
+    // Villarreal v Espanyol, Fri 30 Oct 20:00 UTC: the 20:17 run on Thursday.
+    expect(firstReadingAt("2026-10-30T20:00:00Z").toISOString()).toBe("2026-10-29T20:17:00.000Z");
+  });
+  it("waits for 06:00 UTC when 24 hours before is earlier in the night", () => {
+    expect(firstReadingAt("2026-10-31T03:00:00Z").toISOString()).toBe("2026-10-30T06:17:00.000Z");
+  });
+  it("rounds up to the next run at :17", () => {
+    expect(firstReadingAt("2026-10-31T12:30:00Z").toISOString()).toBe("2026-10-30T13:17:00.000Z");
+  });
+  it("matches dueReadings: that run really takes a reading", () => {
+    for (const k of ["2026-10-30T20:00:00Z", "2026-10-31T03:00:00Z", "2026-10-31T12:30:00Z", "2026-11-01T00:15:00Z"]) {
+      expect(dueReadings(k, [], firstReadingAt(k), 400).length).toBeGreaterThan(0);
+    }
   });
 });

@@ -43,3 +43,22 @@ export function inSync(oddsFetchedAt: string, polyFetchedAt: string | null): boo
   if (!polyFetchedAt) return false;
   return Math.abs(new Date(oddsFetchedAt).getTime() - new Date(polyFetchedAt).getTime()) <= MAX_FETCH_GAP_MS;
 }
+
+/** The hourly job starts at this minute past each hour (Supabase pg_cron, migration 0004). */
+export const RUN_MINUTE = 17;
+
+/**
+ * Roughly when a match gets its first reading, for "Odds come in around ...". The day-before window opens
+ * 24 hours before kickoff, but not before 06:00 UTC that day. Then it waits for the next run at :17.
+ */
+export function firstReadingAt(kickoffAt: string): Date {
+  const kickoff = Date.parse(kickoffAt);
+  let from = new Date(kickoff - 24 * HOUR);
+  if (from.getUTCHours() < DAY_BEFORE_FROM_UTC_HOUR) {
+    from = new Date(Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), from.getUTCDate(), DAY_BEFORE_FROM_UTC_HOUR));
+  }
+  const run = new Date(from);
+  run.setUTCMinutes(RUN_MINUTE, 0, 0);
+  if (run < from) run.setUTCHours(run.getUTCHours() + 1);
+  return run;
+}

@@ -5,6 +5,15 @@ import { NextResponse, type NextRequest } from "next/server";
 import { supabasePublishableKey, supabaseUrl } from "@/lib/supabase/env";
 
 export async function proxy(request: NextRequest) {
+  // If Supabase doesn't accept our return address it sends Google sign-ins to the Site URL (the home page)
+  // with the one-time code. Pass that on to the sign-in handler instead of losing it.
+  const { pathname, searchParams } = request.nextUrl;
+  if (pathname === "/" && searchParams.has("code")) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/auth/callback";
+    return NextResponse.redirect(url);
+  }
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(supabaseUrl(), supabasePublishableKey(), {

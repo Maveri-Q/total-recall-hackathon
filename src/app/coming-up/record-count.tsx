@@ -22,17 +22,20 @@ export function RecordCount({
   games,
   leagueName,
   min,
+  early,
 }: {
   bookies: number;
   polymarket: number;
   games: number;
   leagueName: string;
   min: number;
+  /** Under this many games, the score is marked as an early signal. */
+  early: number;
 }) {
   if (games < min) {
     return (
       <p className="m-0 rounded-2xl bg-[rgba(11,26,20,0.04)] px-3.5 py-3 text-[14px] leading-normal text-muted">
-        Not enough past games like this yet. We need {min} before we show who&apos;s been closer.
+        Too few past games like this yet. We&apos;ll show who&apos;s been closer after a few more are played.
       </p>
     );
   }
@@ -40,6 +43,9 @@ export function RecordCount({
     <LampCard as="div" pitch={false} className="rounded-[20px] border border-[rgba(15,169,104,0.18)] bg-[rgba(15,169,104,0.07)] p-4">
       <div className="flex flex-col gap-3">
         <span className="text-[14px] font-semibold leading-[1.4]">{recordLine(bookies, polymarket, games, leagueName)}</span>
+        {games < early && (
+          <span className="self-start rounded-full bg-ink px-2.5 py-1 text-[12px] font-bold text-white">Early signal, only {games} games</span>
+        )}
         <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-end">
           <span className="flex flex-col gap-1">
             <span className="inline-flex items-center gap-1.5 text-[13px] font-bold">

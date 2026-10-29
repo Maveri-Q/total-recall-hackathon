@@ -15,7 +15,7 @@ function leave(e: React.PointerEvent<HTMLElement>) {
 }
 
 /**
- * A hero card with the "lamp": a soft lime glow and faint pitch lines that follow the pointer (or a
+ * A hero card with the "lamp": a soft white glow and faint pitch lines that follow the pointer (or a
  * dragging finger) and fade out 320ms after it leaves. The card looks complete without it.
  */
 export function LampCard({
@@ -33,7 +33,7 @@ export function LampCard({
   return (
     <Tag {...rest} onPointerMove={move} onPointerDown={move} onPointerLeave={leave} onPointerCancel={leave} className={`relative overflow-hidden ${className}`}>
       <div aria-hidden="true" className="lamp">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_170px_at_var(--mx,50%)_var(--my,50%),rgba(198,243,107,0.7),rgba(15,169,104,0.22)_55%,transparent_80%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_170px_at_var(--mx,50%)_var(--my,50%),rgba(255,255,255,0.95),rgba(255,255,255,0.45)_55%,transparent_80%)]" />
         {pitch && (
           <svg width="100%" height="100%" viewBox="0 0 354 240" preserveAspectRatio="xMidYMid slice" className="absolute inset-0">
             <g fill="none" stroke="#0B1A14" strokeOpacity="0.18" strokeWidth="1.5">

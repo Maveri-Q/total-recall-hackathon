@@ -4,7 +4,7 @@ import { myCallsOn, type MyCall } from "@/lib/calls";
 import { bandScore, bookiesOf, getUpcomingMatches, polyOf, type UpcomingMatch } from "@/lib/coming-up";
 import { readingGap, type GapBand } from "@/lib/data-job/memories";
 import { LEAGUES } from "@/lib/leagues";
-import { biggestGapGame, headline, MIN_GAMES_FOR_SCORE } from "@/lib/scoreline";
+import { biggestGapGame, EARLY_SIGNAL_MATCHES, headline, MIN_GAMES_FOR_SCORE } from "@/lib/scoreline";
 import { getCurrentUser } from "@/lib/supabase/server";
 import { BottomNav } from "./bottom-nav";
 import type { Featured } from "./coming-up/featured";
@@ -85,7 +85,7 @@ async function Record({ m, band, weekAgo }: { m: MatchView; band: GapBand; weekA
     console.error("bandScore", e);
     return <p className="m-0 text-[14px] text-muted">Couldn&apos;t load past games right now. Try again in a minute.</p>;
   }
-  return <RecordCount bookies={score.bookies} polymarket={score.polymarket} games={score.games} leagueName={m.leagueName} min={MIN_GAMES_FOR_SCORE} />;
+  return <RecordCount bookies={score.bookies} polymarket={score.polymarket} games={score.games} leagueName={m.leagueName} min={MIN_GAMES_FOR_SCORE} early={EARLY_SIGNAL_MATCHES} />;
 }
 
 async function Page() {

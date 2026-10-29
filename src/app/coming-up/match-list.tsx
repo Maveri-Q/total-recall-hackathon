@@ -3,6 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { callLabel, isCall, type Call } from "@/lib/call-result";
+import { firstReadingAt } from "@/lib/data-job/schedule";
 import { dayLabel } from "@/lib/local-time";
 import type { Outcome, ThreeWay } from "@/lib/odds";
 import type { TeamLook } from "@/lib/team-look";
@@ -32,6 +33,18 @@ function Team({ team }: { team: TeamLook }) {
       <TeamBadge team={team} />
       <span className="max-w-full truncate font-display text-[16px] font-bold tracking-[-0.02em]">{team.short}</span>
     </span>
+  );
+}
+
+/** No reading yet: say roughly when the first one is due (see firstReadingAt), or that it's late. */
+function OddsDue({ kickoffAt }: { kickoffAt: string }) {
+  const now = useNow();
+  const due = firstReadingAt(kickoffAt);
+  if (now !== null && now > due.getTime() + 15 * 60_000) return <>Odds are on their way. We check every hour.</>;
+  return (
+    <>
+      Odds come in around <When iso={due.toISOString()} format="weekdayTime" />.
+    </>
   );
 }
 
@@ -74,7 +87,7 @@ function MatchCard({
             <circle cx="8" cy="8" r="6.3" stroke="currentColor" strokeWidth="1.4" />
             <path d="M8 4.5V8l2.4 1.6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
           </svg>
-          Odds come in the day before kickoff.
+          <OddsDue kickoffAt={m.kickoffAt} />
         </span>
       )}
 

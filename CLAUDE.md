@@ -296,6 +296,7 @@ Each league must pass three checks: The Odds API covers it, Polymarket has match
 - **App wallet:** `0x6d7a28ce3c59ebe4596e2d13ac7872b2ef9a828945bfd6cbad9df8e388f88f3a`. Key only in `.env.local` and the `SUI_APP_PRIVATE_KEY` GitHub secret. Funded with 5.5 SUI.
 - **Move package:** `0xa4b3e8ccb8b9331838bb8257c4ec06d3ea7848b67c4cabde3248b7e6df210237` (module `stamp`, event `Stamped`). Publish tx: https://suiscan.xyz/mainnet/tx/3JhanbcmXLivcbQZD4WfMZPTT6DgfUxVuK8ibQMHcWVV
 - **First stamp:** 11 readings in one transaction, 11 `Stamped` events, status success. https://suiscan.xyz/mainnet/tx/5cuZ4iPqHRDHPwqad4ggBb7DX7V82kBnj3Gc4kFpnHoC
+- **Stale connections (fixed 29 Oct):** a kept-open gRPC connection can be reset (`read ECONNRESET`), which made a call's first stamp fail. Now: 8s timeout per request, a connection idle over 60s is replaced, and network errors retry on a new connection (3 tries). The transaction is signed once and the same bytes are resent, so a retry can't stamp twice. Fixed gas budget 0.05 SUI (only gas used is charged) skips the trial run. Measured: 2.1s tap to stamped, 1.1s of it on Sui.
 - **Real costs:** publish about 0.0074 SUI. One stamp transaction of 11 readings: 0.0001 SUI. At this rate a month of stamping costs well under 0.01 SUI.
 - Sui CLI 1.81.1 lives in `C:\Users\admin\sui-cli` (outside the project), only needed to rebuild `move/bytecode.json`. On first run it made its own unused wallet in `C:\Users\admin\.sui` whose phrase was shown in chat: never fund it.
 - **GitHub's hourly timer runs late and skips.** On 27 Oct the scheduled runs landed at 11:42, 15:54, 20:43 and 00:32 UTC, about every 4 to 5 hours. Pre-kickoff readings still came in for all 3 games that day, but a 1 to 4 hour window can be missed. To fix before the 31 Oct matches.
@@ -341,3 +342,6 @@ Each league must pass three checks: The Odds API covers it, Polymarket has match
 - The gap and the record use the outcome the sources disagree on most (as the record bands do), not always the home win.
 - Kept from the agreed CLAUDE.md wording: "Saving to Walrus..." until the Walrus save is real, then "Saved on Walrus."
 - Proof counter "Polymarket checks via Tatum today" counts today's readings that fetched Polymarket prices (the honest number we have; we don't log every Tatum request).
+- Record card on Matches shows from 3 similar past games, with an "Early signal, only N games" label under 10 (`MIN_GAMES_FOR_SCORE`, `EARLY_SIGNAL_MATCHES`). Under 3: "Too few past games like this yet..."
+- "Odds come in around [day time]" uses `firstReadingAt()` in `schedule.ts`; if that time passed with no reading: "Odds are on their way. We check every hour."
+- Page-title hover glow is white, not green (Maverick, 29 Oct).

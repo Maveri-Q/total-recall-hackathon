@@ -113,17 +113,49 @@ const SUI_GRPC_HOST = "sui-mainnet-grpc.gateway.tatum.io:443";
 
 let sui: SuiGrpcClient | null = null;
 
+/** Each gRPC request gives up after this long, so a dead connection fails fast and gets retried. */
+const SUI_TIMEOUT_MS = 8_000;
+
+/** A connection left unused this long is replaced rather than trusted (Tatum or the network may have closed it). */
+const SUI_IDLE_MS = 60_000;
+let suiLastUsed = 0;
+
 /** Tatum's gateway speaks native gRPC (HTTP/2), so we use the grpc-js transport, not gRPC-web. */
 export function suiClient(): SuiGrpcClient {
+  if (sui && Date.now() - suiLastUsed > SUI_IDLE_MS) sui = null;
+  suiLastUsed = Date.now();
   sui ??= new SuiGrpcClient({
     network: "mainnet",
     transport: new GrpcTransport({
       host: SUI_GRPC_HOST,
       channelCredentials: ChannelCredentials.createSsl(),
       meta: { "x-api-key": apiKey() },
+      timeout: SUI_TIMEOUT_MS,
     }),
   });
   return sui;
+}
+
+/**
+ * A connection kept open between requests can go stale (on Vercel the server sleeps between visits),
+ * and its next request fails with ECONNRESET or a timeout. These are worth trying again on a new connection.
+ */
+export function isNetworkError(e: unknown): boolean {
+  const text = `${(e as { code?: unknown })?.code ?? ""} ${e instanceof Error ? e.message : String(e)}`;
+  return /ECONNRESET|ETIMEDOUT|EPIPE|ECONNREFUSED|socket hang up|UNAVAILABLE|DEADLINE_EXCEEDED|deadline|GOAWAY|RST_STREAM|Connection dropped|network/i.test(text);
+}
+
+/** Runs `fn`. On a network error, drops the connection, opens a new one and tries again (3 tries in all). */
+export async function withFreshConnection<T>(fn: (client: SuiGrpcClient) => Promise<T>): Promise<T> {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await fn(suiClient());
+    } catch (e) {
+      if (attempt >= 3 || !isNetworkError(e)) throw e;
+      console.warn(`Sui connection failed (${e instanceof Error ? e.message : e}), retrying on a new one`);
+      sui = null;
+    }
+  }
 }
 
 /** The app wallet. Its private key lives only in .env.local / GitHub secrets. */
@@ -156,6 +188,8 @@ export async function getAppBalance(): Promise<{ address: string; mist: bigint }
   return { address, mist: BigInt(res.balance.balance) };
 }
 
+const STAMP_GAS_BUDGET_MIST = 50_000_000;
+
 /**
  * Stamps up to MAX_STAMPS_PER_TX hashes in one Sui transaction. Each becomes its own
  * `Stamped` event. Returns the transaction digest, or throws if Sui rejects it.
@@ -167,6 +201,9 @@ export async function stampHashes(items: StampItem[]): Promise<{ digest: string 
 
   const tx = new Transaction();
   tx.setSender(signer.toSuiAddress());
+  // A fixed gas limit saves a trial run before every stamp. Only the gas used is charged:
+  // 11 stamps cost 0.0001 SUI, so 0.05 SUI covers a full batch of 100 many times over.
+  tx.setGasBudget(STAMP_GAS_BUDGET_MIST);
   for (const item of items) {
     tx.moveCall({
       target,
@@ -179,7 +216,11 @@ export async function stampHashes(items: StampItem[]): Promise<{ digest: string 
     });
   }
 
-  const result = await suiClient().core.signAndExecuteTransaction({ transaction: tx, signer });
+  // Build and sign once. If sending fails on a network error we send the same signed bytes again:
+  // Sui runs a transaction only once, so a resend can never stamp twice.
+  const bytes = await withFreshConnection((client) => tx.build({ client }));
+  const { signature } = await signer.signTransaction(bytes);
+  const result = await withFreshConnection((client) => client.core.executeTransaction({ transaction: bytes, signatures: [signature] }));
   if (result.$kind === "FailedTransaction") {
     const t = result.FailedTransaction;
     throw new Error(`Sui rejected the stamp transaction ${t.digest}: ${JSON.stringify(t.status.error)}`);
@@ -213,5 +254,9 @@ export async function publishPackage(modules: string[], dependencies: string[]):
  * about 2.7 seconds; later ones about 0.3. Fire and forget: a failure here just means no head start.
  */
 export function warmUpSui(): void {
-  if (stampingConfigured()) suiClient().core.getReferenceGasPrice().catch(() => {});
+  if (!stampingConfigured()) return;
+  const client = suiClient();
+  client.core.getReferenceGasPrice().catch(() => {
+    if (sui === client) sui = null; // don't let the stamp reuse a connection that just failed
+  });
 }

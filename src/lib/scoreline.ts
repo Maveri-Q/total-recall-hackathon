@@ -6,8 +6,9 @@
 import { gapBand, matchVerdict, EARLY_SIGNAL_MATCHES, type GapBand, type ReadingRow } from "./data-job/memories";
 import { biggestGap, OUTCOMES, type Outcome, type ThreeWay } from "./odds";
 
-/** Below this many similar past games, no score is shown. */
-export const MIN_GAMES_FOR_SCORE = EARLY_SIGNAL_MATCHES;
+/** Below this many similar past games, no score is shown. From here up to EARLY_SIGNAL_MATCHES it's labelled an early signal. */
+export const MIN_GAMES_FOR_SCORE = 3;
+export { EARLY_SIGNAL_MATCHES };
 
 export type PastGame = {
   matchId: string;

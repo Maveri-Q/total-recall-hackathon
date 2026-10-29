@@ -114,11 +114,14 @@
   }
 
   /* Page title: each word slides up from behind a mask. */
+  /* The mask is a little bigger than the word (padding), and the negative margin keeps the layout the same,
+     so tall letters, descenders and the tight last letter aren't trimmed. */
   .word {
     display: inline-block;
     overflow: hidden;
     vertical-align: bottom;
-    padding-bottom: 4px;
+    padding: 0.12em 0.08em 0.14em;
+    margin: -0.12em -0.08em -0.14em;
   }
   .word > span {
     display: inline-block;
