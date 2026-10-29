@@ -1,36 +1,32 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Oddsight
 
-## Getting Started
+**Bookies vs Polymarket before every big football game, and a record of who turned out right.**
 
-First, run the development server:
+Oddsight (odds + hindsight) reads the bookies' odds and Polymarket's price for the same game, stamps that
+reading on Sui before kickoff, checks after full time who was closer, and remembers it all on Walrus.
+Next time the two disagree, it looks back at games like this one and shows who's been closer, with the
+number of games behind it. You can make your own call too: one tap, stamped on Sui, scored after the game.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+It's not a betting site. No bets, no stakes, no payouts.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Live: https://total-recall-hackathon.vercel.app
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## The logo
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+A rear-view mirror, because hindsight means looking back. Inside it is a football pitch, with the bookies'
+amber square far away and Polymarket's blue circle close up, showing "who's been closer". Logo files are in
+`brand/`.
 
-## Learn More
+## Where things live
 
-To learn more about Next.js, take a look at the following resources:
+- `src/lib/tatum.ts`: every Tatum call (Sui gRPC gateway + Prediction Markets API)
+- `src/lib/walrus.ts`: every Walrus Memory call
+- `src/lib/odds.ts`, `src/lib/scoring.ts`: the maths (odds to chances, Brier score), fully tested
+- `src/lib/data-job/`: the hourly job (readings, Sui stamps, grading, Walrus memories)
+- `supabase/migrations/`: the database, one numbered file per change
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+More detail (setup, `.env.example`, how the app wallet pays for stamps) is coming before submission.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Credits
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Club crests belong to their clubs and are shown only to identify teams.

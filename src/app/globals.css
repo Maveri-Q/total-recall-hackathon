@@ -167,6 +167,37 @@ summary:focus-visible {
   35% { transform: translateY(2px); }
 }
 
+/* Sign-in floodlight: the lit layer shows only inside a soft 220px circle. Position is set from script. */
+.floodlit {
+  -webkit-mask-image: radial-gradient(circle closest-side, #000 0%, #000 40%, transparent 100%);
+  mask-image: radial-gradient(circle closest-side, #000 0%, #000 40%, transparent 100%);
+  -webkit-mask-size: 220px 220px;
+  mask-size: 220px 220px;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+.bob1 { animation: bob1 7s ease-in-out infinite; }
+.bob2 { animation: bob2 9s ease-in-out infinite; }
+.bob3 { animation: bob3 11s ease-in-out infinite; }
+@keyframes bob1 { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-16px); } }
+@keyframes bob2 { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(14px); } }
+@keyframes bob3 { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(10px, -12px); } }
+.sway { animation: sway 6s ease-in-out infinite; transform-style: preserve-3d; }
+.sway2 { animation: sway 8s ease-in-out -3s infinite; transform-style: preserve-3d; }
+@keyframes sway { 0%, 100% { transform: rotateY(-28deg) rotateZ(-6deg); } 50% { transform: rotateY(28deg) rotateZ(6deg); } }
+.spin { animation: spin 9s linear infinite; transform-box: fill-box; transform-origin: center; }
+.spin2 { animation: spin 14s linear infinite reverse; transform-box: fill-box; transform-origin: center; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* One soft lime pulse on the newest memory. */
+.fresh {
+  animation: fresh 1400ms ease-out 1 both;
+}
+@keyframes fresh {
+  0% { box-shadow: 0 0 0 0 rgba(198, 243, 107, 0.5); }
+  100% { box-shadow: 0 0 0 14px rgba(198, 243, 107, 0); }
+}
+
 /* Chips scroll sideways without a visible scrollbar. */
 .no-scrollbar {
   scrollbar-width: none;
@@ -177,7 +208,8 @@ summary:focus-visible {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bump, .pop, .reveal, .slide-out, .slide-in, .land, .thud { animation: none; }
+  .bump, .pop, .reveal, .slide-out, .slide-in, .land, .thud, .fresh,
+  .bob1, .bob2, .bob3, .sway, .sway2, .spin, .spin2 { animation: none; }
   .dust { display: none; }
   .slider, .press { transition: none; }
 }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 type Page = "/" | "/calls" | "/memory" | "/login";
+type Current = Page | null;
 
 const ICONS: Record<Page, React.ReactNode> = {
   "/": (
@@ -30,7 +31,7 @@ const ICONS: Record<Page, React.ReactNode> = {
 };
 
 /** Floating glass bar at the bottom of the screen. The current page shows as a lime pill with its name. */
-export function BottomNav({ current, signedIn }: { current: Page; signedIn: boolean }) {
+export function BottomNav({ current, signedIn }: { current: Current; signedIn: boolean }) {
   const items: { href: Page; label: string }[] = [
     { href: "/", label: "Coming up" },
     { href: "/calls", label: "Your calls" },

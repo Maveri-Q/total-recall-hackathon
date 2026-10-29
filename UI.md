@@ -1,7 +1,17 @@
 # UI Spec
 
 Read this together with CLAUDE.md. CLAUDE.md still wins on product rules, honesty and wording.
-The reference mockup files are in `design-reference/` (Main, SignIn, Memory). They use a mockup format, but the CSS, SVG shapes, colours and animation timings in them are the source of truth. Copy those values; don't copy the file format.
+The reference mockup files are in `design-reference/` (Main, SignIn, Memory, Logo). They use a mockup format, but the CSS, SVG shapes, colours and animation timings in them are the source of truth. Copy those values; don't copy the file format.
+
+## Name and logo
+- **The app is called Oddsight** (odds + hindsight: it remembers how the same kind of game went before, so you get hindsight before kickoff). Put the name in **one setting** and use it everywhere: page titles, sign-in page, header, README, metadata. Replace every "[App name]".
+- **Wordmark:** "oddsight", all lowercase, Archivo 800, letter-spacing -0.045em, chalk on dark. No tagline.
+- **Logo files are in `brand/`:**
+  - `oddsight-icon.svg`: main app icon (dark). Use it for the app icon, the sign-in page, and social preview images.
+  - `oddsight-icon-lime.svg`: lime version, for light or colourful backgrounds.
+  - `oddsight-favicon.svg`: simplified version for the browser tab and anything under 48px. It drops the pitch lines so it stays readable.
+- **What the logo means** (use this wording in the README and blog): a rear-view mirror, because hindsight means looking back. Inside it is a football pitch, with the bookies' amber square far away and Polymarket's blue circle close up, showing "who's been closer".
+- Use the SVGs as they are. Don't redraw, recolour or stretch them. Export PNGs from them where needed (e.g. 180px apple-touch-icon, 512px for the web app manifest).
 
 ## Ground rules
 1. **Don't change how anything works.** No new features, no changes to the data job, scoring, Sui or Walrus logic. UI only.
@@ -134,7 +144,7 @@ Floating pill bar fixed at the bottom of the screen, glass style. Items: Coming 
   - Depth: far items are smaller and slightly blurred (1–2.5px), near ones bigger and sharp, all with a soft drop shadow underneath.
   - Everything bobs slowly (7s, 9s, 11s loops).
 - Kits are plain generic shirts in made-up colour pairs with a number. **No real club kits, no logos, no players.**
-- **Glass panel** in the centre: `[App name]`, heading "See who's been right before you pick.", line "Bookies vs Polymarket on every big game, and a record of your own calls. Free, no wallet needed.", buttons "Continue with Google" (chalk) and "Continue with email" (glass), link "Just looking? Browse games". The panel uses `backdrop-filter: blur(18px)` so the floodlight doesn't distract while reading.
+- **Glass panel** in the centre: the Oddsight icon and wordmark, heading "See who's been right before you pick.", line "Bookies vs Polymarket on every big game, and a record of your own calls. Free, no wallet needed.", buttons "Continue with Google" (chalk) and "Continue with email" (glass), link "Just looking? Browse games". The panel uses `backdrop-filter: blur(18px)` so the floodlight doesn't distract while reading.
 - Hook these buttons to the existing Supabase sign-in. Don't change the auth logic.
 
 ## Assets: hard rules

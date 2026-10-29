@@ -116,3 +116,29 @@ describe("sourceRecord", () => {
     expect(sourceRecordMemoryText("all leagues", sourceRecord(ten), "2026-11-08T00:00:00Z")).not.toContain("Early signal");
   });
 });
+
+describe("call memories", () => {
+  it("tells the call with an anonymous fan id and its Sui stamp", async () => {
+    const { callMemoryText, callSummary } = await import("./memories");
+    const text = callMemoryText(match, {
+      fanId: "3f9a2c1b07de", version: 2, pickLabel: "Lazio win", savedAt: "2026-10-27T15:30:00Z",
+      suiDigest: "AQRgfYPgKocAfroEd47ijZafHhuFgzPyEydJugptAXr", contentHash: "b".repeat(64),
+    });
+    expect(text).toContain("Fan call by fan 3f9a2c1b07de: Lazio win on Sassuolo v Lazio (Serie A), kickoff Tue 27 Oct 2026 17:30 UTC.");
+    expect(text).toContain("Changed call, version 2. Made 2h 00m before kickoff.");
+    expect(text).toContain("transaction AQRgfYPgKocAfroEd47ijZafHhuFgzPyEydJugptAXr");
+    expect(text).not.toMatch(/@/); // never an email
+    expect(callSummary(match, "Lazio win")).toBe("Sassuolo v Lazio. Picked Lazio win.");
+  });
+});
+
+describe("feed summaries", () => {
+  it("says what each memory is in one short line", async () => {
+    const { readingSummary, matchResultSummary, sourceRecordSummary, sourceRecord } = await import("./memories");
+    expect(readingSummary(match, pre)).toBe("Sassuolo v Lazio. Bookies 46%, Polymarket 48% for Lazio win.");
+    expect(matchResultSummary(match, { homeGoals: 2, awayGoals: 6 }, [pre, dayBefore])).toBe("Sassuolo 2-6 Lazio. Polymarket was closer.");
+    expect(matchResultSummary(match, { homeGoals: 2, awayGoals: 6 }, [dayBefore])).toBe("Sassuolo 2-6 Lazio. Not counted: no usable reading.");
+    const rec = sourceRecord([{ kind: "pre_kickoff", closer: "polymarket", gapPoints: 2, bookieBrier: 0.4, polyBrier: 0.3 }]);
+    expect(sourceRecordSummary("Serie A", rec)).toBe("Serie A: Bookies 0, Polymarket 1, from 1 game.");
+  });
+});

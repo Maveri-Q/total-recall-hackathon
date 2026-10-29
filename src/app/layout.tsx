@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Archivo, Schibsted_Grotesk } from "next/font/google";
+import { APP_DESCRIPTION, APP_NAME } from "@/lib/brand";
 import "./globals.css";
 
 // Archivo for titles and numbers, Schibsted Grotesk for everything you read (UI.md).
@@ -12,8 +13,10 @@ const schibsted = Schibsted_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "Total Recall",
-  description: "Bookies vs Polymarket before every game, and who turned out right.",
+  title: { default: APP_NAME, template: `%s · ${APP_NAME}` },
+  description: APP_DESCRIPTION,
+  applicationName: APP_NAME,
+  openGraph: { title: APP_NAME, description: APP_DESCRIPTION, siteName: APP_NAME, type: "website" },
 };
 
 export const viewport: Viewport = {

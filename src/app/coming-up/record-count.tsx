@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { walrusUrl } from "@/lib/walrus-links";
 import { Info } from "../info";
 import { useCountUp } from "./hooks";
 
@@ -18,7 +19,7 @@ const CLOSER = {
   tie: { text: "Level", mark: "" },
 } as const;
 
-export const walrusUrl = (blobId: string) => `https://walruscan.com/mainnet/blob/${blobId}`;
+
 
 function shortDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });

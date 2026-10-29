@@ -8,7 +8,7 @@ import { biggestGap, type Outcome, type ThreeWay } from "../odds";
 /** Below this many counted matches, a record is labelled an early signal. */
 export const EARLY_SIGNAL_MATCHES = 10;
 
-export const NAMESPACES = { reading: "readings", match_result: "results", source_record: "records" } as const;
+export const NAMESPACES = { reading: "readings", match_result: "results", source_record: "records", call: "calls" } as const;
 
 export type MatchInfo = {
   leagueName: string;
@@ -267,4 +267,42 @@ export function sourceRecordQuery(leagueName: string): string {
 /** What to ask Walrus for when scoring the sources on past games like this one: same league, similar gap. */
 export function bandCasesQuery(leagueName: string, band: GapBand): string {
   return `Graded match in the ${leagueName}. Bookies and Polymarket disagreed by a ${BAND_TEXT[band]}. Who was closer?`;
+}
+
+// Short lines for the Memory page feed (the `summary` column).
+export function readingSummary(m: MatchInfo, r: ReadingRow): string {
+  const game = `${m.homeTeam} v ${m.awayTeam}`;
+  const b = bookiesOf(r);
+  const p = polyOf(r);
+  const gap = readingGap(r);
+  if (!b) return `${game}. Odds saved.`;
+  if (!p || !gap) return `${game}. Bookies only, no Polymarket market.`;
+  const what = gap.outcome === "draw" ? "a draw" : `${outcomeName(gap.outcome, m)} win`;
+  return `${game}. Bookies ${Math.round(b[gap.outcome] * 100)}%, Polymarket ${Math.round(p[gap.outcome] * 100)}% for ${what}.`;
+}
+export function matchResultSummary(m: MatchInfo, score: { homeGoals: number; awayGoals: number }, readings: ReadingRow[]): string {
+  const v = matchVerdict(readings);
+  const line = `${m.homeTeam} ${score.homeGoals}-${score.awayGoals} ${m.awayTeam}.`;
+  return v ? `${line} ${CLOSER_TEXT[v.closer]}` : `${line} Not counted: no usable reading.`;
+}
+export function sourceRecordSummary(scope: string, rec: SourceRecord): string {
+  return `${scope}: Bookies ${rec.bookies}, Polymarket ${rec.polymarket}, from ${rec.matches} ${rec.matches === 1 ? "game" : "games"}.`;
+}
+export function callSummary(m: MatchInfo, pickLabel: string): string {
+  return `${m.homeTeam} v ${m.awayTeam}. Picked ${pickLabel}.`;
+}
+
+/** Memory for one call (or one change to it), linked to an anonymous fan id only. */
+export function callMemoryText(
+  m: MatchInfo,
+  call: { fanId: string; version: number; pickLabel: string; savedAt: string; suiDigest: string; contentHash: string },
+): string {
+  const mins = Math.max(0, Math.round((Date.parse(m.kickoffAt) - Date.parse(call.savedAt)) / 60_000));
+  return [
+    `Fan call by fan ${call.fanId}: ${call.pickLabel} on ${m.homeTeam} v ${m.awayTeam} (${m.leagueName}), kickoff ${kickoff(m.kickoffAt)}.`,
+    call.version === 1 ? "First call on this game." : `Changed call, version ${call.version}.`,
+    `Made ${Math.floor(mins / 60)}h ${String(mins % 60).padStart(2, "0")}m before kickoff.`,
+    `Stamped on Sui Mainnet, transaction ${call.suiDigest}.`,
+    `Fingerprint (sha256): ${call.contentHash}.`,
+  ].join(" ");
 }

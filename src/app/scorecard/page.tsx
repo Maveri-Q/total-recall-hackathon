@@ -1,22 +1,32 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { connection } from "next/server";
 import { EARLY_SIGNAL_MATCHES, type GapBand, type SourceRecord } from "@/lib/data-job/memories";
 import { getMyScorecard, getSourceScorecard } from "@/lib/scorecard";
 import { getCurrentUser } from "@/lib/supabase/server";
-import { PageHeader } from "../nav";
+import { BottomNav } from "../bottom-nav";
+
+export const metadata: Metadata = { title: "Scorecard" };
 
 export default function Scorecard() {
   return (
-    <main className="mx-auto flex w-full max-w-xl flex-col gap-4 p-4">
-      <PageHeader title="Scorecard" current="/scorecard" />
-      <p>After every game, we check who got closer to the real result: the bookies or Polymarket.</p>
+    <main className="mx-auto flex w-full max-w-[480px] flex-col gap-[22px] px-[18px] pb-[calc(110px+env(safe-area-inset-bottom))] pt-[calc(18px+env(safe-area-inset-top))]">
+      <Link href="/memory" className="inline-flex min-h-11 items-center gap-1.5 self-start text-[14px] text-muted no-underline hover:text-chalk">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M9 3L5 7l4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        Memory
+      </Link>
+      <h1 className="m-0 font-display text-[30px] font-bold leading-[1.05] tracking-[-0.02em]">Scorecard</h1>
+      <p className="m-0 text-muted">After every game, we check who got closer to the real result: the bookies or Polymarket.</p>
       <Suspense fallback={<p>Loading the scorecard…</p>}>
         <Sources />
       </Suspense>
-      <h2 className="mt-2 text-xl font-bold">Your record</h2>
+      <h2 className="m-0 mt-1 font-display text-[20px] font-bold tracking-[-0.01em]">Your record</h2>
       <Suspense fallback={<p>Loading your record…</p>}>
         <Mine />
+      </Suspense>
+      <Suspense>
+        <Nav />
       </Suspense>
     </main>
   );
@@ -53,10 +63,10 @@ async function Sources() {
   return (
     <>
       <section className="flex flex-col gap-2">
-        <h2 className="text-xl font-bold">By league</h2>
+        <h2 className="m-0 font-display text-[20px] font-bold tracking-[-0.01em]">By league</h2>
         <ul className="flex flex-col gap-2">
           {leagues.map((l) => (
-            <li key={l.code} className="border p-3">
+            <li key={l.code} className="glass rounded-[24px] px-4 py-[18px]">
               <p className="font-bold">{l.name}</p>
               <p>
                 <Score r={l.record} />
@@ -71,13 +81,13 @@ async function Sources() {
       </section>
 
       <section className="flex flex-col gap-2">
-        <h2 className="text-xl font-bold">When they disagreed</h2>
+        <h2 className="m-0 font-display text-[20px] font-bold tracking-[-0.01em]">When they disagreed</h2>
         <p className="text-sm">All leagues, by how far apart the bookies and Polymarket were before kickoff.</p>
         <ul className="flex flex-col gap-2">
           {BANDS.map(({ band, label }) => {
             const r = all.record.byBand[band];
             return (
-              <li key={band} className="border p-3">
+              <li key={band} className="glass rounded-[24px] px-4 py-[18px]">
                 <p className="font-bold">{label}</p>
                 <p>{r.matches > 0 ? <Score r={r} /> : "No games yet."}</p>
               </li>
@@ -112,7 +122,7 @@ async function Mine() {
     );
 
   return (
-    <div className="flex flex-col gap-1 border p-3">
+    <div className="glass flex flex-col gap-1 rounded-[24px] px-4 py-[18px]">
       <p className="font-bold">
         You&apos;ve called {me.right} of {me.settled} right.
       </p>
@@ -121,4 +131,9 @@ async function Mine() {
       {me.settled < EARLY_SIGNAL_MATCHES && <p className="text-sm">Early signal: fewer than {EARLY_SIGNAL_MATCHES} games.</p>}
     </div>
   );
+}
+
+async function Nav() {
+  await connection();
+  return <BottomNav current={null} signedIn={!!(await getCurrentUser())} />;
 }

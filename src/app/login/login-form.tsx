@@ -14,6 +14,9 @@ function EyeIcon({ crossed }: { crossed: boolean }) {
   );
 }
 
+const FIELD =
+  "min-h-12 rounded-2xl border border-white/15 bg-white/[0.05] px-3.5 text-[16px] font-normal text-chalk outline-none focus-visible:outline-2 focus-visible:outline-chalk";
+
 export function LoginForm() {
   const [state, formAction, pending] = useActionState<LoginState, FormData>(authenticate, {});
   const [showPassword, setShowPassword] = useState(false);
@@ -25,14 +28,16 @@ export function LoginForm() {
   }, [state.done]);
 
   return (
-    <form action={formAction} className="flex flex-col gap-3">
-      <label className="flex flex-col gap-1">
+    <form action={formAction} className="reveal mt-1 flex flex-col gap-3">
+      <label className="flex flex-col gap-1 text-[13px] font-medium text-muted">
         Email
-        <input name="email" type="email" autoComplete="email" required defaultValue={state.email} className="border p-2" />
+        <input name="email" type="email" autoComplete="email" required autoFocus defaultValue={state.email} className={FIELD} />
       </label>
       <div className="flex flex-col gap-1">
-        <label htmlFor="password">Password</label>
-        <div className="flex">
+        <label htmlFor="password" className="text-[13px] font-medium text-muted">
+          Password
+        </label>
+        <div className="flex rounded-2xl border border-white/15 bg-white/[0.05] focus-within:outline focus-within:outline-2 focus-within:outline-chalk">
           <input
             id="password"
             name="password"
@@ -40,27 +45,27 @@ export function LoginForm() {
             autoComplete="current-password"
             required
             minLength={8}
-            className="min-w-0 flex-1 border p-2"
+            className="min-h-12 min-w-0 flex-1 rounded-l-2xl bg-transparent px-3.5 text-[16px] text-chalk outline-none"
           />
           <button
             type="button"
             onClick={() => setShowPassword((s) => !s)}
             aria-label={showPassword ? "Hide password" : "Show password"}
             aria-pressed={showPassword}
-            className="border border-l-0 px-3"
+            className="inline-flex min-w-12 cursor-pointer items-center justify-center rounded-r-2xl text-muted hover:text-chalk"
           >
             <EyeIcon crossed={showPassword} />
           </button>
         </div>
       </div>
 
-      {state.error && <p className="text-red-700">{state.error}</p>}
+      {state.error && <p className="m-0 text-[14px] text-error">{state.error}</p>}
 
-      <div className="flex gap-3">
-        <button name="mode" value="login" disabled={pending || state.done} className="border px-4 py-2">
+      <div className="grid grid-cols-2 gap-2.5">
+        <button name="mode" value="login" disabled={pending || state.done} className="press min-h-12 cursor-pointer rounded-full bg-chalk text-[15px] font-semibold text-ground">
           Log in
         </button>
-        <button name="mode" value="signup" disabled={pending || state.done} className="border px-4 py-2">
+        <button name="mode" value="signup" disabled={pending || state.done} className="press min-h-12 cursor-pointer rounded-full border border-white/[0.18] bg-white/[0.06] text-[15px] font-medium text-chalk">
           Create account
         </button>
       </div>

@@ -50,7 +50,15 @@ function toView(m: UpcomingMatch, call: MyCall | undefined): MatchView {
     gap: r && bookies && poly ? readingGap(r) : null,
     readingDigest: r?.sui_status === "stamped" ? r.sui_digest : null,
     call: latest
-      ? { version: latest.version, pick: latest.pick, suiStatus: latest.sui_status, suiDigest: latest.sui_digest, stampedAt: latest.stamped_at }
+      ? { version: latest.version, pick: latest.pick, suiStatus: latest.sui_status, suiDigest: latest.sui_digest,
+          stampedAt: latest.stamped_at,
+          walrus:
+            latest.walrus?.status === "saved"
+              ? "saved"
+              : latest.sui_status === "stamped" && latest.walrus?.status !== "failed"
+                ? "saving"
+                : null,
+        }
       : null,
   };
 }

@@ -1,21 +1,34 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
-import { signInWithGoogle } from "./actions";
+import { WORDMARK } from "@/lib/brand";
+import { Floodlight } from "./floodlight";
 import { GoogleError } from "./google-error";
-import { LoginForm } from "./login-form";
+import { SignInChoices } from "./sign-in-choices";
+
+export const metadata: Metadata = { title: "Sign in" };
 
 export default function LoginPage() {
   return (
-    <main className="mx-auto flex max-w-md flex-col gap-4 p-4">
-      <h1 className="text-2xl font-bold">Log in or sign up</h1>
-      <p>Make your call before kickoff. We&apos;ll tell you how you did.</p>
-      <form action={signInWithGoogle}>
-        <button className="w-full border px-4 py-2">Continue with Google</button>
-      </form>
-      <Suspense>
-        <GoogleError />
-      </Suspense>
-      <p className="text-center text-sm">or use your email</p>
-      <LoginForm />
-    </main>
+    <Floodlight>
+      <main className="pointer-events-auto flex max-h-[calc(100dvh-24px)] w-full max-w-[420px] flex-col gap-[18px] overflow-y-auto rounded-[28px] border border-white/10 bg-[rgba(8,18,14,0.55)] px-[22px] pb-[22px] pt-[26px] shadow-[0_30px_60px_rgba(0,0,0,0.5)] [-webkit-backdrop-filter:blur(18px)_saturate(130%)] [backdrop-filter:blur(18px)_saturate(130%)]">
+        <span className="flex items-center gap-2.5">
+          {/* eslint-disable-next-line @next/next/no-img-element -- the brand SVG as it is, from our own site */}
+          <img src="/brand/oddsight-icon.svg" alt="" width={36} height={36} className="rounded-[10px]" />
+          <span className="font-display text-[24px] font-extrabold leading-none tracking-[-0.045em]">{WORDMARK}</span>
+        </span>
+        <div className="flex flex-col gap-2">
+          <h1 className="m-0 font-display text-[28px] font-bold leading-[1.08] tracking-[-0.025em]">
+            See who&apos;s been right before you pick.
+          </h1>
+          <p className="m-0 text-[15px] leading-normal text-muted">
+            Bookies vs Polymarket on every big game, and a record of your own calls. Free, no wallet needed.
+          </p>
+        </div>
+        <Suspense>
+          <GoogleError />
+        </Suspense>
+        <SignInChoices />
+      </main>
+    </Floodlight>
   );
 }

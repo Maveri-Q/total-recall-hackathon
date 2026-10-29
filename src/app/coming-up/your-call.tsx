@@ -14,6 +14,8 @@ export type CurrentCall = {
   suiStatus: "pending" | "stamped" | "failed" | "not_applicable";
   suiDigest: string | null;
   stampedAt: string | null;
+  /** "saved" once the call is remembered on Walrus, "saving" while it's on its way. */
+  walrus: "saved" | "saving" | null;
 };
 
 // [left %, dx px, dy px, size px]: dust bursts from the card's bottom edge, mostly the corners (design-reference/Main).
@@ -29,7 +31,7 @@ function clock(iso: string): string {
 }
 
 /** "Locked: Roma win", landing under the buttons once the call is stamped on Sui. */
-function StampCard({ label, digest, stampedAt }: { label: string; digest: string; stampedAt: string | null }) {
+function StampCard({ label, digest, stampedAt, walrus }: { label: string; digest: string; stampedAt: string | null; walrus: CurrentCall["walrus"] }) {
   const mounted = useMounted();
   return (
     <div className="relative pb-0.5">
@@ -43,6 +45,7 @@ function StampCard({ label, digest, stampedAt }: { label: string; digest: string
           <span className="font-display text-[15px] font-bold tracking-[-0.01em]">Locked: {label}</span>
           <span className="text-[12px] text-ink-soft">
             {stampedAt && mounted ? `Stamped on Sui at ${clock(stampedAt)}.` : "Stamped on Sui."}
+            {walrus === "saved" ? " Saved on Walrus." : walrus === "saving" ? " Saving to Walrus…" : ""}
           </span>
         </span>
         <a
@@ -91,17 +94,19 @@ export function YourCall({
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const stamping = current?.suiStatus === "pending";
+  const waiting = stamping || current?.walrus === "saving";
 
-  // The stamp lands a few seconds after the tap. Check back until it shows (or give up after a minute).
+  // The Sui stamp lands a few seconds after the tap, the Walrus memory about half a minute later.
+  // Check back until both show (or give up after two minutes).
   useEffect(() => {
-    if (!stamping) return;
+    if (!waiting) return;
     let tries = 0;
     const timer = setInterval(() => {
-      if (++tries > 12) clearInterval(timer);
+      if (++tries > 30) clearInterval(timer);
       else router.refresh();
     }, 4000);
     return () => clearInterval(timer);
-  }, [stamping, router]);
+  }, [waiting, router]);
 
   const choose = (pick: Call) =>
     startTransition(async () => {
@@ -159,7 +164,7 @@ export function YourCall({
         </div>
       </div>
 
-      {landed && <StampCard key={current.version} label={callLabel(current.pick, home, away)} digest={current.suiDigest!} stampedAt={current.stampedAt} />}
+      {landed && <StampCard key={current.version} label={callLabel(current.pick, home, away)} digest={current.suiDigest!} stampedAt={current.stampedAt} walrus={current.walrus} />}
 
       {current?.suiStatus === "failed" && shown === current.pick && (
         <div className="flex items-center justify-between gap-3 rounded-2xl border border-error/40 px-3 py-2">

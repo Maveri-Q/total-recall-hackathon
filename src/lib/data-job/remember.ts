@@ -2,7 +2,8 @@
 //
 // queueMemories: writes the text of every new memory into the `memories` table (deterministic code,
 //   see memories.ts). One per stamped reading, one per graded match, and a new source record for a
-//   league whenever its count of graded matches grows.
+//   league whenever its count of graded matches grows. Calls too (one per call version), with an anonymous
+//   fan id only. rememberCallNow saves a call straight after its Sui stamp; the hourly run catches any it missed.
 // sendPendingMemories: sends queued memories to Walrus, 20 per call, and records each blob id.
 //   A memory sent in an earlier run is checked, never sent twice.
 import { LEAGUES } from "../leagues";
@@ -11,20 +12,27 @@ import type { createAdminClient } from "../supabase/admin";
 import { chunk } from "../sui-stamp";
 import { checkMemories, MAX_MEMORIES_PER_CALL, sendMemories, waitForMemories, walrusConfigured, type MemoryJob } from "../walrus";
 import {
+  callMemoryText,
+  callSummary,
   matchResultMemoryText,
+  matchResultSummary,
   matchVerdict,
   NAMESPACES,
   readingMemoryText,
+  readingSummary,
   sourceRecord,
   sourceRecordMemoryText,
+  sourceRecordSummary,
   type MatchInfo,
   type ReadingRow,
   type Verdict,
 } from "./memories";
+import { callLabel, type Call } from "../call-result";
+import { fanId } from "../fan-id";
 
 type Db = ReturnType<typeof createAdminClient>;
 type Kind = keyof typeof NAMESPACES;
-type NewMemory = { kind: Kind; ref_key: string; namespace: string; text: string };
+type NewMemory = { kind: Kind; ref_key: string; namespace: string; text: string; summary: string; fan_id?: string };
 
 const READING_COLUMNS =
   "id, match_id, kind, odds_fetched_at, bookie_count, bookie_home, bookie_draw, bookie_away, poly_status, poly_volume, " +
@@ -81,7 +89,13 @@ export async function queueMemories(db: Db, now: Date, log: string[]) {
   const haveReading = await existingKeys(db, "reading", rows.map((r) => r.id));
   for (const r of rows) {
     if (haveReading.has(r.id)) continue;
-    queued.push({ kind: "reading", ref_key: r.id, namespace: NAMESPACES.reading, text: readingMemoryText(matchInfo(r.matches), r) });
+    queued.push({
+      kind: "reading",
+      ref_key: r.id,
+      namespace: NAMESPACES.reading,
+      text: readingMemoryText(matchInfo(r.matches), r),
+      summary: readingSummary(matchInfo(r.matches), r),
+    });
   }
 
   // Graded matches.
@@ -101,6 +115,7 @@ export async function queueMemories(db: Db, now: Date, log: string[]) {
       ref_key: m.id,
       namespace: NAMESPACES.match_result,
       text: matchResultMemoryText(matchInfo(m), { homeGoals: m.home_goals, awayGoals: m.away_goals, result: m.result }, m.readings),
+      summary: matchResultSummary(matchInfo(m), { homeGoals: m.home_goals, awayGoals: m.away_goals }, m.readings),
     });
   }
 
@@ -123,8 +138,12 @@ export async function queueMemories(db: Db, now: Date, log: string[]) {
       ref_key: r.key,
       namespace: NAMESPACES.source_record,
       text: sourceRecordMemoryText(r.scope, sourceRecord(r.vs), now.toISOString()),
+      summary: sourceRecordSummary(r.scope, sourceRecord(r.vs)),
     });
   }
+
+  // Calls, in case saving one straight after its stamp didn't finish.
+  queued.push(...(await queueCallMemories(db, since)));
 
   if (queued.length === 0) return;
   const { error } = await db.from("memories").upsert(queued, { onConflict: "kind,ref_key", ignoreDuplicates: true });
@@ -201,4 +220,72 @@ export async function sendPendingMemories(db: Db, log: string[]) {
   if (saved > 0) log.push(`Saved ${saved} memory(ies) on Walrus Mainnet`);
   const stillSending = sentNow.length + (sent?.length ?? 0) - saved;
   if (stillSending > 0) log.push(`${stillSending} memory(ies) still being saved, checked next run`);
+}
+
+const CALL_COLUMNS =
+  "id, version, pick, created_at, sui_status, sui_digest, content_hash, user_id, predictions!inner(home_team, away_team, league, kickoff_at, match_id)";
+
+type CallRow = {
+  id: string;
+  version: number;
+  pick: Call;
+  created_at: string;
+  sui_digest: string | null;
+  content_hash: string;
+  user_id: string;
+  predictions: { home_team: string; away_team: string; league: string; kickoff_at: string; match_id: string | null };
+};
+
+/** The Walrus memory for one stamped call version. Only an anonymous fan id goes in, never a name or email. */
+function callMemory(v: CallRow): NewMemory | null {
+  if (!v.sui_digest || !v.predictions.match_id) return null;
+  const p = v.predictions;
+  const m: MatchInfo = { leagueName: p.league, homeTeam: p.home_team, awayTeam: p.away_team, kickoffAt: p.kickoff_at };
+  const pickLabel = callLabel(v.pick, p.home_team, p.away_team);
+  const fan = fanId(v.user_id);
+  return {
+    kind: "call",
+    ref_key: v.id,
+    namespace: NAMESPACES.call,
+    fan_id: fan,
+    summary: callSummary(m, pickLabel),
+    text: callMemoryText(m, { fanId: fan, version: v.version, pickLabel, savedAt: v.created_at, suiDigest: v.sui_digest, contentHash: v.content_hash }),
+  };
+}
+
+/** Stamped calls from the last 14 days that aren't queued for Walrus yet (a safety net for rememberCallNow). */
+async function queueCallMemories(db: Db, since: string): Promise<NewMemory[]> {
+  const { data, error } = await db
+    .from("prediction_versions")
+    .select(CALL_COLUMNS)
+    .eq("sui_status", "stamped")
+    .gte("created_at", since);
+  if (error) throw new Error(`loading calls: ${error.message}`);
+  const rows = (data ?? []) as unknown as CallRow[];
+  const have = await existingKeys(db, "call", rows.map((r) => r.id));
+  return rows.filter((r) => !have.has(r.id)).map(callMemory).filter((m): m is NewMemory => m !== null);
+}
+
+/**
+ * Saves one call to Walrus right after its Sui stamp, so "Saved on Walrus" shows within a minute.
+ * If anything fails, the row stays queued and the hourly job sends it.
+ */
+export async function rememberCallNow(db: Db, versionId: string) {
+  const { data, error } = await db.from("prediction_versions").select(CALL_COLUMNS).eq("id", versionId).maybeSingle();
+  if (error || !data) return;
+  const memory = callMemory(data as unknown as CallRow);
+  if (!memory) return;
+  await db.from("memories").upsert(memory, { onConflict: "kind,ref_key", ignoreDuplicates: true });
+  if (!walrusConfigured()) return;
+  const { data: row } = await db
+    .from("memories")
+    .select("id, attempts, namespace, text, status")
+    .eq("kind", "call")
+    .eq("ref_key", versionId)
+    .single();
+  if (!row || row.status !== "pending") return;
+  const [jobId] = await sendMemories([{ text: row.text, namespace: row.namespace }]);
+  await db.from("memories").update({ status: "sent", job_id: jobId, attempts: row.attempts + 1, sent_at: new Date().toISOString() }).eq("id", row.id);
+  const jobs = await waitForMemories([jobId], [row.namespace], 90_000);
+  await saveJobResults(db, [{ id: row.id, attempts: row.attempts + 1 }], jobs, []);
 }

@@ -7,6 +7,7 @@ import { callOutcome, type Call, type CallOutcome } from "./call-result";
 import { commitmentHash } from "./commitment";
 import { leagueByCode } from "./leagues";
 import type { Outcome } from "./odds";
+import { rememberCallNow } from "./data-job/remember";
 import { createAdminClient } from "./supabase/admin";
 import { createClient } from "./supabase/server";
 import { stampHashes, stampingConfigured, warmUpSui } from "./tatum";
@@ -20,6 +21,8 @@ export type CallVersion = {
   sui_digest: string | null;
   stamped_at: string | null;
   content_hash: string;
+  /** The call's Walrus memory, once one exists. */
+  walrus?: { status: "pending" | "sent" | "saved" | "failed"; blobId: string | null } | null;
 };
 
 type Game = { result: Outcome | null; result_status: string | null; home_goals: number | null; away_goals: number | null };
@@ -74,7 +77,7 @@ export async function listMyCalls(now: Date = new Date()): Promise<MyCall[]> {
     .select(SELECT)
     .order("kickoff_at", { ascending: false });
   if (error) throw new Error(`Couldn't load calls: ${error.message}`);
-  return (data as unknown as Row[]).filter((r) => r.versions.length > 0).map((r) => toCall(r, now));
+  return withWalrus((data as unknown as Row[]).filter((r) => r.versions.length > 0).map((r) => toCall(r, now)));
 }
 
 /** The user's call on each of these games, by game id. */
@@ -82,7 +85,8 @@ export async function myCallsOn(matchIds: string[], now: Date = new Date()): Pro
   if (matchIds.length === 0) return new Map();
   const { data, error } = await (await createClient()).from("predictions").select(SELECT).in("match_id", matchIds);
   if (error) throw new Error(`Couldn't load calls: ${error.message}`);
-  return new Map((data as unknown as Row[]).filter((r) => r.versions.length > 0).map((r) => [r.match_id!, toCall(r, now)]));
+  const calls = await withWalrus((data as unknown as Row[]).filter((r) => r.versions.length > 0).map((r) => toCall(r, now)));
+  return new Map(calls.map((c) => [c.matchId!, c]));
 }
 
 function errorText(message: string | undefined): string {
@@ -159,6 +163,8 @@ async function stampCallVersion(predictionId: string, version: number, hash: str
       .from("prediction_versions")
       .update({ sui_status: "stamped", sui_digest: digest, stamped_at: new Date().toISOString(), sui_error: null })
       .eq("id", row.id);
+    // Then remember it on Walrus. A failure here only delays it: the hourly job sends anything left queued.
+    await rememberCallNow(admin, row.id).catch((e) => console.error("remember call", e instanceof Error ? e.message : e));
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     console.error("stamp call", message);
@@ -176,4 +182,14 @@ export async function retryCallStamp(matchId: string): Promise<{ ok: true } | { 
   warmUpSui();
   after(() => stampCallVersion(call.id, latest.version, latest.content_hash));
   return { ok: true };
+}
+
+/** Adds each call version's Walrus memory status (calls are saved to Walrus after their Sui stamp). */
+async function withWalrus<T extends { versions: CallVersion[] }>(calls: T[]): Promise<T[]> {
+  const ids = calls.flatMap((c) => c.versions.map((v) => v.id));
+  if (ids.length === 0) return calls;
+  const { data } = await createAdminClient().from("memories").select("ref_key, status, blob_id").eq("kind", "call").in("ref_key", ids);
+  const byId = new Map((data ?? []).map((m) => [m.ref_key, { status: m.status, blobId: m.blob_id }]));
+  for (const c of calls) for (const v of c.versions) v.walrus = byId.get(v.id) ?? null;
+  return calls;
 }
