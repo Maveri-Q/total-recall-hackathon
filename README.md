@@ -1,4 +1,4 @@
-# Oddsight
+# Hindcast
 
 [![Tests](https://github.com/Maveri-Q/total-recall-hackathon/actions/workflows/tests.yml/badge.svg)](https://github.com/Maveri-Q/total-recall-hackathon/actions/workflows/tests.yml)
 
@@ -19,7 +19,7 @@ No sign-up needed to look around.
 
 ## What it does
 
-Oddsight (odds + hindsight) reads the bookies' odds and Polymarket's price for the same game, stamps that
+A hindcast checks past predictions against what really happened. Hindcast reads the bookies' odds and Polymarket's price for the same game, stamps that
 reading on Sui before kickoff, checks after full time who was closer, and remembers it all on Walrus.
 Next time the two disagree, it looks back at games like this one and shows who's been closer, with the
 number of games behind it. You can make your own call too: one tap, stamped on Sui, scored after the game.
@@ -64,7 +64,7 @@ The database does the counting, Walrus does the remembering. The maths (odds to 
 
 ## The logo
 
-A rear-view mirror, because hindsight means looking back. Inside it is a football pitch, with the bookies'
+A rear-view mirror, because a hindcast means looking back. Inside it is a football pitch, with the bookies'
 square far away and Polymarket's circle close up, showing "who's been closer". Logo files are in `brand/`.
 
 ## Where things live

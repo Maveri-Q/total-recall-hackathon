@@ -1,6 +1,7 @@
 // The app's name, in one place. Change it here and it changes everywhere.
-// Oddsight = odds + hindsight: it remembers how the same kind of game went before.
-export const APP_NAME = "Oddsight";
+// A hindcast checks past predictions against what really happened. Renamed from Oddsight, which another
+// Polymarket product already uses.
+export const APP_NAME = "Hindcast";
 
 /** The wordmark is always lowercase. */
 export const WORDMARK = APP_NAME.toLowerCase();

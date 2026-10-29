@@ -3,10 +3,10 @@
 // Run: npx tsx scripts/export-brand-pngs.mts
 import sharp from "sharp";
 
-const icon = "brand/oddsight-icon.svg";
+const icon = "brand/hindcast-icon.svg";
 await sharp(icon, { density: 300 }).resize(180, 180).png().toFile("src/app/apple-icon.png");
-await sharp(icon, { density: 300 }).resize(192, 192).png().toFile("public/brand/oddsight-icon-192.png");
-await sharp(icon, { density: 300 }).resize(512, 512).png().toFile("public/brand/oddsight-icon-512.png");
+await sharp(icon, { density: 300 }).resize(192, 192).png().toFile("public/brand/hindcast-icon-192.png");
+await sharp(icon, { density: 300 }).resize(512, 512).png().toFile("public/brand/hindcast-icon-512.png");
 
 // Social preview: the icon centred on the app's dark ground, 1200x630.
 const mark = await sharp(icon, { density: 300 }).resize(360, 360).png().toBuffer();

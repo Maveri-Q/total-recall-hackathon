@@ -31,7 +31,7 @@ A feature is "done" only when it has run for real on Mainnet and its tests pass.
 - Submission form also needs: Tatum account ID, Sui address, MEMWAL_AGENT_ID.
 - Judging: Walrus + Tatum integration 30% · Technical quality (clean code, Tatum Sui RPC) 30% · Creativity 20% · Presentation (docs + working demo) 20%.
 
-## The product: Oddsight
+## The product: Hindcast
 **An odds watchdog for football that learns which source to trust.**
 
 The problem it solves: a bettor sees one bookie's odds and has no way to know if the price is fair. Polymarket, where people trade real money on the same match, often gives a different chance. Nobody shows when the two disagree, or which one is usually right.
@@ -110,7 +110,7 @@ Keep this table true. If a build decision would break a row, stop and tell Maver
 - **No scraping** of bookmaker sites (SportyBet, Bet9ja etc.) or X. Use official APIs only.
 - **No prizes or payouts.** No budget for it, and it would blur the "not betting" line.
 - **No Tatum AI Builder** for the main build.
-- **Name:** Oddsight.
+- **Name:** Hindcast (renamed from Oddsight, which another Polymarket product already uses). A hindcast checks past predictions against what really happened. Keep the rear-view mirror logo.
 - **No Kalshi.** Kalshi is not onchain, so it doesn't fit "compare bookmaker odds with onchain sources". Only bookies vs Polymarket. Don't add other sources without asking Maverick.
 - **Making a call needs sign-in.** Signed-out users can see everything on the open pages, but tapping a pick shows a sign-in card. The server must also reject calls from signed-out users.
 
@@ -241,7 +241,7 @@ Show a clear, friendly prompt where login is needed, e.g. "Sign in to make your 
   - `src/lib/football-data.ts`: fixtures and results from football-data.org
 - Tatum Sui: gRPC gateway `https://sui-mainnet-grpc.gateway.tatum.io`, API key sent as `x-api-key` metadata. Tatum's Sui JSON-RPC was switched off in July 2026, so don't use it.
 - Walrus Memory SDK: `@mysten-incubation/memwal` (needs delegate key, account ID, relayer server URL).
-- "Total Recall" is only a working title until the real name is picked.
+- "Total Recall" is the hackathon, not the app. The app is Hindcast (was Oddsight until 29 Oct 2026). The name lives in `src/lib/brand.ts`; logo files are `brand/hindcast-*.svg`. The fan-id salt in `fan-id.ts` still says "oddsight-fan:" on purpose.
 
 ### Already built (before the 27 Oct brief change)
 - User pick journal: sign-in, new pick, edits saved as versions, full history, kickoff lock enforced by the database, content hash per version. This became feature 6 ("Your call"), 28 Oct 2026.
