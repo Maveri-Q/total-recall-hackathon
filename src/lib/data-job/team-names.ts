@@ -29,6 +29,8 @@ const SAME_TEAM: Record<string, string> = {
   "athletic bilbao": "athletic",
   "wolves": "wolverhampton wanderers",
   "spurs": "tottenham hotspur",
+  "sporting lisbon": "sporting cp",
+  "aek athens": "aek",
 };
 
 export function teamWords(name: string): string[] {

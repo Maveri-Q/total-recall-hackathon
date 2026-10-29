@@ -43,3 +43,6 @@ next-env.d.ts
 
 # Move build output
 /move/build/
+
+# Local review screenshots
+/screenshots/

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ReadingRow } from "./data-job/memories";
-import { favourite, headline, scoreline, type PastGame } from "./scoreline";
+import { biggestGapGame, favourite, headline, scoreline, type PastGame } from "./scoreline";
 
 // A usable pre-kickoff reading with the given gap (points on home) and winner.
 function reading(gapPoints: number, closer: "bookies" | "polymarket" | "tie", usable = true): ReadingRow {
@@ -39,7 +39,11 @@ describe("scoreline", () => {
       game("h", "SA", 7, "bookies", false), // not usable
     ];
     expect(scoreline(recalled, "SA", "medium")).toEqual({
-      bookies: 1, polymarket: 2, level: 1, games: 4, counted: ["a", "b", "c", "d"],
+      bookies: 1, polymarket: 2, level: 1, games: 4,
+      counted: [
+        { matchId: "a", closer: "polymarket" }, { matchId: "b", closer: "bookies" },
+        { matchId: "c", closer: "polymarket" }, { matchId: "d", closer: "tie" },
+      ],
     });
   });
 
@@ -66,5 +70,41 @@ describe("headline", () => {
 describe("favourite", () => {
   it("is the result with the highest chance", () => {
     expect(favourite({ home: 0.2, draw: 0.3, away: 0.5 })).toBe("away");
+  });
+});
+
+describe("scoreline as it stood a week ago", () => {
+  it("leaves out games that kicked off after the cut-off", () => {
+    const games = [
+      { ...game("old", "SA", 2, "polymarket"), kickoffAt: "2026-10-20T19:45:00Z" },
+      { ...game("new", "SA", 2, "bookies"), kickoffAt: "2026-10-27T19:45:00Z" },
+    ];
+    const s = scoreline(games, "SA", "small", new Date("2026-10-22T00:00:00Z"));
+    expect(s).toMatchObject({ games: 1, polymarket: 1, bookies: 0 });
+  });
+});
+
+describe("biggestGapGame", () => {
+  const now = new Date("2026-10-29T12:00:00Z");
+  const g = (id: string, kickoffAt: string, home: number, polyHome: number, polyOk = true) => ({
+    id, kickoffAt, polyOk,
+    bookies: { home, draw: 0.25, away: 0.75 - home },
+    poly: { home: polyHome, draw: 0.25, away: 0.75 - polyHome },
+  });
+
+  it("picks the widest gap among games still to kick off with a big enough market", () => {
+    const best = biggestGapGame([
+      g("small", "2026-10-29T18:00:00Z", 0.5, 0.52),
+      g("big", "2026-10-29T20:00:00Z", 0.58, 0.66),
+      g("thin", "2026-10-29T19:00:00Z", 0.3, 0.6, false), // under the volume threshold
+      g("started", "2026-10-29T11:00:00Z", 0.2, 0.7), // already kicked off
+    ], now);
+    expect(best?.id).toBe("big");
+    expect(best?.gap.points).toBeCloseTo(8, 6);
+  });
+
+  it("breaks a tie with the earlier kickoff, and gives nothing when no game qualifies", () => {
+    expect(biggestGapGame([g("late", "2026-10-29T21:00:00Z", 0.5, 0.55), g("early", "2026-10-29T18:00:00Z", 0.5, 0.55)], now)?.id).toBe("early");
+    expect(biggestGapGame([g("thin", "2026-10-29T19:00:00Z", 0.3, 0.6, false)], now)).toBeNull();
   });
 });

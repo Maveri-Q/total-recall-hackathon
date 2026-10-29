@@ -18,6 +18,8 @@ export type CallVersion = {
   created_at: string;
   sui_status: "pending" | "stamped" | "failed" | "not_applicable";
   sui_digest: string | null;
+  stamped_at: string | null;
+  content_hash: string;
 };
 
 type Game = { result: Outcome | null; result_status: string | null; home_goals: number | null; away_goals: number | null };
@@ -36,7 +38,7 @@ export type MyCall = {
 };
 
 const SELECT = `id, match_id, home_team, away_team, league, kickoff_at,
-  versions:prediction_versions (id, version, pick, created_at, sui_status, sui_digest),
+  versions:prediction_versions (id, version, pick, created_at, sui_status, sui_digest, stamped_at, content_hash),
   game:matches (result, result_status, home_goals, away_goals)`;
 
 type Row = {
@@ -162,4 +164,16 @@ async function stampCallVersion(predictionId: string, version: number, hash: str
     console.error("stamp call", message);
     await admin.from("prediction_versions").update({ sui_status: "failed", sui_error: message.slice(0, 500) }).eq("id", row.id);
   }
+}
+
+/** "Try again" after a failed stamp: stamps the user's latest call on this game again. */
+export async function retryCallStamp(matchId: string): Promise<{ ok: true } | { ok: false; error: string }> {
+  const call = (await myCallsOn([matchId])).get(matchId);
+  const latest = call?.versions.at(-1);
+  if (!call || !latest) return { ok: false, error: "We couldn't find your call." };
+  if (latest.sui_status === "stamped") return { ok: true };
+  if (Date.now() >= Date.parse(call.kickoffAt)) return { ok: false, error: "Too late. This game has kicked off." };
+  warmUpSui();
+  after(() => stampCallVersion(call.id, latest.version, latest.content_hash));
+  return { ok: true };
 }

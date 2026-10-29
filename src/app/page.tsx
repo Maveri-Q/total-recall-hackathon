@@ -1,183 +1,132 @@
 import { Suspense } from "react";
 import { connection } from "next/server";
-import { bandScore, bookiesOf, getUpcomingMatches, polyOf, type UpcomingMatch } from "@/lib/coming-up";
-import type { ReadingRow } from "@/lib/data-job/memories";
-import type { Outcome } from "@/lib/odds";
-import { favourite, headline, MIN_GAMES_FOR_SCORE } from "@/lib/scoreline";
-import { explorerTxUrl } from "@/lib/sui-stamp";
+import { myCallsOn, type MyCall } from "@/lib/calls";
+import { bandScore, bookiesOf, getUpcomingMatches, lastCheckedAt, polyOf, type UpcomingMatch } from "@/lib/coming-up";
+import { readingGap, type GapBand } from "@/lib/data-job/memories";
+import { biggestGapGame, headline, MIN_GAMES_FOR_SCORE } from "@/lib/scoreline";
 import { getCurrentUser } from "@/lib/supabase/server";
-import { myCallsOn, type CallVersion, type MyCall } from "@/lib/calls";
-import { Info } from "./info";
-import { KickoffTime } from "./kickoff-time";
-import { YourCall } from "./your-call";
-import { PageHeader } from "./nav";
+import { BottomNav } from "./bottom-nav";
+import { ComingUpHeader } from "./coming-up/header";
+import type { Featured } from "./coming-up/featured";
+import { MatchList, type MatchView } from "./coming-up/match-list";
+import { RecordCount } from "./coming-up/record-count";
 
 export default function ComingUp() {
   return (
-    <main className="mx-auto flex w-full max-w-xl flex-col gap-4 p-4">
-      <PageHeader title="Coming up" current="/" />
-      <Suspense fallback={<p>Loading games…</p>}>
-        <Matches />
+    <main className="mx-auto flex w-full max-w-[480px] flex-col gap-[22px] px-[18px] pb-[calc(110px+env(safe-area-inset-bottom))] pt-[calc(18px+env(safe-area-inset-top))]">
+      <Suspense fallback={<Loading />}>
+        <Page />
       </Suspense>
     </main>
   );
 }
 
-async function Matches() {
-  await connection();
-  const matches = await getUpcomingMatches(new Date());
-  if (matches.length === 0) return <p>No games in the next day. We check every hour.</p>;
-  const user = await getCurrentUser();
-  const calls = user ? await myCallsOn(matches.map((m) => m.id)) : new Map<string, MyCall>();
-  return (
-    <ul className="flex flex-col gap-3">
-      {matches.map((m) => {
-        const call = calls.get(m.id)?.versions.at(-1) ?? null;
-        return (
-          <li key={m.id} className="flex flex-col gap-1 border p-3">
-            <p className="font-bold">
-              {m.homeTeam} vs {m.awayTeam} · <KickoffTime iso={m.kickoffAt} />
-            </p>
-            <Odds match={m} />
-            <YourCall matchId={m.id} homeTeam={m.homeTeam} awayTeam={m.awayTeam} current={call?.pick ?? null} signedIn={!!user} stamping={call?.sui_status === "pending"} />
-            {call && <CallProof version={call} />}
-          </li>
-        );
-      })}
-    </ul>
-  );
-}
-
-/** Each call is stamped on Sui the moment it's made, so it's provably from before kickoff. */
-function CallProof({ version }: { version: CallVersion }) {
-  if (version.sui_status === "stamped" && version.sui_digest) {
-    return (
-      <p className="text-sm">
-        Your call is stamped on Sui ·{" "}
-        <a href={explorerTxUrl(version.sui_digest)} target="_blank" rel="noreferrer" className="underline">
-          see proof
-        </a>
-        . You can change it until kickoff.
-      </p>
-    );
-  }
-  if (version.sui_status === "failed") return <p className="text-sm">Couldn&apos;t stamp your call on Sui yet. We&apos;ll try again.</p>;
-  return <p className="text-sm">Stamping your call on Sui…</p>;
-}
-
-const pct = (x: number) => `${Math.round(x * 100)}%`;
-
-function resultName(o: Outcome, m: UpcomingMatch): string {
-  return o === "home" ? m.homeTeam : o === "away" ? m.awayTeam : "Draw";
-}
-
-function BookiesInfo({ id }: { id: string }) {
-  return (
-    <Info id={`bookies-${id}`} label="About the bookies' chance">
-      We turn the bookies&apos; odds into a chance, so you can compare them with Polymarket.
-    </Info>
-  );
-}
-
-function Odds({ match: m }: { match: UpcomingMatch }) {
-  const r = m.reading;
-  const bookies = r && bookiesOf(r);
-  if (!r || !bookies) return <p>No odds yet. We check them the day before kickoff.</p>;
-
-  const poly = r.poly_status === "not_found" ? null : polyOf(r);
-  if (!poly) {
-    const fav = favourite(bookies);
-    return (
-      <>
-        <p>
-          Bookies: {resultName(fav, m)} {pct(bookies[fav])}
-          <BookiesInfo id={m.id} />
-        </p>
-        <p>No Polymarket market for this game.</p>
-        <SuiProof reading={r} />
-      </>
-    );
-  }
-
-  const h = headline(bookies, poly);
+function Loading() {
   return (
     <>
-      <p>
-        Bookies: {resultName(h.outcome, m)} {pct(h.bookies)}
-        <BookiesInfo id={m.id} /> · Polymarket: {resultName(h.outcome, m)} {pct(h.poly)}
-        <Info id={`poly-${m.id}`} label="What is Polymarket?">
-          Polymarket is a site where people put real money on what will happen. Its price shows the chance they give each
-          result.
-        </Info>
-      </p>
-      {r.poly_status === "thin_market" && (
-        <p className="text-sm">Not much money on Polymarket for this game yet, so its price can jump around.</p>
-      )}
-      <SuiProof reading={r} />
-      <Suspense fallback={<p className="text-sm">Checking past games…</p>}>
-        <Score match={m} band={h.band} />
-      </Suspense>
+      <h1 className="m-0 pt-[21px] font-display text-[30px] font-bold leading-[1.05] tracking-[-0.02em]">Coming up</h1>
+      <p className="text-faint">Loading games…</p>
     </>
   );
 }
 
-async function Score({ match: m, band }: { match: UpcomingMatch; band: Parameters<typeof bandScore>[1] }) {
+const pct = (x: number) => Math.round(x * 100);
+
+function toView(m: UpcomingMatch, call: MyCall | undefined): MatchView {
+  const r = m.reading;
+  const bookies = r ? bookiesOf(r) : null;
+  const poly = r && r.poly_status !== "not_found" ? polyOf(r) : null;
+  const latest = call?.versions.at(-1);
+  return {
+    id: m.id,
+    leagueCode: m.leagueCode,
+    leagueName: m.leagueName,
+    kickoffAt: m.kickoffAt,
+    home: m.home,
+    away: m.away,
+    bookies,
+    poly,
+    polyStatus: r?.poly_status ?? null,
+    gap: r && bookies && poly ? readingGap(r) : null,
+    readingDigest: r?.sui_status === "stamped" ? r.sui_digest : null,
+    call: latest
+      ? { version: latest.version, pick: latest.pick, suiStatus: latest.sui_status, suiDigest: latest.sui_digest, stampedAt: latest.stamped_at }
+      : null,
+  };
+}
+
+/** The record panel for one game, filled from Walrus recall. Streams in on its own. */
+async function Record({ m, band, weekAgo }: { m: MatchView; band: GapBand; weekAgo: string }) {
   let score;
   try {
-    score = await bandScore(m.leagueCode, band);
+    score = await bandScore(m.leagueCode, band, weekAgo);
   } catch (e) {
     console.error("bandScore", e);
-    return <p>Couldn&apos;t load past games right now. Try again in a minute.</p>;
+    return <p className="m-0 text-[14px] text-faint">Couldn&apos;t load past games right now. Try again in a minute.</p>;
   }
-
   return (
-    <>
-      {score.games >= MIN_GAMES_FOR_SCORE ? (
-        <>
-          <p className="font-bold">
-            Bookies vs Polymarket: {score.bookies} – {score.polymarket}
-            <Info id={`score-${m.id}`} label="About this score">
-              After every game, we check who got closer to the real result. This is the score so far in games like this
-              one.
-            </Info>
-          </p>
-          <p className="text-sm">
-            in {score.games} {m.leagueName} games where they disagreed this much
-            {score.level > 0 && `. ${score.level} ${score.level === 1 ? "was" : "were"} level`}
-          </p>
-        </>
-      ) : (
-        <p>Not enough games like this yet. We&apos;ll show the score once we have {MIN_GAMES_FOR_SCORE}.</p>
-      )}
-      {score.recalled.length > 0 && (
-        <details className="text-sm">
-          <summary className="cursor-pointer underline">
-            See the {score.recalled.length} past {score.recalled.length === 1 ? "game" : "games"} we compared
-          </summary>
-          <ul className="mt-2 flex flex-col gap-2">
-            {score.recalled.map((g) => (
-              <li key={g.blobId} className="border-l-2 pl-2">
-                <p className="font-bold">{g.label}</p>
-                <p>{g.text}</p>
-                <p className="opacity-70">Saved on Walrus: {g.blobId}</p>
-              </li>
-            ))}
-          </ul>
-        </details>
-      )}
-    </>
+    <RecordCount
+      id={m.id}
+      bookies={score.bookies}
+      polymarket={score.polymarket}
+      games={score.games}
+      lastWeek={score.lastWeek}
+      leagueName={m.leagueName}
+      recent={score.recalled.map(({ label, kickoffAt, closer, blobId }) => ({ label, kickoffAt, closer, blobId }))}
+      min={MIN_GAMES_FOR_SCORE}
+    />
   );
 }
 
-/** Every reading's fingerprint is stamped on Sui before kickoff. This links to the proof. */
-function SuiProof({ reading }: { reading: ReadingRow }) {
-  if (reading.sui_status !== "stamped" || !reading.sui_digest) return <p className="text-sm">Not stamped yet</p>;
+function RecordLoading() {
+  return <div className="deep rounded-[20px] px-4 py-4 text-[13px] text-faint">Checking past games on Walrus…</div>;
+}
+
+async function Page() {
+  await connection();
+  const now = new Date();
+  const [matches, user, checkedAt] = await Promise.all([getUpcomingMatches(now), getCurrentUser(), lastCheckedAt()]);
+  const calls = user ? await myCallsOn(matches.map((m) => m.id)) : new Map<string, MyCall>();
+  const views = matches.map((m) => toView(m, calls.get(m.id)));
+
+  const best = biggestGapGame(
+    views.map((v) => ({ ...v, polyOk: v.polyStatus === "ok" })),
+    now,
+  );
+  const featured: Featured | null = best && {
+    id: best.id,
+    leagueName: best.leagueName,
+    kickoffAt: best.kickoffAt,
+    title: `${best.home.short} v ${best.away.short}`,
+    points: Math.round(best.gap.points),
+    bookies: pct(best.gap.bookies),
+    poly: pct(best.gap.poly),
+    chanceOf:
+      best.gap.outcome === "draw" ? "Chance of a draw" : `Chance ${best.gap.outcome === "home" ? best.home.short : best.away.short} win`,
+  };
+
+  // The record "as it stood a week ago", rounded to the hour so the cache can be shared.
+  const weekAgo = new Date(Math.floor((now.getTime() - 7 * 24 * 3600_000) / 3600_000) * 3600_000).toISOString();
+  const records = Object.fromEntries(
+    views
+      .filter((v) => v.bookies && v.poly)
+      .map((v) => [
+        v.id,
+        <Suspense key={v.id} fallback={<RecordLoading />}>
+          <Record m={v} band={headline(v.bookies!, v.poly!).band} weekAgo={weekAgo} />
+        </Suspense>,
+      ]),
+  );
+
   return (
-    <p className="text-sm">
-      Stamped on Sui before kickoff ·{" "}
-      <a href={explorerTxUrl(reading.sui_digest)} target="_blank" rel="noreferrer" className="underline">
-        see proof
-      </a>
-    </p>
+    <>
+      <ComingUpHeader signedIn={!!user} />
+      {views.length === 0 ? (
+        <p className="text-faint">No games in the next day. We check every hour.</p>
+      ) : (
+        <MatchList matches={views} featured={featured} checkedAt={checkedAt} records={records} signedIn={!!user} />
+      )}
+      <BottomNav current="/" signedIn={!!user} />
+    </>
   );
 }

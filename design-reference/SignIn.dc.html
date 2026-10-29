@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sign in</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&amp;family=Schibsted+Grotesk:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0;background:#040907}
+a{color:#C6F36B}a:hover{color:#DDF9A0}
+button{font:inherit;-webkit-tap-highlight-color:transparent}
+button:focus-visible,a:focus-visible{outline:2px solid #F2F5F1;outline-offset:3px}
+.press{transition:transform 120ms ease,background-color 160ms ease}
+.press:active{transform:scale(0.97)}
+.scene{perspective:700px}
+.bob1{animation:bob1 7s ease-in-out infinite}
+.bob2{animation:bob2 9s ease-in-out infinite}
+.bob3{animation:bob3 11s ease-in-out infinite}
+@keyframes bob1{0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
+@keyframes bob2{0%,100%{transform:translateY(0)}50%{transform:translateY(14px)}}
+@keyframes bob3{0%,100%{transform:translate(0,0)}50%{transform:translate(10px,-12px)}}
+.sway{animation:sway 6s ease-in-out infinite;transform-style:preserve-3d}
+.sway2{animation:sway 8s ease-in-out -3s infinite;transform-style:preserve-3d}
+@keyframes sway{0%,100%{transform:rotateY(-28deg) rotateZ(-6deg)}50%{transform:rotateY(28deg) rotateZ(6deg)}}
+.spin{animation:spin 9s linear infinite;transform-box:fill-box;transform-origin:center}
+.spin2{animation:spin 14s linear infinite reverse;transform-box:fill-box;transform-origin:center}
+@keyframes spin{to{transform:rotate(360deg)}}
+.lit{-webkit-mask-image:radial-gradient(circle closest-side,#000 0%,#000 40%,transparent 100%);mask-image:radial-gradient(circle closest-side,#000 0%,#000 40%,transparent 100%);-webkit-mask-size:220px 220px;mask-size:220px 220px;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:85px 230px;mask-position:85px 230px}
+@media (prefers-reduced-motion: reduce){.bob1,.bob2,.bob3,.sway,.sway2,.spin,.spin2{animation:none}}
+</style>
+</helmet>
+<div onPointerMove="{{move}}" onPointerLeave="{{leave}}" style="position: relative; width: 390px; height: 844px; overflow: hidden; background: #040907; color: #F2F5F1; font-family: 'Schibsted Grotesk', system-ui, sans-serif; touch-action: none">
+
+  <svg aria-hidden="true" width="390" height="844" viewBox="0 0 390 844" style="position: absolute; inset: 0"><g fill="none" stroke="#0E1A15" stroke-width="2"><rect x="22" y="40" width="346" height="764" rx="4"></rect><line x1="22" y1="422" x2="368" y2="422"></line><circle cx="195" cy="422" r="62"></circle><rect x="110" y="40" width="170" height="90"></rect><rect x="110" y="714" width="170" height="90"></rect></g></svg>
+
+  <div aria-hidden="true" class="lit" ref="{{litRef}}" style="position: absolute; inset: 0; pointer-events: none">
+    <div style="position: absolute; inset: 0; background: radial-gradient(circle at 50% 45%, #1F6146 0%, #0E3122 75%)"></div>
+    <svg width="390" height="844" viewBox="0 0 390 844" style="position: absolute; inset: 0"><g fill="none" stroke="#E4EFE8" stroke-opacity="0.6" stroke-width="2"><rect x="22" y="40" width="346" height="764" rx="4"></rect><line x1="22" y1="422" x2="368" y2="422"></line><circle cx="195" cy="422" r="62"></circle><rect x="110" y="40" width="170" height="90"></rect><rect x="110" y="714" width="170" height="90"></rect></g></svg>
+    <div class="scene" style="position: absolute; inset: 0">
+      <sc-for list="{{floaters}}" as="f" hint-placeholder-count="11">
+        <div class="{{f.bob}}" style="{{f.style}}">
+          <sc-if value="{{f.isBall}}" hint-placeholder-val="{{true}}">
+            <svg viewBox="0 0 100 100" width="100%" height="100%">
+              <defs>
+                <clipPath id="ballClip"><circle cx="50" cy="50" r="47"></circle></clipPath>
+                <radialGradient id="ballShade" cx="34%" cy="28%" r="78%"><stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.55"></stop><stop offset="35%" stop-color="#FFFFFF" stop-opacity="0"></stop><stop offset="75%" stop-color="#000000" stop-opacity="0.35"></stop><stop offset="100%" stop-color="#000000" stop-opacity="0.75"></stop></radialGradient>
+              </defs>
+              <circle cx="50" cy="50" r="47" fill="#EDEDE6"></circle>
+              <g clip-path="url(#ballClip)">
+                <g class="{{f.spin}}" fill="#151B18">
+                  <polygon points="50,36 63.3,45.7 58.2,61.3 41.8,61.3 36.7,45.7"></polygon>
+                  <polygon points="0,-12 11.4,-3.7 7.1,9.7 -7.1,9.7 -11.4,-3.7" transform="translate(50 10) rotate(180)"></polygon>
+                  <polygon points="0,-12 11.4,-3.7 7.1,9.7 -7.1,9.7 -11.4,-3.7" transform="translate(88 37.6) rotate(-108)"></polygon>
+                  <polygon points="0,-12 11.4,-3.7 7.1,9.7 -7.1,9.7 -11.4,-3.7" transform="translate(73.5 82.4) rotate(-36)"></polygon>
+                  <polygon points="0,-12 11.4,-3.7 7.1,9.7 -7.1,9.7 -11.4,-3.7" transform="translate(26.5 82.4) rotate(36)"></polygon>
+                  <polygon points="0,-12 11.4,-3.7 7.1,9.7 -7.1,9.7 -11.4,-3.7" transform="translate(12 37.6) rotate(108)"></polygon>
+                  <g stroke="#151B18" stroke-width="1.6"><line x1="50" y1="36" x2="50" y2="22"></line><line x1="63.3" y1="45.7" x2="76.6" y2="41.3"></line><line x1="58.2" y1="61.3" x2="66.5" y2="72.7"></line><line x1="41.8" y1="61.3" x2="33.5" y2="72.7"></line><line x1="36.7" y1="45.7" x2="23.4" y2="41.3"></line></g>
+                </g>
+              </g>
+              <circle cx="50" cy="50" r="47" fill="url(#ballShade)"></circle>
+              <ellipse cx="35" cy="26" rx="11" ry="6" fill="#FFFFFF" fill-opacity="0.55" transform="rotate(-30 35 26)"></ellipse>
+            </svg>
+          </sc-if>
+          <sc-if value="{{f.isKit}}" hint-placeholder-val="{{false}}">
+            <div class="{{f.sway}}" style="width: 100%; height: 100%">
+              <svg viewBox="0 0 100 100" width="100%" height="100%">
+                <defs>
+                  <linearGradient id="kitShade" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#000000" stop-opacity="0.45"></stop><stop offset="38%" stop-color="#FFFFFF" stop-opacity="0.18"></stop><stop offset="55%" stop-color="#FFFFFF" stop-opacity="0.05"></stop><stop offset="100%" stop-color="#000000" stop-opacity="0.5"></stop></linearGradient>
+                </defs>
+                <path d="M30 12 L42 7 Q50 15 58 7 L70 12 L91 28 L81 42 L72 36 L72 93 L28 93 L28 36 L19 42 L9 28 Z" fill="{{f.c1}}"></path>
+                <path d="M30 12 L42 7 Q50 15 58 7 L70 12 L91 28 L81 42 L72 36 L72 93 L28 93 L28 36 L19 42 L9 28 Z" fill="url(#kitShade)"></path>
+                <path d="M40 40 Q44 62 38 90 M62 44 Q58 66 63 90" fill="none" stroke="#000000" stroke-opacity="0.18" stroke-width="2.5" stroke-linecap="round"></path>
+                <path d="M42 7 Q50 15 58 7" fill="none" stroke="{{f.c2}}" stroke-width="3.5"></path>
+                <path d="M81 42 L91 28 M19 42 L9 28" stroke="{{f.c2}}" stroke-width="4"></path>
+                <text x="50" y="66" text-anchor="middle" font-family="Archivo, sans-serif" font-weight="800" font-size="26" fill="{{f.c2}}">{{f.num}}</text>
+              </svg>
+            </div>
+          </sc-if>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="position: absolute; left: 20px; right: 20px; top: 50%; transform: translateY(-46%); border-radius: 28px; background: rgba(8,18,14,0.55); border: 1px solid rgba(255,255,255,0.1); -webkit-backdrop-filter: blur(20px) saturate(130%); backdrop-filter: blur(20px) saturate(130%); padding: 26px 22px 22px; display: flex; flex-direction: column; gap: 18px; box-shadow: 0 30px 60px rgba(0,0,0,0.5)">
+    <span style="font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 17px">[App name]</span>
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <h1 style="margin: 0; font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 28px; letter-spacing: -0.025em; line-height: 1.08">See who's been right before you pick.</h1>
+      <p style="margin: 0; font-size: 15px; line-height: 1.5; color: #C9D6CE">Bookies vs Polymarket on every big game, and a record of your own calls. Free, no wallet needed.</p>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <button type="button" class="press" style="min-height: 52px; border-radius: 999px; border: none; background: #F2F5F1; color: #0A1712; font-size: 16px; font-weight: 600; cursor: pointer">Continue with Google</button>
+      <button type="button" class="press" style="min-height: 52px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.06); color: #F2F5F1; font-size: 16px; font-weight: 500; cursor: pointer">Continue with email</button>
+    </div>
+    <a href="Main.dc.html" style="align-self: center; font-size: 14px; font-weight: 500; padding: 6px 0">Just looking? Browse games</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {};
+    this.pos = { x: 195, y: 340 };
+    this.target = { x: 195, y: 340 };
+    this.lastInput = -10000;
+    this.lit = null;
+  }
+  componentDidMount() {
+    var self = this;
+    this.reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var tick = function (now) {
+      var idle = now - self.lastInput > 2500;
+      if (idle && !self.reduce) {
+        self.target = { x: 195 + Math.sin(now * 0.00035) * 120, y: 400 + Math.sin(now * 0.00021 + 1) * 260 };
+      }
+      var k = idle ? 0.02 : 0.22;
+      self.pos.x += (self.target.x - self.pos.x) * k;
+      self.pos.y += (self.target.y - self.pos.y) * k;
+      self.paint();
+      self.raf = requestAnimationFrame(tick);
+    };
+    this.raf = requestAnimationFrame(tick);
+  }
+  componentWillUnmount() { if (this.raf) cancelAnimationFrame(this.raf); }
+  paint() {
+    if (!this.lit) return;
+    var p = (this.pos.x - 110) + 'px ' + (this.pos.y - 110) + 'px';
+    this.lit.style.webkitMaskPosition = p;
+    this.lit.style.maskPosition = p;
+  }
+  renderVals() {
+    var self = this;
+    var spec = [
+      ['ball', 6, 6, 70, 'bob1', 0], ['kit', 62, 3, 96, 'bob2', 0, '#E8C547', '#1E2A5A', '7'], ['ball', 78, 22, 38, 'bob3', 2],
+      ['kit', -6, 25, 84, 'bob3', 1, '#3B6FD8', '#F2F5F1', '9'], ['ball', 42, 15, 30, 'bob2', 2.5],
+      ['kit', 68, 68, 100, 'bob1', 0, '#D9463B', '#F2F5F1', '10'], ['ball', 10, 73, 78, 'bob2', 0], ['ball', 56, 87, 44, 'bob3', 1.5],
+      ['kit', 28, 81, 70, 'bob3', 1, '#F2F5F1', '#127A55', '4'], ['ball', 85, 50, 28, 'bob1', 2.5], ['kit', 2, 52, 56, 'bob1', 2, '#2B2F3A', '#F5A524', '11']
+    ];
+    var floaters = spec.map(function (f, i) {
+      var blur = f[5];
+      return { isBall: f[0] === 'ball', isKit: f[0] === 'kit', bob: f[4], c1: f[6] || '', c2: f[7] || '', num: f[8] || '',
+        spin: i % 2 ? 'spin' : 'spin2', sway: i % 2 ? 'sway' : 'sway2',
+        style: 'position: absolute; left: ' + f[1] + '%; top: ' + f[2] + '%; width: ' + f[3] + 'px; height: ' + f[3] + 'px; filter: drop-shadow(0 16px 18px rgba(0,0,0,0.55))' + (blur ? ' blur(' + blur + 'px)' : '') };
+    });
+    return {
+      floaters: floaters,
+      litRef: function (el) { self.lit = el; self.paint(); },
+      move: function (e) {
+        var r = e.currentTarget.getBoundingClientRect();
+        var k = r.width / 390;
+        self.target = { x: (e.clientX - r.left) / k, y: (e.clientY - r.top) / k };
+        self.lastInput = performance.now();
+      },
+      leave: function () { self.lastInput = performance.now(); }
+    };
+  }
+}
+</script>
+</body>
+</html>

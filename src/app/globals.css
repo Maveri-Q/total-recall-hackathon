@@ -1,26 +1,183 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Design tokens (UI.md). Values are copied from design-reference/. */
+@theme {
+  --color-ground: #0a1712;
+  --color-ground-top: #143528;
+  --color-chalk: #f2f5f1;
+  --color-muted: #c9d6ce;
+  --color-faint: #9db1a6;
+  --color-fainter: #7f978a;
+  --color-bookies: #f5a524;
+  --color-poly: #8fd3ff;
+  --color-lime: #c6f36b;
+  --color-mint: #4fe0b5;
+  --color-ink-soft: #5b6b63;
+  --color-error: #ff9b8f;
+
+  --font-display: var(--font-archivo), system-ui, sans-serif;
+  --font-sans: var(--font-schibsted), system-ui, sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+@layer base {
+html {
+  background: var(--color-ground);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: radial-gradient(120% 50% at 50% 0%, var(--color-ground-top) 0%, var(--color-ground) 60%) no-repeat,
+    var(--color-ground);
+  color: var(--color-chalk);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--color-lime);
+}
+a:hover {
+  color: #ddf9a0;
+}
+button {
+  font: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--color-chalk);
+  outline-offset: 3px;
+}
+}
+
+@layer components {
+
+/* Every number lines up. */
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+.deep {
+  background: rgba(6, 17, 13, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+.lime-mint {
+  background: linear-gradient(120deg, var(--color-lime) 0%, var(--color-mint) 100%);
+  color: var(--color-ground);
+}
+
+/* Square for bookies, circle for Polymarket: the two sources differ by shape, not just colour. */
+.mark-bookies {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: var(--color-bookies);
+}
+.mark-poly {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--color-poly);
+}
+
+.press {
+  transition: transform 120ms ease, background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+.press:active {
+  transform: scale(0.97);
+}
+.slider {
+  transition: transform 520ms cubic-bezier(0.65, 0, 0.35, 1);
+}
+.reveal {
+  animation: slideOpen 220ms ease-out both;
+}
+@keyframes slideOpen {
+  0% { opacity: 0; transform: translateY(-4px); }
+  100% { opacity: 1; transform: none; }
+}
+.bump {
+  animation: bump 420ms cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+@keyframes bump {
+  0% { transform: scale(1); color: var(--color-chalk); }
+  40% { transform: scale(1.14); color: var(--color-lime); }
+  100% { transform: scale(1); color: var(--color-chalk); }
+}
+.rolling {
+  filter: blur(0.6px);
+  opacity: 0.85;
+}
+.pop {
+  animation: pop 300ms ease-out both;
+}
+@keyframes pop {
+  0% { opacity: 0; transform: translateY(4px); }
+  100% { opacity: 1; transform: none; }
+}
+.slide-out {
+  animation: slideOut 250ms ease-in both;
+}
+@keyframes slideOut {
+  to { opacity: 0; transform: translateX(-24px); }
+}
+.slide-in {
+  animation: slideIn 300ms ease-out both;
+}
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: none; }
+}
+/* The stamp card lands: drops with a tilt, squashes on impact, bounces, settles (480ms). */
+.land {
+  animation: land 480ms cubic-bezier(0.3, 0.9, 0.4, 1) both;
+  transform-origin: 50% 100%;
+}
+@keyframes land {
+  0% { opacity: 0; transform: translateY(-64px) scale(1.06) rotate(-3deg); }
+  55% { opacity: 1; transform: translateY(0) scale(1.03, 0.93) rotate(0); }
+  75% { transform: translateY(-4px) scale(0.99, 1.01); }
+  100% { opacity: 1; transform: none; }
+}
+/* Dust from the bottom edge at the moment of impact. */
+.dust {
+  animation: dust 560ms 270ms ease-out both;
+}
+@keyframes dust {
+  0% { opacity: 0; transform: translate(0, 0) scale(0.6); }
+  15% { opacity: 0.9; }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(1.4); }
+}
+/* The Your call row feels the landing. */
+.thud {
+  animation: thud 260ms 260ms ease-out both;
+}
+@keyframes thud {
+  0%, 100% { transform: none; }
+  35% { transform: translateY(2px); }
+}
+
+/* Chips scroll sideways without a visible scrollbar. */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bump, .pop, .reveal, .slide-out, .slide-in, .land, .thud { animation: none; }
+  .dust { display: none; }
+  .slider, .press { transition: none; }
 }

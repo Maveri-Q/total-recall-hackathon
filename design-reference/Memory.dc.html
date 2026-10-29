@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Memory</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&amp;family=Schibsted+Grotesk:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0;background:#0A1712}
+a{color:#C6F36B}a:hover{color:#DDF9A0}
+button{font:inherit;-webkit-tap-highlight-color:transparent}
+button:focus-visible,a:focus-visible{outline:2px solid #F2F5F1;outline-offset:3px}
+.press{transition:transform 120ms ease,background-color 160ms ease}
+.press:active{transform:scale(0.97)}
+.fresh{animation:fresh 1400ms ease-out 1 both}
+@keyframes fresh{0%{box-shadow:0 0 0 0 rgba(198,243,107,0.5)}100%{box-shadow:0 0 0 14px rgba(198,243,107,0)}}
+@media (prefers-reduced-motion: reduce){.fresh{animation:none}}
+</style>
+</helmet>
+<div style="width: 390px; min-height: 1120px; box-sizing: border-box; background: radial-gradient(120% 45% at 50% 0%, #143528 0%, #0A1712 60%); color: #F2F5F1; font-family: 'Schibsted Grotesk', system-ui, sans-serif; font-size: 15px; padding: 18px 18px 40px; display: flex; flex-direction: column; gap: 22px">
+
+  <a href="Main.dc.html" style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: #C9D6CE; text-decoration: none; font-size: 14px">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M9 3L5 7l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>Coming up</a>
+
+  <div style="display: flex; flex-direction: column; gap: 8px; margin-top: -10px">
+    <h1 style="margin: 0; font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 30px; letter-spacing: -0.02em">Memory</h1>
+    <p style="margin: 0; font-size: 15px; line-height: 1.5; color: #C9D6CE">Every game we check becomes a memory, saved on Walrus. Next time the bookies and Polymarket disagree, we look back at these.</p>
+  </div>
+
+  <div style="border-radius: 24px; background: linear-gradient(120deg, #C6F36B 0%, #4FE0B5 100%); color: #0A1712; padding: 18px; display: flex; justify-content: space-between; align-items: center; gap: 12px">
+    <div style="display: flex; flex-direction: column; gap: 2px">
+      <span style="font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 40px; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums">212</span>
+      <span style="font-size: 14px; font-weight: 500">memories saved on Walrus</span>
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px">
+      <span style="font-size: 13px; font-weight: 600; background: rgba(10,23,18,0.12); border-radius: 999px; padding: 4px 10px">18 new today</span>
+      <a href="#" style="color: #0A1712; font-size: 13px; font-weight: 600">Check on Walrus</a>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 10px">
+    <h2 style="margin: 0; font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 20px; letter-spacing: -0.01em">How the scores changed</h2>
+    <sc-for list="{{leagues}}" as="lg" hint-placeholder-count="3">
+      <div style="border-radius: 18px; background: rgba(255,255,255,0.045); border: 1px solid rgba(255,255,255,0.08); padding: 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px">
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <span style="font-family: 'Archivo', sans-serif; font-weight: 600; font-size: 16px">{{lg.name}}</span>
+          <span style="font-size: 13px; color: #9DB1A6; font-variant-numeric: tabular-nums">{{lg.history}}</span>
+        </div>
+        <span style="display: flex; align-items: baseline; gap: 6px; font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 20px; font-variant-numeric: tabular-nums; white-space: nowrap"><span style="color: #F5A524">{{lg.b}}</span><span style="color: #3E5A4D">-</span><span style="color: #8FD3FF">{{lg.p}}</span></span>
+      </div>
+    </sc-for>
+    <span style="font-size: 12px; color: #7F978A">Bookies on the left, Polymarket on the right. Counts only games where they disagreed by 5 points or more.</span>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 12px">
+    <h2 style="margin: 0; font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 20px; letter-spacing: -0.01em">Latest memories</h2>
+    <div style="display: flex; gap: 8px">
+      <sc-for list="{{filters}}" as="fl" hint-placeholder-count="3">
+        <button type="button" class="press" onClick="{{fl.pick}}" aria-pressed="{{fl.pressed}}" style="{{fl.style}}">{{fl.name}}</button>
+      </sc-for>
+    </div>
+    <sc-for list="{{feed}}" as="m" hint-placeholder-count="6">
+      <div class="{{m.cls}}" style="border-radius: 18px; background: rgba(255,255,255,0.045); border: 1px solid rgba(255,255,255,0.08); padding: 12px 14px; display: flex; gap: 12px; align-items: flex-start">
+        <span aria-hidden="true" style="{{m.iconStyle}}">{{m.icon}}</span>
+        <div style="display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1">
+          <div style="display: flex; justify-content: space-between; gap: 8px">
+            <span style="font-size: 14px; font-weight: 600">{{m.title}}</span>
+            <span style="font-size: 12px; color: #7F978A; white-space: nowrap">{{m.when}}</span>
+          </div>
+          <span style="font-size: 14px; line-height: 1.45; color: #C9D6CE">{{m.detail}}</span>
+          <a href="#" style="font-size: 12px; font-variant-numeric: tabular-nums">{{m.mem}}</a>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+
+  <p style="margin: 0; font-size: 12px; color: #7F978A; text-align: center">Sample data for this mockup.</p>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1120}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { filter: 'All' };
+  }
+  renderVals() {
+    var self = this;
+    var s = this.state;
+    var names = ['All', 'App memory', 'Your memory'];
+    var filters = names.map(function (n) {
+      var on = s.filter === n;
+      return { name: n, pressed: on ? 'true' : 'false',
+        style: 'min-height: 40px; padding: 0 14px; border-radius: 999px; font-size: 13px; font-weight: 500; cursor: pointer; ' + (on ? 'border: 1px solid transparent; background: #F2F5F1; color: #0A1712' : 'border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: #C9D6CE'),
+        pick: function () { self.setState({ filter: n }); } };
+    });
+    var iconBase = 'flex-shrink: 0; width: 34px; height: 34px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; font-family: Archivo, sans-serif; font-weight: 700; font-size: 13px; ';
+    var kinds = {
+      record: { icon: 'R', style: iconBase + 'background: rgba(198,243,107,0.14); color: #C6F36B' },
+      result: { icon: 'FT', style: iconBase + 'background: rgba(143,211,255,0.14); color: #8FD3FF' },
+      reading: { icon: '%', style: iconBase + 'background: rgba(245,165,36,0.14); color: #F5A524' },
+      call: { icon: 'You', style: iconBase + 'background: rgba(242,245,241,0.12); color: #F2F5F1; font-size: 11px' }
+    };
+    var all = [
+      { k: 'record', who: 'app', title: 'Record updated', detail: 'Serie A: Bookies 5, Polymarket 9.', when: '2 min ago', mem: 'mem 9c1e' },
+      { k: 'result', who: 'app', title: 'Result graded', detail: 'Lazio 2-0 Genoa. Polymarket was closer.', when: '2 min ago', mem: 'mem 3f9a' },
+      { k: 'call', who: 'you', title: 'Your call saved', detail: 'Roma v Cagliari. You picked Roma win.', when: '1 hr ago', mem: 'mem 2d18' },
+      { k: 'reading', who: 'app', title: 'Reading saved', detail: 'Roma v Cagliari. Bookies 58%, Polymarket 66%. Stamped on Sui.', when: '1 hr ago', mem: 'mem 77b0' },
+      { k: 'reading', who: 'app', title: 'Reading saved', detail: 'Torino v Como. Bookies 41%, Polymarket 44%.', when: '3 hr ago', mem: 'mem e41c' },
+      { k: 'result', who: 'app', title: 'Result graded', detail: 'Inter 1-1 Torino. The bookies were closer.', when: 'Yesterday', mem: 'mem 81c2' }
+    ];
+    var shown = all.filter(function (m) { return s.filter === 'All' || (s.filter === 'App memory' && m.who === 'app') || (s.filter === 'Your memory' && m.who === 'you'); });
+    var feed = shown.map(function (m, i) {
+      return { title: m.title, detail: m.detail, when: m.when, mem: 'Remembered on Walrus, ' + m.mem, icon: kinds[m.k].icon, iconStyle: kinds[m.k].style, cls: i === 0 ? 'fresh' : '' };
+    });
+    var leagues = [
+      { name: 'Serie A', b: 5, p: 9, history: '3 weeks ago 2-3, last week 4-6, now 5-9' },
+      { name: 'Premier League', b: 7, p: 6, history: '3 weeks ago 3-2, last week 5-5, now 7-6' },
+      { name: 'La Liga', b: 3, p: 6, history: '3 weeks ago 1-2, last week 2-4, now 3-6' }
+    ];
+    return { filters: filters, feed: feed, leagues: leagues };
+  }
+}
+</script>
+</body>
+</html>
