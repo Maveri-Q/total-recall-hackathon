@@ -97,7 +97,18 @@ async function Record({ m, band, weekAgo }: { m: MatchView; band: GapBand; weekA
     console.error("bandScore", e);
     return <p className="m-0 text-[14px] text-muted">Couldn&apos;t load past games right now. Try again in a minute.</p>;
   }
-  return <RecordCount bookies={score.bookies} polymarket={score.polymarket} games={score.games} leagueName={m.leagueName} min={MIN_GAMES_FOR_SCORE} early={EARLY_SIGNAL_MATCHES} />;
+  const recalled = score.recalled.map(({ matchId, label, closer, blobId }) => ({ matchId, label, closer, blobId }));
+  return (
+    <RecordCount
+      bookies={score.bookies}
+      polymarket={score.polymarket}
+      games={score.games}
+      leagueName={m.leagueName}
+      min={MIN_GAMES_FOR_SCORE}
+      early={EARLY_SIGNAL_MATCHES}
+      recalled={recalled}
+    />
+  );
 }
 
 async function Page() {

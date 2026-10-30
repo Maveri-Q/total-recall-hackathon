@@ -6,6 +6,7 @@ import type { GapBand } from "@/lib/data-job/memories";
 import { leader, type RecordStep } from "@/lib/memory-history";
 import type { LeagueRecord } from "@/lib/scorecard";
 import { walrusUrl } from "@/lib/walrus-links";
+import { When } from "../ui/when";
 import { LampCard } from "../ui/lamp-card";
 import { RollingNumber } from "../ui/rolling-number";
 
@@ -39,6 +40,15 @@ function SplitBar({ b, p, height }: { b: number; p: number; height: string }) {
 
 const CLOSER = { bookies: "Bookies closer", polymarket: "Polymarket closer", tie: "Level" } as const;
 
+const COLOUR = { polymarket: "text-poly-text", bookies: "text-bookies", level: "text-ink" } as const;
+
+/** The leader first, so it reads like a scoreline: "Polymarket 7-3", "Bookies 4-3", "Level 2-2". */
+function scoreText(s: RecordStep): string {
+  const l = leader(s);
+  if (l === "level") return `Level ${s.bookies}-${s.polymarket}`;
+  return l === "polymarket" ? `Polymarket ${s.polymarket}-${s.bookies}` : `Bookies ${s.bookies}-${s.polymarket}`;
+}
+
 /** Show at most this many steps; the newest are kept. */
 const MAX_STEPS = 6;
 
@@ -53,7 +63,7 @@ function HowItChanged({ steps }: { steps: RecordStep[] }) {
     <div className="flex flex-col gap-2">
       <span className="flex flex-col gap-0.5">
         <span className="text-[13px] font-bold text-ink">How this changed</span>
-        <span className="text-[12px] text-hero-muted">Bookies v Polymarket, saved on Walrus as each game was graded. Tap one to check it.</span>
+        <span className="text-[12px] text-hero-muted">The record each time a game was graded, saved on Walrus that day. Tap one to check it.</span>
       </span>
       <ol className="no-scrollbar m-0 flex list-none items-center gap-1.5 overflow-x-auto p-0">
         {shown.map((s, i) => (
@@ -68,13 +78,16 @@ function HowItChanged({ steps }: { steps: RecordStep[] }) {
               target="_blank"
               rel="noreferrer"
               aria-label={`After ${s.games} ${s.games === 1 ? "game" : "games"}: bookies ${s.bookies}, Polymarket ${s.polymarket}. Check it on Walrus.`}
-              className={`press flex min-h-11 flex-col items-center justify-center rounded-[12px] border px-2.5 py-1 no-underline ${
+              className={`press flex min-h-11 flex-col items-start justify-center gap-px rounded-[12px] border px-2.5 py-1.5 no-underline ${
                 i === shown.length - 1 ? "border-ink bg-white" : "border-[rgba(11,26,20,0.08)] bg-white/60"
               }`}
             >
-              <span className="text-[11px] font-semibold text-faint">After {s.games}</span>
-              <span className={`num font-display text-[15px] font-extrabold ${leader(s) === "polymarket" ? "text-poly-text" : leader(s) === "bookies" ? "text-bookies" : "text-ink"}`}>
-                {s.bookies}-{s.polymarket}
+              <span className="whitespace-nowrap text-[11px] font-semibold text-faint">
+                After {s.games} {s.games === 1 ? "game" : "games"}
+              </span>
+              <span className={`num whitespace-nowrap font-display text-[14px] font-extrabold ${COLOUR[leader(s)]}`}>{scoreText(s)}</span>
+              <span className="whitespace-nowrap text-[11px] text-faint">
+                <When iso={s.savedAt} format="day" />
               </span>
             </a>
           </li>

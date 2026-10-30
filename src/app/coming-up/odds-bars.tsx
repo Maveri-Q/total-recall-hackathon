@@ -79,6 +79,8 @@ export function OddsBars({
       if (row) setFits({ home: width("home") <= draw - LABEL_ROOM, away: width("away") <= row.offsetWidth - draw - LABEL_ROOM });
     };
     measure();
+    // Names are measured in the page font, so measure again once it has loaded.
+    document.fonts?.ready.then(measure);
     const ro = new ResizeObserver(measure);
     ro.observe(el);
     return () => ro.disconnect();

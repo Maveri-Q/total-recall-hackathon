@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { walrusUrl } from "@/lib/walrus-links";
 import { LampCard } from "../ui/lamp-card";
 import { RollingNumber } from "../ui/rolling-number";
 
@@ -10,6 +10,40 @@ function recordLine(b: number, p: number, n: number, league: string): string {
   if (p > b) return `When they disagreed like this before, Polymarket got closer in ${p} of ${games}.`;
   if (b > p) return `When they disagreed like this before, the bookies got closer in ${b} of ${games}.`;
   return `When they disagreed like this before, they were level: ${b} each in ${games}.`;
+}
+
+export type RecalledGame = { matchId: string; label: string; closer: "bookies" | "polymarket" | "tie"; blobId: string };
+
+const CLOSER = { bookies: "Bookies closer", polymarket: "Polymarket closer", tie: "Level" } as const;
+/** How many recalled games to list; the rest are counted in "and N more". */
+const SHOW = 3;
+
+/** The past games Walrus recalled for this one, nearest first. Each opens its memory on Walruscan. */
+function Recalled({ games, title }: { games: RecalledGame[]; title: string }) {
+  if (games.length === 0) return null;
+  return (
+    <div className="flex flex-col">
+      <span className="pb-1 text-[12px] font-bold text-hero-muted">{title}</span>
+      {games.slice(0, SHOW).map((g) => (
+        <a
+          key={g.matchId}
+          href={walrusUrl(g.blobId)}
+          target="_blank"
+          rel="noreferrer"
+          className="flex min-h-10 items-center justify-between gap-2 border-t border-[rgba(11,26,20,0.06)] text-[13px] text-ink no-underline"
+        >
+          <span className="num min-w-0 truncate font-semibold">{g.label}</span>
+          <span className="inline-flex shrink-0 items-center gap-1.5 text-ink-2">
+            {g.closer !== "tie" && <span aria-hidden="true" className={g.closer === "bookies" ? "mark-bookies" : "mark-poly"} />}
+            {CLOSER[g.closer]}
+          </span>
+        </a>
+      ))}
+      {games.length > SHOW && (
+        <span className="border-t border-[rgba(11,26,20,0.06)] pt-2 text-[12px] text-hero-muted">and {games.length - SHOW} more, all saved on Walrus</span>
+      )}
+    </div>
+  );
 }
 
 /**
@@ -23,6 +57,7 @@ export function RecordCount({
   leagueName,
   min,
   early,
+  recalled,
 }: {
   bookies: number;
   polymarket: number;
@@ -31,12 +66,17 @@ export function RecordCount({
   min: number;
   /** Under this many games, the score is marked as an early signal. */
   early: number;
+  /** The past games Walrus brought back that were counted, nearest first. */
+  recalled: RecalledGame[];
 }) {
   if (games < min) {
     return (
-      <p className="m-0 rounded-2xl bg-[rgba(11,26,20,0.04)] px-3.5 py-3 text-[14px] leading-normal text-muted">
-        Too few past games like this yet. We&apos;ll show who&apos;s been closer after a few more are played.
-      </p>
+      <div className="flex flex-col gap-2 rounded-2xl bg-[rgba(11,26,20,0.04)] px-3.5 py-3">
+        <p className="m-0 text-[14px] leading-normal text-muted">
+          Too few past games like this yet. We&apos;ll show who&apos;s been closer after a few more are played.
+        </p>
+        <Recalled games={recalled} title={`Walrus has found ${games} so far`} />
+      </div>
     );
   }
   return (
@@ -67,13 +107,7 @@ export function RecordCount({
             <RollingNumber value={polymarket} seed={4} className="self-end font-display text-[68px] font-black leading-[0.82] tracking-[-0.05em] text-poly-text" />
           </span>
         </div>
-        <Link href="/proof" className="inline-flex min-h-11 items-center gap-1.5 self-start text-[12px] font-semibold text-poly-text no-underline">
-          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-            <rect x="1.5" y="2.5" width="11" height="9" rx="2.2" stroke="currentColor" strokeWidth="1.4" />
-            <path d="M4 6h6M4 8.5h3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-          </svg>
-          Remembered on Walrus
-        </Link>
+        <Recalled games={recalled} title="The games Walrus brought back" />
       </div>
     </LampCard>
   );
