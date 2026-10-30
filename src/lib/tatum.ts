@@ -17,6 +17,7 @@ import { findMatchingEvent, mapMarkets, teamWords, type EventCandidate } from ".
 import type { PolyPrices } from "./data-job/reading";
 import { fetchWithRetry } from "./http";
 import { hashToBytes, refToBytes, STAMP_KIND, type StampItem } from "./sui-stamp";
+import { decodeStamped, type OnchainStamp } from "./stamp-check";
 
 const PREDICTION_URL = "https://api.tatum.io/v4/data/prediction";
 
@@ -226,6 +227,18 @@ export async function stampHashes(items: StampItem[]): Promise<{ digest: string 
     throw new Error(`Sui rejected the stamp transaction ${t.digest}: ${JSON.stringify(t.status.error)}`);
   }
   return { digest: result.Transaction.digest };
+}
+
+/**
+ * Reads a stamp transaction back from Sui Mainnet through Tatum: when the chain says it ran, and every `Stamped`
+ * event from our Move package in it. Used by "Check this stamp" on the Proof page.
+ */
+export async function readStamps(digest: string): Promise<{ timestampMs: number | null; stamps: OnchainStamp[] }> {
+  const res = await withFreshConnection((client) => client.core.getTransaction({ digest, include: { events: true } }));
+  const tx = res.$kind === "Transaction" ? res.Transaction : res.FailedTransaction;
+  const type = `${stampPackageId()}::stamp::Stamped`;
+  const stamps = (tx.events ?? []).filter((e) => e.eventType === type).map((e) => decodeStamped(e.bcs));
+  return { timestampMs: tx.timestampMs ?? null, stamps };
 }
 
 /** One-time: publish the Move module. Returns the new package id. */

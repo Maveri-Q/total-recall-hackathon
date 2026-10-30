@@ -349,6 +349,11 @@ Each league must pass three checks: The Odds API covers it, Polymarket has match
 ### Learning over time (30 Oct 2026)
 - Records shows "How this changed": each league's record after each step (e.g. Serie A 0-3, 1-5, 2-6, 2-7, 3-7), read from the `source_record` memories the data job already saves to Walrus every time a count grows (`recordSteps` in `memory-history.ts`). Each step links to its blob on Walruscan. Nothing is back-dated. This replaces the "weekly snapshot" idea: with one week left, steps by game count show the learning sooner.
 
+### Check this stamp (30 Oct 2026)
+- Proof page "Check" on each stamp: `/api/check-stamp?digest=&ref=` reads the transaction back from Sui Mainnet through Tatum gRPC (`readStamps` in `tatum.ts`), decodes the `Stamped` event (BCS, `stamp-check.ts`), rebuilds the fingerprint from the saved reading or call, and reports match, our wallet as recorder, and hours before kickoff. Says nothing about what a call picked.
+- Times must be put back in JS ISO form before rebuilding a reading's fingerprint (the database returns "+00:00"). Checked against every stamped record on 30 Oct: 30 of 30 readings and 20 of 20 calls rebuild exactly.
+- The first 11 readings (27 Oct) were stamped about 9 hours after kickoff, when stamping went live. Check says so plainly. All later stamps are taken before kickoff.
+
 ### Code quality checks (30 Oct 2026)
 - GitHub check on every push: types (`tsc --noEmit`), lint, then all tests. `metadataBase` is set from `SITE_URL` in `brand.ts`.
 - Failure-case tests for the data job (`src/lib/data-job/run.test.ts`, `remember.test.ts`) use a stand-in database (`test-db.ts`) and stand-ins for The Odds API, Tatum, football-data.org and Walrus. They cover every failure case in the Security section.

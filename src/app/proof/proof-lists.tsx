@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import type { ProofMemory } from "@/lib/proof-page";
+import type { StampCheck } from "@/lib/check-stamp";
+import type { ProofMemory, ProofStamp } from "@/lib/proof-page";
+import { explorerTxUrl } from "@/lib/sui-stamp";
 import { walrusUrl } from "@/lib/walrus-links";
 import { When } from "../ui/when";
 
@@ -79,5 +81,95 @@ export function MemoryList({ game, mine }: { game: ProofMemory[]; mine: ProofMem
         </button>
       )}
     </>
+  );
+}
+
+/** "23 hours", "3 days", "40 min": how far apart the stamp and kickoff were. */
+function gap(hours: number): string {
+  const h = Math.abs(hours);
+  if (h < 1) return `${Math.max(1, Math.round(h * 60))} min`;
+  if (h < 48) return `${Math.round(h)} ${Math.round(h) === 1 ? "hour" : "hours"}`;
+  return `${Math.round(h / 24)} days`;
+}
+
+/** What "Check" found, in plain words. Honest when a stamp came after kickoff or doesn't match. */
+function CheckResult({ result }: { result: StampCheck }) {
+  if (!result.ok) return <p className="m-0 text-[13px] text-muted">{result.error}</p>;
+  const good = result.matches && result.byApp;
+  const before = result.hoursBeforeKickoff > 0;
+  return (
+    <div className={`reveal flex flex-col gap-1 rounded-[14px] px-3 py-2.5 ${good ? "bg-[rgba(15,169,104,0.1)]" : "bg-[rgba(192,54,44,0.08)]"}`}>
+      <span className={`inline-flex items-center gap-1.5 text-[14px] font-bold ${good ? "text-poly-text" : "text-loss"}`}>
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          {good ? (
+            <path d="M3 7.5 L6 10 L11 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          ) : (
+            <path d="M4 4l6 6M10 4l-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          )}
+        </svg>
+        {!result.matches ? "Doesn't match what we saved" : !result.byApp ? "Not stamped by our app" : "Matches what we saved"}
+      </span>
+      {good && (
+        <span className="text-[13px] leading-snug text-ink-2">
+          On Sui since <When iso={result.stampedAt} format="dayTime" />
+          {before
+            ? `, ${gap(result.hoursBeforeKickoff)} before kickoff. It can't have been changed after the result.`
+            : `, ${gap(result.hoursBeforeKickoff)} after kickoff. It was stamped late, so it doesn't prove when it was made.`}
+        </span>
+      )}
+      {!result.matches && <span className="text-[13px] leading-snug text-ink-2">Our saved copy changed after it was stamped. Don&apos;t trust this one.</span>}
+      <span className="break-all font-mono text-[11px] text-faint">
+        Read from Sui Mainnet through Tatum just now. Fingerprint {result.onchainHash.slice(0, 10)}...{result.onchainHash.slice(-6)}
+      </span>
+    </div>
+  );
+}
+
+/**
+ * One row of "Stamped on Sui". "Check" reads the stamp back from Sui through Tatum and rebuilds the
+ * fingerprint from our saved record (see check-stamp.ts), so anyone can test our "can't change it" claim.
+ */
+export function StampRow({ stamp: s }: { stamp: ProofStamp }) {
+  const [state, setState] = useState<"idle" | "checking" | StampCheck>("idle");
+  const check = async () => {
+    setState("checking");
+    try {
+      const res = await fetch(`/api/check-stamp?digest=${encodeURIComponent(s.digest)}&ref=${encodeURIComponent(s.refId)}`, { cache: "no-store" });
+      setState((await res.json()) as StampCheck);
+    } catch {
+      setState({ ok: false, error: "Couldn't reach Sui right now. Try again in a minute." });
+    }
+  };
+  return (
+    <div className="glass flex flex-col gap-2.5 rounded-[18px] px-3.5 py-3">
+      <div className="flex items-center justify-between gap-2.5">
+        <span className="flex min-w-0 flex-col gap-0.5">
+          <span className="truncate font-display text-[16px] font-bold tracking-[-0.02em]">{s.title}</span>
+          <span className="text-[12px] text-faint">
+            {s.mine ? "Saved by you" : "Saved by the app"} · <When iso={s.at} format="dayTime" />
+          </span>
+        </span>
+        <span className="flex shrink-0 items-center gap-1.5">
+          <button
+            type="button"
+            onClick={check}
+            disabled={state === "checking"}
+            className="press inline-flex min-h-11 cursor-pointer items-center rounded-full border border-ink bg-lime px-3.5 text-[12px] font-bold text-ink"
+          >
+            {state === "checking" ? "Checking..." : "Check"}
+          </button>
+          <a
+            href={explorerTxUrl(s.digest)}
+            target="_blank"
+            rel="noreferrer"
+            className="press inline-flex min-h-11 items-center rounded-full bg-ink px-3.5 text-[12px] font-bold text-white no-underline hover:text-white"
+          >
+            Suiscan
+          </a>
+        </span>
+      </div>
+      {state === "checking" && <p className="m-0 text-[13px] text-muted">Reading it from Sui through Tatum...</p>}
+      {typeof state === "object" && <CheckResult result={state} />}
+    </div>
   );
 }

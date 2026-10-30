@@ -2,13 +2,12 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { connection } from "next/server";
 import { getProofPage } from "@/lib/proof-page";
-import { explorerTxUrl } from "@/lib/sui-stamp";
 import { getCurrentUser } from "@/lib/supabase/server";
 import { BottomNav } from "../bottom-nav";
 import { PageHeader } from "../ui/app-header";
 import { PageTitle, Shell } from "../ui/shell";
 import { When } from "../ui/when";
-import { MemoryList } from "./proof-lists";
+import { MemoryList, StampRow } from "./proof-lists";
 
 export const metadata: Metadata = { title: "Proof" };
 
@@ -122,22 +121,7 @@ async function Content() {
             </h2>
             <p className="-mt-1 mb-0 text-[14px] leading-[1.45] text-muted">Saved before kickoff, so nobody can change them after the result.</p>
             {page.latestStamps.map((s) => (
-              <div key={s.key} className="glass flex items-center justify-between gap-2.5 rounded-[18px] px-3.5 py-3">
-                <span className="flex min-w-0 flex-col gap-0.5">
-                  <span className="truncate font-display text-[16px] font-bold tracking-[-0.02em]">{s.title}</span>
-                  <span className="text-[12px] text-faint">
-                    {s.mine ? "Saved by you" : "Saved by the app"} · <When iso={s.at} format="dayTime" />
-                  </span>
-                </span>
-                <a
-                  href={explorerTxUrl(s.digest)}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="press inline-flex min-h-11 shrink-0 items-center rounded-full bg-ink px-3.5 text-[12px] font-bold text-white no-underline hover:text-white"
-                >
-                  Suiscan
-                </a>
-              </div>
+              <StampRow key={s.key} stamp={s} />
             ))}
           </section>
 

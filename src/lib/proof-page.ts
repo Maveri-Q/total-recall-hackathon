@@ -6,7 +6,8 @@ import { fanId } from "./fan-id";
 import { createAdminClient } from "./supabase/admin";
 
 export type ProofMemory = { id: string; kind: "reading" | "match_result" | "source_record" | "call"; summary: string | null; savedAt: string; blobId: string };
-export type ProofStamp = { key: string; title: string; mine: boolean; at: string; digest: string };
+/** `refId` is the reading or call version id carried in the Sui event, used by "Check this stamp". */
+export type ProofStamp = { key: string; refId: string; title: string; mine: boolean; at: string; digest: string };
 
 export type ProofPage = {
   memories: number;
@@ -65,6 +66,7 @@ export async function getProofPage(now: Date, userId: string | null): Promise<Pr
   const latestStamps: ProofStamp[] = [
     ...((readingStamps.data ?? []) as unknown as ReadingStamp[]).map((r) => ({
       key: `r-${r.id}`,
+      refId: r.id,
       title: `Odds before kickoff: ${r.matches.home_team} v ${r.matches.away_team}`,
       mine: false,
       at: r.stamped_at,
@@ -72,6 +74,7 @@ export async function getProofPage(now: Date, userId: string | null): Promise<Pr
     })),
     ...((myStamps.data ?? []) as unknown as CallStamp[]).map((c) => ({
       key: `c-${c.id}`,
+      refId: c.id,
       title: `Your pick: ${callLabel(c.pick, c.predictions.home_team, c.predictions.away_team)}`,
       mine: true,
       at: c.stamped_at,
