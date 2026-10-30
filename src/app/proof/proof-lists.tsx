@@ -13,9 +13,13 @@ const KINDS = {
 } as const;
 
 /** "Remembered on Walrus": the app's memories, or only the user's own calls. Never other people's calls. */
+const PAGE = 12;
+
 export function MemoryList({ game, mine }: { game: ProofMemory[]; mine: ProofMemory[] | null }) {
   const [tab, setTab] = useState<"game" | "mine">("game");
-  const rows = tab === "game" ? game : (mine ?? []);
+  const [shown, setShown] = useState(PAGE);
+  const all = tab === "game" ? game : (mine ?? []);
+  const rows = all.slice(0, shown);
   return (
     <>
       <div role="tablist" aria-label="Memories" className="glass grid grid-cols-2 gap-1 rounded-2xl p-1">
@@ -30,7 +34,10 @@ export function MemoryList({ game, mine }: { game: ProofMemory[]; mine: ProofMem
             type="button"
             role="tab"
             aria-selected={tab === key}
-            onClick={() => setTab(key)}
+            onClick={() => {
+              setTab(key);
+              setShown(PAGE);
+            }}
             className={`press min-h-11 cursor-pointer rounded-xl border-none text-[13px] ${tab === key ? "bg-ink font-bold text-white" : "bg-transparent font-semibold text-ink-2"}`}
           >
             {label}
@@ -61,6 +68,15 @@ export function MemoryList({ game, mine }: { game: ProofMemory[]; mine: ProofMem
           </div>
         );
       })}
+      {all.length > shown && (
+        <button
+          type="button"
+          onClick={() => setShown((n) => n + PAGE)}
+          className="press min-h-11 cursor-pointer rounded-[14px] border border-[rgba(11,26,20,0.12)] bg-transparent text-[14px] font-bold text-ink"
+        >
+          Show {Math.min(PAGE, all.length - shown)} more of {all.length}
+        </button>
+      )}
     </>
   );
 }

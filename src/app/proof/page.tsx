@@ -5,7 +5,7 @@ import { getProofPage } from "@/lib/proof-page";
 import { explorerTxUrl } from "@/lib/sui-stamp";
 import { getCurrentUser } from "@/lib/supabase/server";
 import { BottomNav } from "../bottom-nav";
-import { AppHeader } from "../ui/app-header";
+import { PageHeader } from "../ui/app-header";
 import { PageTitle, Shell } from "../ui/shell";
 import { When } from "../ui/when";
 import { MemoryList } from "./proof-lists";
@@ -22,7 +22,13 @@ const STEPS = [
 export default function Proof() {
   return (
     <Shell blobs={["lime", "green"]}>
-      <Suspense fallback={<AppHeader email={null} next="/proof" />}>
+      <PageHeader next="/proof" />
+      <div className="flex flex-col gap-2 pt-2.5">
+        <PageTitle text="Proof" />
+        <p className="m-0 text-[16px] leading-[1.45] text-muted">Where every number comes from, and where you can check it.</p>
+      </div>
+      <Steps />
+      <Suspense fallback={<ProofLoading />}>
         <Content />
       </Suspense>
       <BottomNav current="/proof" />
@@ -56,6 +62,23 @@ function Steps() {
   );
 }
 
+/** Placeholder counters and rows while the live numbers load. */
+function ProofLoading() {
+  return (
+    <div aria-busy="true" className="flex flex-col gap-[18px]">
+      <span className="sr-only">Loading the live numbers</span>
+      <div className="grid grid-cols-3 gap-2">
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="glass h-[96px] rounded-[20px]" />
+        ))}
+      </div>
+      {[0, 1, 2].map((i) => (
+        <div key={i} className="glass h-[68px] rounded-[18px]" />
+      ))}
+    </div>
+  );
+}
+
 async function Content() {
   await connection();
   const user = await getCurrentUser();
@@ -69,12 +92,6 @@ async function Content() {
 
   return (
     <>
-      <AppHeader email={user?.email ?? null} next="/proof" />
-      <div className="flex flex-col gap-2 pt-2.5">
-        <PageTitle text="Proof" />
-        <p className="m-0 text-[16px] leading-[1.45] text-muted">Where every number comes from, and where you can check it.</p>
-      </div>
-      <Steps />
       {!page ? (
         <p className="text-muted">Couldn&apos;t load the live numbers right now. Try again in a minute.</p>
       ) : (
@@ -96,6 +113,9 @@ async function Content() {
             <h2 id="walrus" className="m-0 font-display text-[24px] font-extrabold tracking-[-0.035em]">
               Remembered on Walrus
             </h2>
+            <p className="-mt-1 mb-0 text-[14px] leading-[1.45] text-muted">
+              {page.memories - page.callMemories} from games, {page.callMemories} from fans&apos; calls. Calls stay private, so you only see your own.
+            </p>
             <MemoryList game={page.gameMemories} mine={page.myMemories} />
           </section>
 

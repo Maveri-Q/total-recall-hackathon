@@ -6,7 +6,7 @@ import { listMyCalls } from "@/lib/calls";
 import { getMyScorecard } from "@/lib/scorecard";
 import { getCurrentUser } from "@/lib/supabase/server";
 import { BottomNav } from "../bottom-nav";
-import { AppHeader } from "../ui/app-header";
+import { PageHeader } from "../ui/app-header";
 import { LampCard } from "../ui/lamp-card";
 import { RollingNumber } from "../ui/rolling-number";
 import { PageTitle, Shell } from "../ui/shell";
@@ -17,7 +17,11 @@ export const metadata: Metadata = { title: "My calls" };
 export default function MyCalls() {
   return (
     <Shell blobs={["lime", "green"]}>
-      <Suspense fallback={<AppHeader email={null} next="/calls" />}>
+      <PageHeader next="/calls" />
+      <div className="pt-2.5">
+        <PageTitle text="My calls" />
+      </div>
+      <Suspense fallback={<CallsLoading />}>
         <Calls />
       </Suspense>
       <BottomNav current="/calls" />
@@ -59,6 +63,18 @@ function Form({ results }: { results: boolean[] }) {
   );
 }
 
+/** Placeholder hero, tabs and a card, the same shape as the real ones, while the calls load. */
+function CallsLoading() {
+  return (
+    <div aria-busy="true" className="flex flex-col gap-[18px]">
+      <span className="sr-only">Loading your calls</span>
+      <div className="glass h-[236px] rounded-[28px]" />
+      <div className="glass h-[52px] rounded-[18px]" />
+      <div className="glass h-[200px] rounded-[24px]" />
+    </div>
+  );
+}
+
 async function Calls() {
   // Calls are personal and lock at kickoff, so always render them fresh.
   await connection();
@@ -86,10 +102,6 @@ async function Calls() {
 
   return (
     <>
-      <AppHeader email={user.email} next="/calls" />
-      <div className="pt-2.5">
-        <PageTitle text="My calls" />
-      </div>
       <LampCard className="lite flex flex-col gap-4 rounded-[28px] p-[18px]">
         <div className="flex flex-col gap-4">
           <div className="flex items-end justify-between gap-3">

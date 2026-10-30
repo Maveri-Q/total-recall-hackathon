@@ -11,16 +11,24 @@ import type { Featured } from "./coming-up/featured";
 import { MatchList, type MatchView } from "./coming-up/match-list";
 import { RecordCount } from "./coming-up/record-count";
 import { WeekRange } from "./coming-up/week-range";
-import { AppHeader } from "./ui/app-header";
+import { PageHeader } from "./ui/app-header";
 import { PageTitle, Shell } from "./ui/shell";
 
 /** The biggest-gap card only shows when the two sources are at least this far apart. */
 const FEATURE_MIN_POINTS = 5;
 
+// The header, title and intro draw once, straight away. Only the games stream in under them, so the title
+// doesn't slide in a second time when the data arrives.
 export default function Matches() {
   return (
     <Shell blobs={["lime", "green"]}>
-      <Suspense fallback={<Intro email={null} />}>
+      <PageHeader next="/" />
+      <div className="flex flex-col gap-1.5 pt-3">
+        <WeekRange />
+        <PageTitle text="Coming up" />
+        <p className="m-0 mt-1 text-[16px] leading-[1.45] text-muted">Bookies vs Polymarket on every big game, and who&apos;s been right before.</p>
+      </div>
+      <Suspense fallback={<GamesLoading />}>
         <Page />
       </Suspense>
       <BottomNav current="/" />
@@ -28,16 +36,20 @@ export default function Matches() {
   );
 }
 
-function Intro({ email }: { email: string | null }) {
+/** Placeholder tabs and cards, the same shape as the real ones, while this week's games load. */
+function GamesLoading() {
   return (
-    <>
-      <AppHeader email={email} />
-      <div className="flex flex-col gap-1.5 pt-3">
-        <WeekRange />
-        <PageTitle text="Coming up" />
-        <p className="m-0 mt-1 text-[16px] leading-[1.45] text-muted">Bookies vs Polymarket on every big game, and who&apos;s been right before.</p>
+    <div aria-busy="true" className="flex flex-col gap-[18px]">
+      <span className="sr-only">Loading this week&apos;s games</span>
+      <div className="flex gap-2">
+        {[64, 140, 92, 92].map((w, i) => (
+          <span key={i} className="glass h-11 shrink-0 rounded-full" style={{ width: w }} />
+        ))}
       </div>
-    </>
+      {[0, 1, 2].map((i) => (
+        <div key={i} className="glass h-[208px] rounded-[24px]" />
+      ))}
+    </div>
   );
 }
 
@@ -127,10 +139,5 @@ async function Page() {
       ]),
   );
 
-  return (
-    <>
-      <Intro email={user?.email ?? null} />
-      <MatchList matches={views} leagues={LEAGUES.map((l) => l.name)} featured={featured} records={records} signedIn={!!user} />
-    </>
-  );
+  return <MatchList matches={views} leagues={LEAGUES.map((l) => l.name)} featured={featured} records={records} signedIn={!!user} />;
 }

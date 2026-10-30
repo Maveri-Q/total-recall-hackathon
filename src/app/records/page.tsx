@@ -5,7 +5,7 @@ import { connection } from "next/server";
 import { getMyScorecard, getSourceScorecard } from "@/lib/scorecard";
 import { getCurrentUser } from "@/lib/supabase/server";
 import { BottomNav } from "../bottom-nav";
-import { AppHeader } from "../ui/app-header";
+import { PageHeader } from "../ui/app-header";
 import { PageTitle, Shell } from "../ui/shell";
 import { RecordsView } from "./records-view";
 
@@ -14,9 +14,7 @@ export const metadata: Metadata = { title: "Records" };
 export default function Records() {
   return (
     <Shell blobs={["green", "lime"]}>
-      <Suspense fallback={<AppHeader email={null} next="/records" />}>
-        <Header />
-      </Suspense>
+      <PageHeader next="/records" />
       <div className="flex flex-col gap-2 pt-2.5">
         <PageTitle text="Records" />
         <p className="m-0 text-[16px] leading-[1.45] text-muted">After every game, we check who got closer to the real result.</p>
@@ -37,11 +35,6 @@ export default function Records() {
   );
 }
 
-async function Header() {
-  await connection();
-  const user = await getCurrentUser();
-  return <AppHeader email={user?.email ?? null} next="/records" />;
-}
 
 async function Sources() {
   let all;

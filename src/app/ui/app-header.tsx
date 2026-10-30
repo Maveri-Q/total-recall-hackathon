@@ -1,6 +1,27 @@
 import Link from "next/link";
+import { connection } from "next/server";
+import { Suspense } from "react";
 import { APP_NAME, WORDMARK } from "@/lib/brand";
+import { getCurrentUser } from "@/lib/supabase/server";
 import { ProfileButton } from "./profile-sheet";
+
+async function SignedInHeader({ next }: { next: string }) {
+  await connection();
+  const user = await getCurrentUser();
+  return <AppHeader email={user?.email ?? null} next={next} />;
+}
+
+/**
+ * The header for a page: shows straight away with "Sign in", then swaps in the profile button once we know
+ * who's signed in. On its own so the title and intro under it draw once, and only the data streams in.
+ */
+export function PageHeader({ next }: { next: string }) {
+  return (
+    <Suspense fallback={<AppHeader email={null} next={next} />}>
+      <SignedInHeader next={next} />
+    </Suspense>
+  );
+}
 
 /**
  * The small Vernier mark (26px): brand/vernier-favicon.svg, the version with fewer ticks so it stays clear.
