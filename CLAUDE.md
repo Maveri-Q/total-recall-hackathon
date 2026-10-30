@@ -345,3 +345,7 @@ Each league must pass three checks: The Odds API covers it, Polymarket has match
 - Record card on Matches shows from 3 similar past games, with an "Early signal, only N games" label under 10 (`MIN_GAMES_FOR_SCORE`, `EARLY_SIGNAL_MATCHES`). Under 3: "Too few past games like this yet..."
 - "Odds come in around [day time]" uses `firstReadingAt()` in `schedule.ts`; if that time passed with no reading: "Odds are on their way. We check every hour."
 - Page-title hover glow is white, not green (Maverick, 29 Oct).
+
+### Code quality checks (30 Oct 2026)
+- GitHub check on every push: types (`tsc --noEmit`), lint, then all tests. `metadataBase` is set from `SITE_URL` in `brand.ts`.
+- Failure-case tests for the data job (`src/lib/data-job/run.test.ts`, `remember.test.ts`) use a stand-in database (`test-db.ts`) and stand-ins for The Odds API, Tatum, football-data.org and Walrus. They cover every failure case in the Security section.

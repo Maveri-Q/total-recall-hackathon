@@ -79,6 +79,20 @@ are made from them by `npx tsx scripts/export-brand-pngs.tsx`.
 - `src/lib/data-job/`: the hourly job (readings, Sui stamps, grading, Walrus memories)
 - `supabase/migrations/`: the database, one numbered file per change
 
+## Tests
+
+Every push runs three checks on GitHub (the badge at the top): types, lint, then all the tests (`npm test`).
+
+- **The maths:** odds to chances, the Brier score, grading, the reading schedule, team-name matching. Checked against sums worked out by hand.
+- **When things go wrong:** the hourly job is run against stand-ins for every outside service, then each one is broken in turn (`src/lib/data-job/run.test.ts`, `remember.test.ts`):
+  - Tatum down: no half reading is saved, the next run tries again.
+  - Odds API limit hit, or credits running low: that league waits, the rest of the run carries on.
+  - No Polymarket market: the bookie odds are kept, marked "not for scoring". Never matched to a guess.
+  - Sui transaction fails: the readings are marked failed and stamped next run. A dropped connection is retried with the same signed transaction, so nothing is stamped twice.
+  - App wallet low: a warning in the job log.
+  - Walrus down or a save fails: the memory stays queued and is sent next run.
+  - Match postponed: noted, never graded. Team names that don't match: no result is guessed.
+
 More detail (setup, `.env.example`, how the app wallet pays for stamps) is coming before submission.
 
 ## Credits

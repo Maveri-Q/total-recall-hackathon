@@ -1,5 +1,6 @@
-# Runs every test on every push and pull request. The badge at the top of the README shows the result.
-# Tests are pure maths and logic (odds, scoring, grading, memory texts), so no keys are needed here.
+# Checks every push and pull request: types, lint, then every test. The badge at the top of the README shows the result.
+# No keys are needed: the tests cover the maths and logic, and the data job's failure cases use stand-ins for
+# Tatum, The Odds API, Sui and Walrus.
 name: Tests
 
 on:
@@ -20,4 +21,9 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
-      - run: npm test
+      - name: Types
+        run: npx tsc --noEmit
+      - name: Lint
+        run: npm run lint
+      - name: Tests
+        run: npm test
