@@ -85,7 +85,7 @@ Sign in lives in the header (a "Sign in" button when logged out, a profile butto
 
 ## Matches (Coming up)
 Top to bottom:
-1. **Header:** logo icon + "hindcast" wordmark on the left, "Sign in" (ink pill) on the right.
+1. **Header:** logo icon + "oddsight" wordmark on the left, "Sign in" (ink pill) on the right.
 2. "This week, [date range]" in muted text, then the title **"Coming up"** (52px, animated), then one line: "Bookies vs Polymarket on every big game, and who's been right before."
 3. **League tabs:** All, then each covered league, each with its game count in a small pill. Selected tab is ink. Scrolls sideways.
 4. **Biggest gap this week** (only if 5+ points, see Fixes): white glass hero card with the lamp effect. Top: small ink pill "Biggest gap this week", the match (Archivo 800, 28px), then "Premier League, Sat 5:30pm WAT. Chance Arsenal win." Below, side by side: the gap as a big green number "12" (72px) with "points apart" under it, and two thin labelled bars: Bookies 48% (charcoal, square marker) and Polymarket 60% (green, circle marker). Nothing should wrap awkwardly at 360px.
@@ -147,11 +147,11 @@ This page is for judges and curious users. It shows exactly how Tatum, Sui and W
 ## Sign in
 - Keep the dark floodlight page exactly as it is (220px smooth-following light, 3D balls and kits, only visible inside the light).
 - **The panel becomes white glass:** `rgba(255,255,255,0.78)`, `backdrop-filter: blur(22px) saturate(150%)`, white border, big soft shadow, ink text.
-- Panel content: Hindcast icon + wordmark, heading "See who's been right before you pick." (Archivo 800, 30px), muted line, "Continue with Google" (ink button), "Continue with email" (white outline button), "Just looking? Browse games" (ink link).
+- Panel content: Oddsight icon + wordmark, heading "See who's been right before you pick." (Archivo 800, 30px), muted line, "Continue with Google" (ink button), "Continue with email" (white outline button), "Just looking? Browse games" (ink link).
 
 ## Name and logo
-- App name **Hindcast**, kept in one setting. Wordmark "hindcast" lowercase, Archivo 800, tight. No tagline.
-- `brand/hindcast-icon.svg` main icon, `brand/hindcast-icon-lime.svg` lime version, `brand/hindcast-favicon.svg` for small sizes. Small icon in each page header (26px, the favicon version on ink).
+- App name **Oddsight**, kept in one setting. Wordmark "oddsight" lowercase, Archivo 800, tight. No tagline.
+- `brand/oddsight-icon.svg` main icon, `brand/oddsight-icon-lime.svg` lime version, `brand/oddsight-favicon.svg` for small sizes. Small icon in each page header (26px, the favicon version on ink).
 - Meaning for README and blog: a rear-view mirror (hindsight), with a pitch inside, the bookies' square far away and Polymarket's circle close up.
 
 ## Assets
@@ -191,3 +191,12 @@ Plain, short, like a fan talking to a friend (see CLAUDE.md). Cut anything a use
 
 ## Sign-in panel (latest)
 The panel is now **dark glass**, not white, so it sits inside the floodlit pitch: background `rgba(8,20,15,0.55)`, blur 18px, border `rgba(255,255,255,0.12)`, white heading, `#B9C7BF` body text. "Continue with Google" is lime `#C6F36B` with ink text. "Continue with email" is a white outline (22%) on a faint white fill. "Just looking? Browse games" is light grey. Logo gets a thin light border so it shows on the dark panel.
+
+## Name and logo (latest, replaces Oddsight and the mirror logo)
+- **Name: Vernier.** Always lowercase in the wordmark: "vernier". In sentences: "Vernier".
+- **Tagline:** "Bookies vs Polymarket, measured to the last point."
+- **Icon:** dark rounded square (`#0B1A14`). A white top scale (bookies) with ticks hanging down, a green bottom scale (Polymarket) shifted right with ticks pointing up, and **one lime line** (`#C6F36B`) where the two scales line up. Use `brand/vernier-icon.svg` (dark, default), `vernier-icon-lime.svg`, `vernier-icon-light.svg`, and `vernier-favicon.svg` for 32px and 16px (fewer ticks so it stays clear).
+- **Header:** icon (26px) + "vernier" in Archivo 800, 18px, -0.03em.
+- **Big wordmark** (sign-in page, README banner, video): the dot on the "i" is a small upright bar, like a scale mark, in lime on dark or `#0FA968` on light. Build it with a dotless i (ı) plus a small bar positioned on top. Keep the plain wordmark in the header for readability.
+- On the dark sign-in panel, give the icon a thin light border (`rgba(255,255,255,0.25)`).
+- Update the favicon, the Open Graph image, the page `<title>` ("Vernier"), the README banner and the manifest/app name.

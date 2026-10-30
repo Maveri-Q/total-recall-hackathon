@@ -1,4 +1,6 @@
-# Hindcast
+# Vernier
+
+![Vernier: Bookies vs Polymarket, measured to the last point.](brand/vernier-banner.png)
 
 [![Tests](https://github.com/Maveri-Q/total-recall-hackathon/actions/workflows/tests.yml/badge.svg)](https://github.com/Maveri-Q/total-recall-hackathon/actions/workflows/tests.yml)
 
@@ -6,7 +8,7 @@
 
 ## Judge quick start
 
-**Live app: https://total-recall-hackathon.vercel.app**
+**Live app: https://vernier-odds.vercel.app**
 
 No sign-up needed to look around.
 
@@ -19,7 +21,7 @@ No sign-up needed to look around.
 
 ## What it does
 
-A hindcast checks past predictions against what really happened. Hindcast reads the bookies' odds and Polymarket's price for the same game, stamps that
+A vernier lays two scales side by side and reads where they line up. Here the two scales are the bookies and Polymarket. Vernier reads the bookies' odds and Polymarket's price for the same game, stamps that
 reading on Sui before kickoff, checks after full time who was closer, and remembers it all on Walrus.
 Next time the two disagree, it looks back at games like this one and shows who's been closer, with the
 number of games behind it. You can make your own call too: one tap, stamped on Sui, scored after the game.
@@ -64,8 +66,10 @@ The database does the counting, Walrus does the remembering. The maths (odds to 
 
 ## The logo
 
-A rear-view mirror, because a hindcast means looking back. Inside it is a football pitch, with the bookies'
-square far away and Polymarket's circle close up, showing "who's been closer". Logo files are in `brand/`.
+Two measuring scales, like on a vernier calliper. The white top scale is the bookies. The green bottom scale
+is Polymarket, and it slides. The lime line is where they meet: the true reading. The dot on the wordmark's
+"i" is a scale mark too. Logo files are in `brand/`. The PNGs (app icons, social preview, the banner above)
+are made from them by `npx tsx scripts/export-brand-pngs.tsx`.
 
 ## Where things live
 

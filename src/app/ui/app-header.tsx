@@ -2,17 +2,43 @@ import Link from "next/link";
 import { APP_NAME, WORDMARK } from "@/lib/brand";
 import { ProfileButton } from "./profile-sheet";
 
-/** The small favicon mark on ink (26px), as in design-reference/. */
+/**
+ * The small Vernier mark (26px): brand/vernier-favicon.svg, the version with fewer ticks so it stays clear.
+ * Bookies' scale on top, Polymarket's below, the lime line where they line up.
+ */
 export function LogoMark() {
   return (
     <svg width="26" height="26" viewBox="0 0 120 120" aria-hidden="true">
-      <rect width="120" height="120" rx="28" fill="#0B1A14" />
-      <g transform="translate(6 6) scale(0.9) rotate(-5 60 60)">
-        <path d="M14 44 Q14 34 26 33 L94 33 Q106 34 106 44 L102 80 Q100 90 88 90 L32 90 Q20 90 18 80 Z" fill="none" stroke="#F2F5F1" strokeWidth="11" strokeLinejoin="round" />
-        <rect x="40" y="46" width="14" height="14" fill="#F5A524" />
-        <circle cx="72" cy="72" r="13" fill="#8FD3FF" />
+      <rect x="1" y="1" width="118" height="118" rx="28" fill="#0B1A14" />
+      <rect x="14" y="20" width="92" height="20" rx="5" fill="#F2F5F1" />
+      <rect x="30" y="80" width="76" height="20" rx="5" fill="#0FA968" />
+      <g strokeLinecap="round" strokeWidth="7">
+        <line x1="30" y1="40" x2="30" y2="54" stroke="#F2F5F1" />
+        <line x1="51" y1="40" x2="51" y2="54" stroke="#F2F5F1" />
+        <line x1="90" y1="80" x2="90" y2="66" stroke="#0FA968" />
       </g>
+      <line x1="72" y1="38" x2="72" y2="82" stroke="#C6F36B" strokeWidth="10" strokeLinecap="round" />
     </svg>
+  );
+}
+
+/** The big wordmark (sign-in page): the dot on the "i" is a small upright bar, like a scale mark. */
+export function BigWordmark({ className = "", mark = "#C6F36B" }: { className?: string; mark?: string }) {
+  const [before, after] = WORDMARK.split("i", 2);
+  return (
+    <span role="img" aria-label={WORDMARK} className={`font-display font-extrabold tracking-[-0.045em] ${className}`}>
+      <span aria-hidden="true">
+        {before}
+        <span className="relative inline-block">
+          ı
+          <span
+            className="absolute left-1/2 top-[0.02em] ml-[-0.065em] h-[0.26em] w-[0.13em] rounded-[0.03em]"
+            style={{ background: mark }}
+          />
+        </span>
+        {after}
+      </span>
+    </span>
   );
 }
 
