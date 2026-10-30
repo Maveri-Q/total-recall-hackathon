@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="420" viewBox="0 0 960 420" role="img" aria-label="How Vernier works: The Odds API, Tatum's Prediction Markets API and football-data.org feed the hourly data job. The job saves readings to Supabase, stamps fingerprints on Sui Mainnet through Tatum, and saves memories to Walrus. The app counts from Supabase, reads stamps back through Tatum to check them, and recalls similar past games from Walrus.">
+  <title>How Vernier works</title>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#4F6158"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="960" height="420" rx="18" fill="#F3F6F4"/>
+  <g font-family="Arial, Helvetica, sans-serif" text-anchor="middle">
+    <!-- column labels -->
+    <g font-size="12" font-weight="700" fill="#5F6F67" letter-spacing="0.06em">
+      <text x="124" y="34">SOURCES</text>
+      <text x="390" y="34">EVERY HOUR</text>
+      <text x="660" y="34">STORED</text>
+      <text x="876" y="34">YOU SEE</text>
+    </g>
+
+    <!-- sources -->
+    <g>
+      <rect x="24" y="56" width="200" height="74" rx="12" fill="#FFFFFF" stroke="#D5DBD8"/>
+      <text x="124" y="88" font-size="15" font-weight="700" fill="#0B1A14">The Odds API</text>
+      <text x="124" y="110" font-size="13" fill="#4F6158">odds from ~20 UK bookies</text>
+
+      <rect x="24" y="172" width="200" height="74" rx="12" fill="#FFFFFF" stroke="#0FA968" stroke-width="1.5"/>
+      <text x="124" y="204" font-size="15" font-weight="700" fill="#0A7A4C">Tatum Prediction</text>
+      <text x="124" y="224" font-size="15" font-weight="700" fill="#0A7A4C">Markets API</text>
+      <text x="124" y="240" font-size="12" fill="#4F6158">Polymarket prices</text>
+
+      <rect x="24" y="288" width="200" height="74" rx="12" fill="#FFFFFF" stroke="#D5DBD8"/>
+      <text x="124" y="320" font-size="15" font-weight="700" fill="#0B1A14">football-data.org</text>
+      <text x="124" y="342" font-size="13" fill="#4F6158">full-time scores</text>
+    </g>
+
+    <!-- the job -->
+    <rect x="300" y="150" width="180" height="118" rx="14" fill="#0B1A14"/>
+    <text x="390" y="186" font-size="16" font-weight="700" fill="#FFFFFF">Data job</text>
+    <text x="390" y="208" font-size="12" fill="#C9D6CE">read the odds</text>
+    <text x="390" y="226" font-size="12" fill="#C9D6CE">stamp, grade</text>
+    <text x="390" y="244" font-size="12" fill="#C9D6CE">remember</text>
+    <text x="390" y="290" font-size="11" fill="#5F6F67">GitHub Actions, at :17</text>
+
+    <!-- stores -->
+    <g>
+      <rect x="560" y="56" width="200" height="74" rx="12" fill="#FFFFFF" stroke="#D5DBD8"/>
+      <text x="660" y="88" font-size="15" font-weight="700" fill="#0B1A14">Supabase</text>
+      <text x="660" y="110" font-size="13" fill="#4F6158">readings, results, counts</text>
+
+      <rect x="560" y="172" width="200" height="74" rx="12" fill="#E3F6EC" stroke="#0FA968" stroke-width="1.5"/>
+      <text x="660" y="204" font-size="15" font-weight="700" fill="#0A7A4C">Sui Mainnet</text>
+      <text x="660" y="224" font-size="12" fill="#0A7A4C">fingerprints, before kickoff</text>
+      <text x="660" y="240" font-size="12" fill="#4F6158">via Tatum gRPC</text>
+
+      <rect x="560" y="288" width="200" height="74" rx="12" fill="#E3F6EC" stroke="#0FA968" stroke-width="1.5"/>
+      <text x="660" y="320" font-size="15" font-weight="700" fill="#0A7A4C">Walrus Memory</text>
+      <text x="660" y="342" font-size="12" fill="#4F6158">every reading, result, record</text>
+    </g>
+
+    <!-- app -->
+    <rect x="816" y="150" width="120" height="118" rx="14" fill="#C6F36B" stroke="#0B1A14" stroke-width="1.5"/>
+    <text x="876" y="200" font-size="16" font-weight="700" fill="#0B1A14">Vernier</text>
+    <text x="876" y="222" font-size="12" fill="#0B1A14">who to trust,</text>
+    <text x="876" y="238" font-size="12" fill="#0B1A14">with proof</text>
+  </g>
+
+  <!-- arrows: sources to job -->
+  <g stroke="#4F6158" stroke-width="1.6" fill="none" marker-end="url(#arrow)">
+    <path d="M224 93 C 262 93, 262 180, 298 186"/>
+    <path d="M224 209 L 298 209"/>
+    <path d="M224 325 C 262 325, 262 238, 298 232"/>
+    <!-- job to stores -->
+    <path d="M480 186 C 520 186, 520 93, 558 93"/>
+    <path d="M480 209 L 558 209"/>
+    <path d="M480 232 C 520 232, 520 325, 558 325"/>
+    <!-- stores to app -->
+    <path d="M760 93 C 790 93, 790 176, 814 180"/>
+    <path d="M760 209 L 814 209"/>
+    <path d="M760 325 C 790 325, 790 242, 814 238"/>
+  </g>
+
+  <!-- arrow labels, each on a small pill so the line passes behind it -->
+  <g font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700" text-anchor="middle">
+    <rect x="499.8" y="131" width="38.4" height="18" rx="9" fill="#F3F6F4"/>
+    <text x="519" y="144" fill="#4F6158">save</text>
+    <rect x="496.5" y="200" width="45.0" height="18" rx="9" fill="#F3F6F4"/>
+    <text x="519" y="213" fill="#0A7A4C">stamp</text>
+    <rect x="486.6" y="269" width="64.8" height="18" rx="9" fill="#F3F6F4"/>
+    <text x="519" y="282" fill="#0A7A4C">memories</text>
+    <rect x="761.2" y="127" width="51.6" height="18" rx="9" fill="#F3F6F4"/>
+    <text x="787" y="140" fill="#4F6158">counts</text>
+    <rect x="764.5" y="200" width="45.0" height="18" rx="9" fill="#F3F6F4"/>
+    <text x="787" y="213" fill="#0A7A4C">Check</text>
+    <rect x="761.2" y="273" width="51.6" height="18" rx="9" fill="#F3F6F4"/>
+    <text x="787" y="286" fill="#0A7A4C">recall</text>
+  </g>
+
+  <text x="480" y="400" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#5F6F67" text-anchor="middle">The database does the counting. Walrus does the remembering. Sui proves nothing was changed after kickoff.</text>
+</svg>

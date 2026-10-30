@@ -41,18 +41,7 @@ It is **not** a betting site. No bets, no stakes, no payouts, no tips.
 
 ## How it works
 
-```mermaid
-flowchart LR
-  A[The Odds API<br/>~20 UK bookies] --> C
-  B[Tatum Prediction Markets API<br/>Polymarket prices] --> C
-  C[Hourly data job<br/>GitHub Actions] --> D[(Supabase<br/>readings, results)]
-  C -->|fingerprint| E[Sui Mainnet<br/>via Tatum gRPC]
-  F[football-data.org<br/>full-time scores] --> C
-  C -->|memories| G[Walrus Memory<br/>Mainnet]
-  G -->|recall: similar past games| H[Vernier app]
-  D --> H
-  E -->|Check: read back via Tatum| H
-```
+![How Vernier works: odds and Polymarket prices go into the hourly job, which saves readings, stamps them on Sui through Tatum and saves memories to Walrus. The app counts from the database, checks stamps through Tatum and recalls past games from Walrus.](brand/how-it-works.svg)
 
 Every hour, at :17 past (Supabase `pg_cron` starts the job on time; GitHub's own timer is the backup):
 
