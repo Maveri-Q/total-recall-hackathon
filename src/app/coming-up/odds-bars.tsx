@@ -1,3 +1,6 @@
+"use client";
+
+import { useLayoutEffect, useRef, useState } from "react";
 import type { Outcome, ThreeWay } from "@/lib/odds";
 
 const pct = (x: number) => Math.round(x * 100);
@@ -15,7 +18,7 @@ function Row({ source, chances }: { source: "bookies" | "poly"; chances: ThreeWa
         <span aria-hidden="true" className={source === "bookies" ? "mark-bookies" : "mark-poly"} />
         {source === "bookies" ? "Bookies" : "Polymarket"}
       </span>
-      <div className="bar-grow flex h-[30px] gap-[2px] overflow-hidden rounded-[9px]" role="img" aria-label={`${source === "bookies" ? "Bookies" : "Polymarket"}: home ${pct(chances.home)}%, draw ${pct(chances.draw)}%, away ${pct(chances.away)}%`}>
+      <div data-bar className="bar-grow relative flex h-[30px] gap-[2px] overflow-hidden rounded-[9px]" role="img" aria-label={`${source === "bookies" ? "Bookies" : "Polymarket"}: home ${pct(chances.home)}%, draw ${pct(chances.draw)}%, away ${pct(chances.away)}%`}>
         {(["home", "draw", "away"] as const).map((o, i) => (
           <span
             key={o}
@@ -30,20 +33,56 @@ function Row({ source, chances }: { source: "bookies" | "poly"; chances: ThreeWa
   );
 }
 
+/** Space kept on each side of "Draw" (half its width plus a small gap), in px. */
+const LABEL_ROOM = 18;
+
 /** Bookies and Polymarket as two stacked bars, always both visible, then one verdict pill. */
 export function OddsBars({
   bookies,
   poly,
   home,
   away,
+  homeCode,
+  awayCode,
   gap,
 }: {
   bookies: ThreeWay;
   poly: ThreeWay | null;
   home: string;
   away: string;
+  /** Short codes ("ESP") for when a name doesn't fit beside "Draw". */
+  homeCode: string;
+  awayCode: string;
   gap: { outcome: Outcome; points: number; polyHigher: boolean } | null;
 }) {
+  // Where the middle of the draw part of the bars is. A first guess from the chances, then measured from the
+  // bars themselves (each part has a minimum width, so a small part is drawn wider than its percentage).
+  const share = (o: Outcome) => (poly ? (bookies[o] + poly[o]) / 2 : bookies[o]);
+  const [drawAt, setDrawAt] = useState(`${(share("home") + share("draw") / 2) * 100}%`);
+  // Whether each team's full name fits beside "Draw". If not, its short code is shown, like a TV scoreboard.
+  const [fits, setFits] = useState({ home: true, away: true });
+  const box = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const measure = () => {
+      // offsetLeft ignores the grow-in animation's transform, so this is where the parts end up.
+      const centres = [...el.querySelectorAll<HTMLElement>("[data-bar]")].map((bar) => {
+        const part = bar.children[1] as HTMLElement;
+        return part.offsetLeft + part.offsetWidth / 2;
+      });
+      if (!centres.length) return;
+      const draw = centres.reduce((a, b) => a + b, 0) / centres.length;
+      setDrawAt(`${draw}px`);
+      const row = el.querySelector<HTMLElement>("[data-labels]");
+      const width = (side: string) => el.querySelector<HTMLElement>(`[data-full="${side}"]`)?.offsetWidth ?? 0;
+      if (row) setFits({ home: width("home") <= draw - LABEL_ROOM, away: width("away") <= row.offsetWidth - draw - LABEL_ROOM });
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [bookies, poly]);
   const n = gap ? Math.round(gap.points) : 0;
   const what = !gap ? "" : gap.outcome === "home" ? home : gap.outcome === "away" ? away : "a draw";
   const verdict = !poly
@@ -52,15 +91,28 @@ export function OddsBars({
       ? `${gap!.polyHigher ? "Polymarket rates" : "Bookies rate"} ${what} ${n} points higher`
       : "They agree on this one";
   return (
-    <div className="flex flex-col gap-2">
+    <div ref={box} className="flex flex-col gap-2">
       <Row source="bookies" chances={bookies} />
       {poly && <Row source="poly" chances={poly} />}
+      {/* "Draw" sits exactly under the middle of the draw part (the two rows averaged). The team names hug the
+          ends; a name too long to fit beside "Draw" shows its short code instead. */}
       <div className="grid grid-cols-[96px_minmax(0,1fr)] gap-2 text-[11px] font-semibold text-faint">
         <span />
-        <span className="flex justify-between gap-2">
-          <span className="truncate">{home}</span>
-          <span>Draw</span>
-          <span className="truncate">{away}</span>
+        <span data-labels className="relative h-4" style={{ "--draw": drawAt } as React.CSSProperties}>
+          {/* Hidden copies of the full names, measured to decide whether they fit. */}
+          <span aria-hidden="true" className="invisible absolute whitespace-nowrap">
+            <span data-full="home">{home}</span>
+            <span data-full="away">{away}</span>
+          </span>
+          <span className="absolute left-0 top-0 max-w-[calc(var(--draw)-18px)] truncate" title={home}>
+            {fits.home ? home : homeCode}
+          </span>
+          <span className="absolute top-0 -translate-x-1/2 whitespace-nowrap" style={{ left: "var(--draw)" }}>
+            Draw
+          </span>
+          <span className="absolute right-0 top-0 max-w-[calc(100%-var(--draw)-18px)] truncate text-right" title={away}>
+            {fits.away ? away : awayCode}
+          </span>
         </span>
       </div>
       <span

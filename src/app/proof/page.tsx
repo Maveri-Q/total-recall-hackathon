@@ -113,9 +113,6 @@ async function Content() {
             <h2 id="walrus" className="m-0 font-display text-[24px] font-extrabold tracking-[-0.035em]">
               Remembered on Walrus
             </h2>
-            <p className="-mt-1 mb-0 text-[14px] leading-[1.45] text-muted">
-              {page.memories - page.callMemories} from games, {page.callMemories} from fans&apos; calls. Calls stay private, so you only see your own.
-            </p>
             <MemoryList game={page.gameMemories} mine={page.myMemories} />
           </section>
 

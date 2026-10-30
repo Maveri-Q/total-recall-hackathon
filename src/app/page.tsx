@@ -6,7 +6,6 @@ import { readingGap, type GapBand } from "@/lib/data-job/memories";
 import { LEAGUES } from "@/lib/leagues";
 import { biggestGapGame, EARLY_SIGNAL_MATCHES, headline, MIN_GAMES_FOR_SCORE } from "@/lib/scoreline";
 import { getCurrentUser } from "@/lib/supabase/server";
-import { getTicker } from "@/lib/ticker-data";
 import { BottomNav } from "./bottom-nav";
 import type { Featured } from "./coming-up/featured";
 import { MatchList, type MatchView } from "./coming-up/match-list";
@@ -42,7 +41,6 @@ function GamesLoading() {
   return (
     <div aria-busy="true" className="flex flex-col gap-[18px]">
       <span className="sr-only">Loading this week&apos;s games</span>
-      <div className="h-[44px] rounded-[14px] bg-ink" />
       <div className="flex gap-2">
         {[64, 140, 92, 92].map((w, i) => (
           <span key={i} className="glass h-11 shrink-0 rounded-full" style={{ width: w }} />
@@ -141,6 +139,5 @@ async function Page() {
       ]),
   );
 
-  const ticker = await getTicker(now, matches);
-  return <MatchList matches={views} leagues={LEAGUES.map((l) => l.name)} featured={featured} records={records} signedIn={!!user} ticker={ticker} />;
+  return <MatchList matches={views} leagues={LEAGUES.map((l) => l.name)} featured={featured} records={records} signedIn={!!user} />;
 }

@@ -25,10 +25,10 @@ export function MemoryList({ game, mine }: { game: ProofMemory[]; mine: ProofMem
       <div role="tablist" aria-label="Memories" className="glass grid grid-cols-2 gap-1 rounded-2xl p-1">
         {(
           [
-            ["game", "Game memories"],
-            ["mine", "My memories"],
+            ["game", "Games", game.length],
+            ["mine", "My calls", mine?.length ?? null],
           ] as const
-        ).map(([key, label]) => (
+        ).map(([key, label, count]) => (
           <button
             key={key}
             type="button"
@@ -38,9 +38,10 @@ export function MemoryList({ game, mine }: { game: ProofMemory[]; mine: ProofMem
               setTab(key);
               setShown(PAGE);
             }}
-            className={`press min-h-11 cursor-pointer rounded-xl border-none text-[13px] ${tab === key ? "bg-ink font-bold text-white" : "bg-transparent font-semibold text-ink-2"}`}
+            className={`press inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl border-none text-[13px] ${tab === key ? "bg-ink font-bold text-white" : "bg-transparent font-semibold text-ink-2"}`}
           >
             {label}
+            {count !== null && <span className={`num rounded-full px-[7px] py-px text-[12px] font-bold ${tab === key ? "bg-white/15" : "bg-[rgba(11,26,20,0.06)]"}`}>{count}</span>}
           </button>
         ))}
       </div>

@@ -113,24 +113,6 @@
     mask-image: radial-gradient(circle 150px at var(--mx, 50%) var(--my, 50%), #000 0%, rgba(0, 0, 0, 0.5) 45%, transparent 100%);
   }
 
-  /* The LED ticker on Matches: two copies of the lines scroll left forever; fades at both ends. */
-  .ticker {
-    overflow: hidden;
-    -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
-    mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
-  }
-  .ticker-track {
-    animation: tickerScroll linear infinite;
-  }
-  .ticker:hover .ticker-track,
-  .ticker:focus-within .ticker-track {
-    animation-play-state: paused;
-  }
-  @keyframes tickerScroll {
-    from { transform: translateX(0); }
-    to { transform: translateX(-50%); }
-  }
-
   /* Page title: each word slides up from behind a mask. */
   /* The mask is a little bigger than the word (padding), and the negative margin keeps the layout the same,
      so tall letters, descenders and the tight last letter aren't trimmed. */
@@ -294,8 +276,5 @@
   .bob1, .bob2, .bob3, .sway, .sway2, .spin, .spin2 { animation: none; }
   .dust, .flow { display: none; }
   .press, .lamp { transition: none; }
-  .ticker-track { animation: none; }
-  .ticker { overflow-x: auto; }
-  .ticker-copy { display: none; }
   .rolling { filter: none; opacity: 1; }
 }

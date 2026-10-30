@@ -2,13 +2,12 @@
 // "Bookies vs Polymarket" record from similar past games recalled from Walrus Memory.
 import "server-only";
 import { cacheLife } from "next/cache";
-import { bandCasesQuery, matchVerdict, NAMESPACES, type GapBand, type ReadingRow } from "./data-job/memories";
+import { bandCasesQuery, NAMESPACES, type GapBand, type ReadingRow } from "./data-job/memories";
 import { leagueByCode } from "./leagues";
 import type { ThreeWay } from "./odds";
 import { scoreline, type PastGame, type Scoreline } from "./scoreline";
 import { createAdminClient } from "./supabase/admin";
 import { teamLook, type TeamLook, type TeamRow } from "./team-look";
-import type { TickerResult } from "./ticker";
 import { recallMemories } from "./walrus";
 
 /** How many past games to ask Walrus for. More than enough at this stage of the season. */
@@ -88,36 +87,6 @@ export async function getUpcomingMatches(now: Date): Promise<UpcomingMatch[]> {
       kickoffAt: m.kickoff_at,
       reading: readings.sort((a, b) => b.odds_fetched_at.localeCompare(a.odds_fetched_at))[0] ?? null,
     };
-  });
-}
-
-/** Games graded in the last two days, with who got closer, for the ticker's full-time lines. */
-export async function getRecentResults(now: Date): Promise<TickerResult[]> {
-  const since = new Date(now.getTime() - 48 * 3600_000).toISOString();
-  const [{ data, error }, teams] = await Promise.all([
-    createAdminClient()
-      .from("matches")
-      .select("league_code, home_team, away_team, home_goals, away_goals, kickoff_at, readings(*)")
-      .eq("result_status", "finished")
-      .not("graded_at", "is", null)
-      .gte("kickoff_at", since),
-    allTeams(),
-  ]);
-  if (error) throw new Error(`loading recent results: ${error.message}`);
-  return (data ?? []).flatMap((m) => {
-    const v = matchVerdict(m.readings as ReadingRow[]);
-    if (!v || m.home_goals == null || m.away_goals == null) return [];
-    const leagueTeams = teams.filter((t) => t.league_code === m.league_code);
-    return [
-      {
-        home: teamLook(m.home_team, leagueTeams).short,
-        away: teamLook(m.away_team, leagueTeams).short,
-        homeGoals: m.home_goals,
-        awayGoals: m.away_goals,
-        kickoffAt: m.kickoff_at,
-        closer: v.closer,
-      },
-    ];
   });
 }
 

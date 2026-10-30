@@ -11,9 +11,7 @@ import { When } from "../ui/when";
 import { FeaturedCard, type Featured } from "./featured";
 import { useNow } from "./hooks";
 import { OddsBars } from "./odds-bars";
-import type { TickerLine } from "@/lib/ticker";
 import { TeamBadge } from "./team-badge";
-import { Ticker } from "./ticker";
 import { YourCall, type CurrentCall } from "./your-call";
 
 export type MatchView = {
@@ -83,7 +81,7 @@ function MatchCard({
       </div>
 
       {m.bookies ? (
-        <OddsBars bookies={m.bookies} poly={m.poly} home={m.home.short} away={m.away.short} gap={m.gap} />
+        <OddsBars bookies={m.bookies} poly={m.poly} home={m.home.short} away={m.away.short} homeCode={m.home.initials} awayCode={m.away.initials} gap={m.gap} />
       ) : (
         <span className="flex items-center gap-2 text-[14px] text-muted">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -127,7 +125,6 @@ export function MatchList({
   featured,
   records,
   signedIn,
-  ticker,
 }: {
   matches: MatchView[];
   /** Every covered league, in order, including ones with no games this week. */
@@ -135,7 +132,6 @@ export function MatchList({
   featured: Featured | null;
   records: Record<string, ReactNode>;
   signedIn: boolean;
-  ticker: TickerLine[];
 }) {
   const now = useNow();
   const params = useSearchParams();
@@ -158,7 +154,6 @@ export function MatchList({
 
   return (
     <>
-      <Ticker initial={ticker} onOpen={open} />
       <div className="no-scrollbar -mx-[18px] flex gap-2 overflow-x-auto px-[18px] pb-1 pt-0.5" role="group" aria-label="Filter by league">
         {[{ name: "All", count: matches.length }, ...withGames.map((l) => ({ name: l, count: byLeague.get(l)!.length }))].map(({ name, count }) => {
           const on = tab === name;

@@ -10,8 +10,6 @@ export type ProofStamp = { key: string; title: string; mine: boolean; at: string
 
 export type ProofPage = {
   memories: number;
-  /** Of `memories`, how many are fans' calls. Those stay private: each person only sees their own. */
-  callMemories: number;
   stamps: number;
   polymarketChecksToday: number;
   gameMemories: ProofMemory[];
@@ -22,23 +20,22 @@ export type ProofPage = {
 };
 
 const LIST = 12;
-/** Every game memory is listed (the page shows 12 at a time). This cap only keeps the page light later on. */
-const GAME_MEMORIES = 500;
+/** Every memory is listed (the page shows 12 at a time), so the tab counts are true. This cap only keeps the page light later on. */
+const ALL_MEMORIES = 500;
 
 export async function getProofPage(now: Date, userId: string | null): Promise<ProofPage> {
   const db = createAdminClient();
   const midnight = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())).toISOString();
   const cols = "id, kind, summary, saved_at, blob_id";
 
-  const [memories, callMemories, stampedReadings, stampedCalls, checksToday, game, mine, readingStamps, myStamps, lastPoly, lastCallStamp] = await Promise.all([
+  const [memories, stampedReadings, stampedCalls, checksToday, game, mine, readingStamps, myStamps, lastPoly, lastCallStamp] = await Promise.all([
     db.from("memories").select("id", { count: "exact", head: true }).eq("status", "saved"),
-    db.from("memories").select("id", { count: "exact", head: true }).eq("status", "saved").eq("kind", "call"),
     db.from("readings").select("id", { count: "exact", head: true }).eq("sui_status", "stamped"),
     db.from("prediction_versions").select("id", { count: "exact", head: true }).eq("sui_status", "stamped"),
     db.from("readings").select("id", { count: "exact", head: true }).gte("poly_fetched_at", midnight),
-    db.from("memories").select(cols).eq("status", "saved").neq("kind", "call").order("saved_at", { ascending: false }).limit(GAME_MEMORIES),
+    db.from("memories").select(cols).eq("status", "saved").neq("kind", "call").order("saved_at", { ascending: false }).limit(ALL_MEMORIES),
     userId
-      ? db.from("memories").select(cols).eq("status", "saved").eq("kind", "call").eq("fan_id", fanId(userId)).order("saved_at", { ascending: false }).limit(LIST)
+      ? db.from("memories").select(cols).eq("status", "saved").eq("kind", "call").eq("fan_id", fanId(userId)).order("saved_at", { ascending: false }).limit(ALL_MEMORIES)
       : Promise.resolve({ data: null, error: null }),
     db.from("readings").select("id, sui_digest, stamped_at, matches(home_team, away_team)").eq("sui_status", "stamped").order("stamped_at", { ascending: false }).limit(LIST),
     userId
@@ -53,7 +50,7 @@ export async function getProofPage(now: Date, userId: string | null): Promise<Pr
     db.from("readings").select("poly_fetched_at").not("poly_fetched_at", "is", null).order("poly_fetched_at", { ascending: false }).limit(1).maybeSingle(),
     db.from("prediction_versions").select("stamped_at").not("stamped_at", "is", null).order("stamped_at", { ascending: false }).limit(1).maybeSingle(),
   ]);
-  for (const r of [memories, callMemories, stampedReadings, stampedCalls, checksToday, game, mine, readingStamps, myStamps]) if (r.error) throw new Error(r.error.message);
+  for (const r of [memories, stampedReadings, stampedCalls, checksToday, game, mine, readingStamps, myStamps]) if (r.error) throw new Error(r.error.message);
 
   const toMemory = (m: { id: string; kind: ProofMemory["kind"]; summary: string | null; saved_at: string; blob_id: string }) => ({
     id: m.id,
@@ -89,7 +86,6 @@ export async function getProofPage(now: Date, userId: string | null): Promise<Pr
 
   return {
     memories: memories.count ?? 0,
-    callMemories: callMemories.count ?? 0,
     stamps: (stampedReadings.count ?? 0) + (stampedCalls.count ?? 0),
     polymarketChecksToday: checksToday.count ?? 0,
     gameMemories: (game.data ?? []).map(toMemory),
