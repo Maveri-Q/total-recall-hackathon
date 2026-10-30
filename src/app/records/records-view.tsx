@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useState } from "react";
 import type { GapBand } from "@/lib/data-job/memories";
+import { leader, type RecordStep } from "@/lib/memory-history";
 import type { LeagueRecord } from "@/lib/scorecard";
+import { walrusUrl } from "@/lib/walrus-links";
 import { LampCard } from "../ui/lamp-card";
 import { RollingNumber } from "../ui/rolling-number";
 
@@ -36,6 +38,51 @@ function SplitBar({ b, p, height }: { b: number; p: number; height: string }) {
 }
 
 const CLOSER = { bookies: "Bookies closer", polymarket: "Polymarket closer", tie: "Level" } as const;
+
+/** Show at most this many steps; the newest are kept. */
+const MAX_STEPS = 6;
+
+/**
+ * "How this changed": the record after each step, oldest on the left, as saved on Walrus at the time.
+ * Each step opens its memory on Walruscan. Only shown once there are two steps to compare.
+ */
+function HowItChanged({ steps }: { steps: RecordStep[] }) {
+  if (steps.length < 2) return null;
+  const shown = steps.slice(-MAX_STEPS);
+  return (
+    <div className="flex flex-col gap-2">
+      <span className="flex flex-col gap-0.5">
+        <span className="text-[13px] font-bold text-ink">How this changed</span>
+        <span className="text-[12px] text-hero-muted">Bookies v Polymarket, saved on Walrus as each game was graded. Tap one to check it.</span>
+      </span>
+      <ol className="no-scrollbar m-0 flex list-none items-center gap-1.5 overflow-x-auto p-0">
+        {shown.map((s, i) => (
+          <li key={s.games} className="flex shrink-0 items-center gap-1.5">
+            {i > 0 && (
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true" className="text-faint">
+                <path d="M3 2l4 3-4 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            )}
+            <a
+              href={walrusUrl(s.blobId)}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={`After ${s.games} ${s.games === 1 ? "game" : "games"}: bookies ${s.bookies}, Polymarket ${s.polymarket}. Check it on Walrus.`}
+              className={`press flex min-h-11 flex-col items-center justify-center rounded-[12px] border px-2.5 py-1 no-underline ${
+                i === shown.length - 1 ? "border-ink bg-white" : "border-[rgba(11,26,20,0.08)] bg-white/60"
+              }`}
+            >
+              <span className="text-[11px] font-semibold text-faint">After {s.games}</span>
+              <span className={`num font-display text-[15px] font-extrabold ${leader(s) === "polymarket" ? "text-poly-text" : leader(s) === "bookies" ? "text-bookies" : "text-ink"}`}>
+                {s.bookies}-{s.polymarket}
+              </span>
+            </a>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
 
 export function RecordsView({ all, leagues }: { all: LeagueRecord | null; leagues: LeagueRecord[] }) {
   const [tab, setTab] = useState<Tab>("all");
@@ -75,6 +122,7 @@ export function RecordsView({ all, leagues }: { all: LeagueRecord | null; league
             </span>
           </div>
           <SplitBar b={b} p={p} height="h-2.5" />
+          {tab === "all" && all && <HowItChanged steps={all.history} />}
           {games === 0 && <span className="text-[14px] text-hero-muted">No games with a gap this big yet. Check back after the weekend.</span>}
         </div>
       </LampCard>
@@ -135,6 +183,11 @@ export function RecordsView({ all, leagues }: { all: LeagueRecord | null; league
               </button>
               {isOpen && (
                 <div className="reveal flex flex-col px-4 pb-3">
+                  {l.history.length > 1 && (
+                    <div className="pb-3">
+                      <HowItChanged steps={l.history} />
+                    </div>
+                  )}
                   {l.recent.map((g) => (
                     <div key={g.label + g.kickoffAt} className="flex items-center justify-between gap-2 border-t border-[rgba(11,26,20,0.06)] py-[9px] text-[13px]">
                       <span className="num font-semibold">{g.label}</span>

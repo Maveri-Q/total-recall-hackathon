@@ -1,42 +1,47 @@
 import { describe, expect, it } from "vitest";
-import type { Verdict } from "./data-job/memories";
-import { historyText, scoreAt, scoreHistory, type GradedGame } from "./memory-history";
+import { leader, recordSteps, type RecordMemory } from "./memory-history";
 
-const v = (closer: Verdict["closer"], gapPoints: number): Verdict => ({ kind: "pre_kickoff", closer, gapPoints, bookieBrier: 0.3, polyBrier: 0.3 });
-const g = (leagueCode: string, kickoffAt: string, closer: Verdict["closer"], gap: number): GradedGame => ({ leagueCode, kickoffAt, verdict: v(closer, gap) });
-
-const games = [
-  g("SA", "2026-10-06T19:00:00Z", "polymarket", 7), // 3+ weeks ago
-  g("SA", "2026-10-20T19:00:00Z", "bookies", 12), // between 3 weeks and 1 week ago
-  g("SA", "2026-10-27T19:00:00Z", "polymarket", 6), // this week
-  g("SA", "2026-10-27T21:00:00Z", "bookies", 2), // small gap: never counted here
-  g("PL", "2026-10-25T15:00:00Z", "tie", 9),
+// The real Serie A memories saved on Walrus, 28 to 29 Oct 2026.
+const saved: RecordMemory[] = [
+  { ref_key: "SA:6", summary: "Serie A: Bookies 1, Polymarket 5, from 6 games.", saved_at: "2026-10-28T19:37:00Z", blob_id: "b6" },
+  { ref_key: "SA:3", summary: "Serie A: Bookies 0, Polymarket 3, from 3 games.", saved_at: "2026-10-28T03:36:00Z", blob_id: "b3" },
+  { ref_key: "ALL:3", summary: "All leagues: Bookies 0, Polymarket 3, from 3 games.", saved_at: "2026-10-28T03:36:00Z", blob_id: "a3" },
+  { ref_key: "SA:10", summary: "Serie A: Bookies 3, Polymarket 7, from 10 games.", saved_at: "2026-10-29T22:18:00Z", blob_id: "b10" },
 ];
-const now = new Date("2026-10-29T12:00:00Z");
 
-describe("scoreAt", () => {
-  it("counts only games 5+ points apart, up to the cut-off (hand-checked)", () => {
-    expect(scoreAt(games, "SA")).toEqual({ bookies: 1, polymarket: 2, level: 0, games: 3 });
-    expect(scoreAt(games, "SA", new Date("2026-10-22T12:00:00Z"))).toEqual({ bookies: 1, polymarket: 1, level: 0, games: 2 });
-    expect(scoreAt(games, "PL")).toEqual({ bookies: 0, polymarket: 0, level: 1, games: 1 });
+describe("recordSteps", () => {
+  it("lists one league's saved records, fewest games first", () => {
+    expect(recordSteps(saved, "SA").map((s) => [s.games, s.bookies, s.polymarket])).toEqual([
+      [3, 0, 3],
+      [6, 1, 5],
+      [10, 3, 7],
+    ]);
+    expect(recordSteps(saved, "ALL")).toHaveLength(1);
+  });
+
+  it("keeps each step's Walrus blob and save time", () => {
+    expect(recordSteps(saved, "SA")[0]).toMatchObject({ blobId: "b3", savedAt: "2026-10-28T03:36:00Z" });
+  });
+
+  it("leaves out memories not saved yet, or whose summary doesn't match their key", () => {
+    const rows: RecordMemory[] = [
+      { ref_key: "SA:12", summary: "Serie A: Bookies 4, Polymarket 8, from 12 games.", saved_at: null, blob_id: null },
+      { ref_key: "SA:11", summary: "Serie A: Bookies 4, Polymarket 7, from 12 games.", saved_at: "2026-10-31T10:00:00Z", blob_id: "x" },
+      { ref_key: "SAX:3", summary: "Other: Bookies 1, Polymarket 2, from 3 games.", saved_at: "2026-10-31T10:00:00Z", blob_id: "y" },
+    ];
+    expect(recordSteps(rows, "SA")).toEqual([]);
+  });
+
+  it("reads a one-game record", () => {
+    const one = [{ ref_key: "PL:1", summary: "Premier League: Bookies 1, Polymarket 0, from 1 game.", saved_at: "2026-10-31T15:00:00Z", blob_id: "p1" }];
+    expect(recordSteps(one, "PL")).toMatchObject([{ games: 1, bookies: 1, polymarket: 0 }]);
   });
 });
 
-describe("scoreHistory", () => {
-  it("shows now, last week and three weeks ago per league, busiest league first", () => {
-    const h = scoreHistory(games, now);
-    expect(h.map((x) => x.leagueCode)).toEqual(["SA", "PL"]);
-    expect(historyText(h[0])).toBe("3 weeks ago 0-1, last week 1-1, now 1-2");
-  });
-
-  it("leaves out points from before our first graded game", () => {
-    const h = scoreHistory([g("SA", "2026-10-27T19:00:00Z", "polymarket", 6)], now);
-    expect(h[0].lastWeek).toBeNull();
-    expect(h[0].threeWeeksAgo).toBeNull();
-    expect(historyText(h[0])).toBe("Now 0-1");
-  });
-
-  it("is empty with no graded games", () => {
-    expect(scoreHistory([], now)).toEqual([]);
+describe("leader", () => {
+  it("says who was ahead", () => {
+    expect(leader({ bookies: 3, polymarket: 7 })).toBe("polymarket");
+    expect(leader({ bookies: 2, polymarket: 1 })).toBe("bookies");
+    expect(leader({ bookies: 2, polymarket: 2 })).toBe("level");
   });
 });

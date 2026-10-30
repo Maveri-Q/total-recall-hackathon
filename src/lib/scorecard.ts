@@ -8,11 +8,20 @@ import { listMyCalls } from "./calls";
 import { bookiesOf, polyOf } from "./coming-up";
 import { matchVerdict, sourceRecord, type ReadingRow, type SourceRecord, type Verdict } from "./data-job/memories";
 import { LEAGUES } from "./leagues";
+import { recordSteps, type RecordStep } from "./memory-history";
 import { favourite } from "./scoreline";
 import { createAdminClient } from "./supabase/admin";
 
 export type RecentGame = { label: string; kickoffAt: string; closer: Verdict["closer"] };
-export type LeagueRecord = { code: string; name: string; record: SourceRecord; blobId: string | null; recent: RecentGame[] };
+export type LeagueRecord = {
+  code: string;
+  name: string;
+  record: SourceRecord;
+  blobId: string | null;
+  recent: RecentGame[];
+  /** How the record moved as games were graded: each step is a memory saved on Walrus at the time. */
+  history: RecordStep[];
+};
 
 /** Every league with at least one counted game, plus "All leagues" first. Cached for 15 minutes. */
 export async function getSourceScorecard(): Promise<LeagueRecord[]> {
@@ -39,8 +48,12 @@ export async function getSourceScorecard(): Promise<LeagueRecord[]> {
     recent.get("ALL")!.push(game);
   }
 
-  // The newest saved Walrus record for each league ("SA:3" is the Serie A record after 3 games).
-  const { data: memories } = await db.from("memories").select("ref_key, blob_id").eq("kind", "source_record").eq("status", "saved");
+  // Each league's saved Walrus records ("SA:3" is the Serie A record after 3 games): the newest one, and the steps before it.
+  const { data: memories } = await db
+    .from("memories")
+    .select("ref_key, summary, saved_at, blob_id")
+    .eq("kind", "source_record")
+    .eq("status", "saved");
   const blobFor = (code: string, games: number) =>
     memories?.find((m) => m.ref_key === `${code}:${games}`)?.blob_id ?? null;
 
@@ -52,6 +65,7 @@ export async function getSourceScorecard(): Promise<LeagueRecord[]> {
       record: sourceRecord(vs),
       blobId: blobFor(code, vs.length),
       recent: (recent.get(code) ?? []).sort((a, b) => b.kickoffAt.localeCompare(a.kickoffAt)).slice(0, 3),
+      history: recordSteps(memories ?? [], code),
     }))
     .sort((a, b) => (a.code === "ALL" ? -1 : b.code === "ALL" ? 1 : b.record.matches - a.record.matches));
 }

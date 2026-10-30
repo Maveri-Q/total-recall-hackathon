@@ -346,6 +346,9 @@ Each league must pass three checks: The Odds API covers it, Polymarket has match
 - "Odds come in around [day time]" uses `firstReadingAt()` in `schedule.ts`; if that time passed with no reading: "Odds are on their way. We check every hour."
 - Page-title hover glow is white, not green (Maverick, 29 Oct).
 
+### Learning over time (30 Oct 2026)
+- Records shows "How this changed": each league's record after each step (e.g. Serie A 0-3, 1-5, 2-6, 2-7, 3-7), read from the `source_record` memories the data job already saves to Walrus every time a count grows (`recordSteps` in `memory-history.ts`). Each step links to its blob on Walruscan. Nothing is back-dated. This replaces the "weekly snapshot" idea: with one week left, steps by game count show the learning sooner.
+
 ### Code quality checks (30 Oct 2026)
 - GitHub check on every push: types (`tsc --noEmit`), lint, then all tests. `metadataBase` is set from `SITE_URL` in `brand.ts`.
 - Failure-case tests for the data job (`src/lib/data-job/run.test.ts`, `remember.test.ts`) use a stand-in database (`test-db.ts`) and stand-ins for The Odds API, Tatum, football-data.org and Walrus. They cover every failure case in the Security section.
