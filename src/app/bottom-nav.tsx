@@ -4,7 +4,7 @@ export type NavPage = "/" | "/calls" | "/records" | "/proof";
 
 const ACTIVE = "#C6F36B";
 
-function Icon({ page, active }: { page: NavPage; active: boolean }) {
+export function Icon({ page, active }: { page: NavPage; active: boolean }) {
   const c = active ? ACTIVE : "currentColor";
   switch (page) {
     case "/":
@@ -37,19 +37,22 @@ function Icon({ page, active }: { page: NavPage; active: boolean }) {
   }
 }
 
-const ITEMS: { href: NavPage; label: string }[] = [
+export const ITEMS: { href: NavPage; label: string }[] = [
   { href: "/", label: "Matches" },
   { href: "/calls", label: "My calls" },
   { href: "/records", label: "Records" },
   { href: "/proof", label: "Proof" },
 ];
 
-/** Floating glass bar, 4 equal items, each a 20px icon over a 12px label. The current page is ink. */
+/**
+ * Floating glass bar, 4 equal items, each a 20px icon over a 12px label. The current page is ink.
+ * Phones and tablets only: from 1024px wide the same items sit in the header (top-nav.tsx), as UI.md allows.
+ */
 export function BottomNav({ current }: { current: NavPage | null }) {
   return (
     <nav
       aria-label="Main"
-      className="glass fixed inset-x-[14px] bottom-[calc(14px+env(safe-area-inset-bottom))] z-20 mx-auto grid max-w-[492px] grid-cols-4 gap-1 rounded-[26px] p-1.5"
+      className="glass fixed inset-x-[14px] bottom-[calc(14px+env(safe-area-inset-bottom))] z-20 mx-auto grid lg:hidden max-w-[492px] grid-cols-4 gap-1 rounded-[26px] p-1.5"
     >
       {ITEMS.map(({ href, label }) => {
         const active = href === current;

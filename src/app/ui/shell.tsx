@@ -40,7 +40,9 @@ export function Shell({
       {blobs[1] && (
         <div aria-hidden="true" className={`pointer-events-none absolute -left-[140px] top-[520px] h-[340px] w-[340px] rounded-full blur-[80px] ${BLOB[blobs[1]]}`} />
       )}
-      <main className={`relative mx-auto flex w-full max-w-[520px] flex-col ${wide ? "md:max-w-[1060px]" : ""} gap-[18px] px-[18px] pb-[calc(118px+env(safe-area-inset-bottom))] pt-[calc(18px+env(safe-area-inset-top))]`}>
+      <main
+        className={`relative mx-auto flex w-full max-w-[520px] flex-col ${wide ? "md:max-w-[1060px]" : ""} gap-[18px] px-[18px] pb-[calc(118px+env(safe-area-inset-bottom))] pt-[calc(18px+env(safe-area-inset-top))] lg:max-w-[1180px] lg:px-8 lg:pb-16`}
+      >
         {children}
       </main>
     </div>

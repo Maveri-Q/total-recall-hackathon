@@ -105,8 +105,10 @@ export function RecordsView({ all, leagues }: { all: LeagueRecord | null; league
   const b = rec?.bookies ?? 0;
   const p = rec?.polymarket ?? 0;
 
+  // Desktop (1024px+): the score and the gap tabs that drive it on the left, the leagues on the right.
   return (
-    <>
+    <div className="flex flex-col gap-[18px] lg:grid lg:grid-cols-2 lg:items-start lg:gap-6">
+      <div className="flex flex-col gap-[18px] lg:sticky lg:top-6">
       <LampCard className="lite flex flex-col gap-3.5 rounded-[28px] p-[18px]">
         <div className="flex flex-col gap-3.5">
           <div className="flex items-center justify-between gap-2">
@@ -166,6 +168,8 @@ export function RecordsView({ all, leagues }: { all: LeagueRecord | null; league
         </div>
       </section>
 
+      </div>
+      <div className="flex flex-col gap-[18px]">
       <section className="flex flex-col gap-2.5" aria-labelledby="by-league">
         <h2 id="by-league" className="m-0 font-display text-[24px] font-extrabold tracking-[-0.035em]">
           By league
@@ -220,6 +224,7 @@ export function RecordsView({ all, leagues }: { all: LeagueRecord | null; league
       <Link href="/proof" className="inline-flex min-h-11 items-center self-center text-center text-[13px] font-semibold text-poly-text">
         Every record here is saved on Walrus. See the proof.
       </Link>
-    </>
+      </div>
+    </div>
   );
 }

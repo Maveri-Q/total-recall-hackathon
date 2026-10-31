@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { APP_NAME, WORDMARK } from "@/lib/brand";
 import { firstName, greeting } from "@/lib/greeting";
 import { createClient } from "@/lib/supabase/server";
+import { TopNav } from "../top-nav";
 import { ProfileButton } from "./profile-sheet";
 
 async function SignedInHeader({ next }: { next: string }) {
@@ -67,7 +68,10 @@ export function BigWordmark({ className = "", mark = "#C6F36B" }: { className?: 
   );
 }
 
-/** Logo and wordmark on the left; "Sign in", or the greeting and profile button, on the right. */
+/**
+ * Logo and wordmark on the left; "Sign in", or the greeting and profile button, on the right. From 1024px wide
+ * the main navigation sits in the middle (it's the bottom bar on smaller screens).
+ */
 export function AppHeader({
   email,
   greeting,
@@ -81,26 +85,29 @@ export function AppHeader({
   next?: string;
 }) {
   return (
-    <div className="flex items-center justify-between gap-3">
+    <div className="flex items-center justify-between gap-3 lg:grid lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
       <Link href="/" aria-label={`${APP_NAME} home`} className="inline-flex min-h-11 shrink-0 items-center gap-2 font-display text-[18px] font-extrabold tracking-[-0.03em] no-underline">
         <LogoMark />
         {WORDMARK}
       </Link>
-      {checking ? (
-        <span aria-hidden="true" className="skeleton h-11 w-11 shrink-0 rounded-full" />
-      ) : email ? (
-        <span className="flex min-w-0 items-center gap-2.5">
-          {greeting && <span className="reveal min-w-0 truncate text-[14px] font-semibold text-muted">{greeting}</span>}
-          <ProfileButton email={email} />
-        </span>
-      ) : (
-        <Link
-          href={`/login?next=${encodeURIComponent(next)}`}
-          className="press inline-flex min-h-11 items-center rounded-full bg-ink px-4 text-[14px] font-semibold text-white no-underline hover:text-white"
-        >
-          Sign in
-        </Link>
-      )}
+      <TopNav />
+      <div className="flex min-w-0 justify-end">
+        {checking ? (
+          <span aria-hidden="true" className="skeleton h-11 w-11 shrink-0 rounded-full" />
+        ) : email ? (
+          <span className="flex min-w-0 items-center gap-2.5">
+            {greeting && <span className="reveal min-w-0 truncate text-[14px] font-semibold text-muted">{greeting}</span>}
+            <ProfileButton email={email} />
+          </span>
+        ) : (
+          <Link
+            href={`/login?next=${encodeURIComponent(next)}`}
+            className="press inline-flex min-h-11 items-center rounded-full bg-ink px-4 text-[14px] font-semibold text-white no-underline hover:text-white"
+          >
+            Sign in
+          </Link>
+        )}
+      </div>
     </div>
   );
 }

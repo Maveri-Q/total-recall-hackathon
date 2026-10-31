@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
+import { Suspense, type ReactNode } from "react";
 import { connection } from "next/server";
 import { getProofPage } from "@/lib/proof-page";
 import { getCurrentUser } from "@/lib/supabase/server";
@@ -27,8 +27,7 @@ export default function Proof() {
         <PageTitle text="Proof" />
         <p className="m-0 text-[16px] leading-[1.45] text-muted">Where every number comes from, and where you can check it.</p>
       </div>
-      <Steps />
-      <Suspense fallback={<ProofLoading />}>
+      <Suspense fallback={<ProofColumns left={<Steps />} right={<ProofLoading />} />}>
         <Content />
       </Suspense>
       <BottomNav current="/proof" />
@@ -62,6 +61,19 @@ function Steps() {
   );
 }
 
+/**
+ * Desktop (1024px+): how it works and the live counters on the left, the Walrus and Sui lists on the right.
+ * On phones the two simply stack, in the same order as before.
+ */
+function ProofColumns({ left, right }: { left: ReactNode; right: ReactNode }) {
+  return (
+    <div className="flex flex-col gap-[18px] lg:grid lg:grid-cols-2 lg:items-start lg:gap-6">
+      <div className="flex flex-col gap-[18px] lg:sticky lg:top-6">{left}</div>
+      <div className="flex flex-col gap-[18px]">{right}</div>
+    </div>
+  );
+}
+
 /** Placeholder counters and rows while the live numbers load. */
 function ProofLoading() {
   return (
@@ -90,12 +102,14 @@ async function Content() {
     page = null;
   }
 
+  if (!page) {
+    return <ProofColumns left={<Steps />} right={<p className="text-muted">Couldn&apos;t load the live numbers right now. Try again in a minute.</p>} />;
+  }
   return (
-    <>
-      {!page ? (
-        <p className="text-muted">Couldn&apos;t load the live numbers right now. Try again in a minute.</p>
-      ) : (
+    <ProofColumns
+      left={
         <>
+          <Steps />
           <div className="grid grid-cols-3 gap-2">
             {[
               { n: page.memories, label: "Walrus memories" },
@@ -108,7 +122,10 @@ async function Content() {
               </div>
             ))}
           </div>
-
+        </>
+      }
+      right={
+        <>
           <section className="flex flex-col gap-2.5" aria-labelledby="walrus">
             <h2 id="walrus" className="m-0 font-display text-[24px] font-extrabold tracking-[-0.035em]">
               Remembered on Walrus
@@ -142,7 +159,7 @@ async function Content() {
             ))}
           </section>
         </>
-      )}
-    </>
+      }
+    />
   );
 }
