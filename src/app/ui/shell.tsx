@@ -31,7 +31,7 @@ export function Shell({
 }: {
   children: ReactNode;
   blobs?: [Blob, Blob?];
-  /** Matches only: on wide screens the page widens so games can sit in two columns. Phones are unchanged. */
+  /** Matches only: from 768px wide (any laptop, even with display scaling) the page widens so games sit in two columns. Phones are unchanged. */
   wide?: boolean;
 }) {
   return (
@@ -40,7 +40,7 @@ export function Shell({
       {blobs[1] && (
         <div aria-hidden="true" className={`pointer-events-none absolute -left-[140px] top-[520px] h-[340px] w-[340px] rounded-full blur-[80px] ${BLOB[blobs[1]]}`} />
       )}
-      <main className={`relative mx-auto flex w-full max-w-[520px] flex-col ${wide ? "lg:max-w-[1060px]" : ""} gap-[18px] px-[18px] pb-[calc(118px+env(safe-area-inset-bottom))] pt-[calc(18px+env(safe-area-inset-top))]`}>
+      <main className={`relative mx-auto flex w-full max-w-[520px] flex-col ${wide ? "md:max-w-[1060px]" : ""} gap-[18px] px-[18px] pb-[calc(118px+env(safe-area-inset-bottom))] pt-[calc(18px+env(safe-area-inset-top))]`}>
         {children}
       </main>
     </div>

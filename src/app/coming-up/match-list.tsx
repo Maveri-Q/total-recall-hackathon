@@ -212,7 +212,7 @@ export function MatchList({
             {days.map(({ day, games: dayGames }, i) => (
               <div key={`${day}-${i}`} className="flex flex-col gap-1.5">
                 <span className="min-h-5 pl-0.5 text-[13px] font-bold text-faint">{day}</span>
-                <div className="grid grid-cols-1 items-start gap-2.5 lg:grid-cols-2">
+                <div className="grid grid-cols-1 items-start gap-2.5 md:grid-cols-2">
                   {dayGames.map((m) => (
                     <MatchCard
                       key={m.id}
