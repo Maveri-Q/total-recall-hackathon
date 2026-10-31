@@ -172,7 +172,7 @@ async function saveJobResults(db: Db, rows: { id: string; attempts: number }[], 
  * A memory that failed every try (usually a Walrus outage: on 30 Oct the relayer refused uploads for about
  * three hours) gets a fresh round of tries this long after its last one. An outage delays a memory, never loses it.
  */
-export const RETRY_FAILED_AFTER_MS = 6 * 60 * 60 * 1000;
+export const RETRY_FAILED_AFTER_MS = 2 * 60 * 60 * 1000;
 
 /** Sends queued memories to Walrus Mainnet and records where each one landed. */
 export async function sendPendingMemories(db: Db, log: string[], now: Date = new Date()) {

@@ -63,7 +63,7 @@ describe("sending memories to Walrus", () => {
     expect(updates.some((u) => u.blob_id === "BLOB1")).toBe(true);
   });
 
-  it("after an outage, memories that failed every try go back in the queue 6 hours after their last try", async () => {
+  it("after an outage, memories that failed every try go back in the queue 2 hours after their last try", async () => {
     walrus.sendMemories.mockRejectedValue(new Error("relayer 502"));
     const now = new Date("2026-10-31T09:17:00Z");
     await sendPendingMemories(db as never, [], now);

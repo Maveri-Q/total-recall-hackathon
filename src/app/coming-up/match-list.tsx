@@ -214,8 +214,8 @@ export function MatchList({
               </span>
             </div>
             {/* One grid per league: one column on phones with day headings between games, two columns on wider
-                screens with the day inside each card, and rows of equal height. */}
-            <div className="grid grid-cols-1 gap-2.5 md:grid-cols-2">
+                screens with the day inside each card. Each card keeps its own height, so opening one never stretches its neighbour. */}
+            <div className="grid grid-cols-1 items-start gap-2.5 md:grid-cols-2">
               {visible.map((m, i) => {
                 const day = now === null ? "" : dayLabel(new Date(m.kickoffAt), new Date(now));
                 const showDay = day !== lastDay;
