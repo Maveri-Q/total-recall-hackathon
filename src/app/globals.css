@@ -176,16 +176,16 @@
   }
 
   /* Rolling counter: digits spin, then land with a pop and a green flash. */
+  /* RollingNumber: the blur is set inline and fades as the roll slows; it lands with a small, quick pop. */
   .rolling {
-    filter: blur(0.6px);
-    opacity: 0.85;
+    opacity: 0.9;
   }
   .bump {
-    animation: bump 420ms cubic-bezier(0.2, 1.6, 0.4, 1) both;
+    animation: bump 260ms cubic-bezier(0.2, 0, 0, 1) both;
   }
   @keyframes bump {
     0% { transform: scale(1); }
-    40% { transform: scale(1.14); color: var(--color-poly); }
+    45% { transform: scale(1.07); color: var(--color-poly); }
     100% { transform: scale(1); }
   }
 
@@ -299,5 +299,5 @@
   .dust, .flow { display: none; }
   .press, .lamp { transition: none; }
   .skeleton::after { display: none; }
-  .rolling { filter: none; opacity: 1; }
+  .rolling { filter: none !important; opacity: 1; }
 }

@@ -1,39 +1,58 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "../coming-up/hooks";
 
-const ROLL_MS = 900;
-const STEP_MS = 40;
+/** How long the roll takes, and how many numbers it flicks through on the way. */
+const ROLL_MS = 650;
+const STEPS = 14;
+
+/** Fast at first, slowing as it lands (ease-out cubic). */
+const easeOut = (p: number) => 1 - (1 - p) ** 3;
 
 /**
- * A hero number that rolls like a fast-spinning counter for about 0.9s (a new digit every 40ms, slightly
- * blurred), then lands on the real value with a pop and a green flash. Visible even when the value is 2.
- * Changing `runKey` rolls it again (e.g. when a tab changes). Reduced motion: the value shows straight away.
+ * A hero number that rolls like a slot machine: it flicks through numbers quickly, slows down and settles on the
+ * real value in about 0.65s, then gives a small pop and a green flash. Driven by the screen's frame clock
+ * (requestAnimationFrame), so it stays smooth. Visible even when the value is 2. Changing `runKey` rolls it
+ * again (e.g. when a tab changes). Reduced motion: the value shows straight away.
  */
 export function RollingNumber({ value, seed = 1, runKey, className = "" }: { value: number; seed?: number; runKey?: string | number; className?: string }) {
   const reduce = useReducedMotion();
-  const [tick, setTick] = useState<number | null>(0);
+  const [state, setState] = useState<{ step: number; blur: number } | null>({ step: 0, blur: 1 });
+  const frame = useRef(0);
 
   useEffect(() => {
     if (reduce) return;
-    let n = 0;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- restart the roll whenever the key changes
-    setTick(0);
-    const t = setInterval(() => {
-      n++;
-      if (n * STEP_MS >= ROLL_MS) {
-        clearInterval(t);
-        setTick(null);
-      } else setTick(n);
-    }, STEP_MS);
-    return () => clearInterval(t);
+    const start = performance.now();
+    // Each step only re-renders when the shown number actually changes, and slows down as it nears the end.
+    let lastStep = -1;
+    const tick = (now: number) => {
+      const p = Math.min(1, (now - start) / ROLL_MS);
+      if (p >= 1) {
+        setState(null);
+        return;
+      }
+      const eased = easeOut(p);
+      const step = Math.floor(eased * STEPS);
+      if (step !== lastStep) {
+        lastStep = step;
+        setState({ step, blur: 1 - eased });
+      }
+      frame.current = requestAnimationFrame(tick);
+    };
+    frame.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame.current);
   }, [reduce, runKey, value]);
 
-  const rolling = !reduce && tick !== null;
-  const shown = rolling ? (tick * 7 + seed) % Math.max(10, value + 6) : value;
+  const rolling = !reduce && state !== null;
+  const range = Math.max(10, value + 6);
+  const shown = rolling ? (state.step * 7 + seed) % range : value;
   return (
-    <span className={`num inline-block ${rolling ? "rolling" : reduce ? "" : "bump"} ${className}`} aria-label={String(value)}>
+    <span
+      className={`num inline-block ${rolling ? "rolling" : reduce ? "" : "bump"} ${className}`}
+      style={rolling ? { filter: `blur(${(state.blur * 1.2).toFixed(2)}px)` } : undefined}
+      aria-label={String(value)}
+    >
       <span aria-hidden="true">{shown}</span>
     </span>
   );

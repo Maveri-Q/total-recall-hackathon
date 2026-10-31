@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { Fragment, useState, type ReactNode } from "react";
 import { callLabel, isCall, type Call } from "@/lib/call-result";
 import { firstReadingAt } from "@/lib/data-job/schedule";
 import { dayLabel } from "@/lib/local-time";
@@ -56,6 +56,8 @@ function MatchCard({
   record,
   signedIn,
   autoPick,
+  day,
+  className = "",
 }: {
   m: MatchView;
   open: boolean;
@@ -63,10 +65,14 @@ function MatchCard({
   record: ReactNode;
   signedIn: boolean;
   autoPick: Call | null;
+  /** "Today", "Sun 1 Nov": shown inside the card on two columns, where separate day headings would split the grid. */
+  day: string;
+  className?: string;
 }) {
   const cta = open ? "Close" : m.call ? `Your call: ${callLabel(m.call.pick, m.home.short, m.away.short)}` : "Make your call";
   return (
-    <article id={`match-${m.id}`} className="glass flex scroll-mt-4 flex-col gap-3.5 rounded-[24px] p-4">
+    <article id={`match-${m.id}`} className={`glass flex scroll-mt-4 flex-col gap-3.5 rounded-[24px] p-4 ${className}`}>
+      <span className="-mb-1.5 hidden min-h-5 text-[13px] font-bold text-faint md:block">{day}</span>
       <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 text-center">
         <Team team={m.home} />
         <span className="flex flex-col items-center gap-px">
@@ -96,7 +102,7 @@ function MatchCard({
         type="button"
         onClick={onToggle}
         aria-expanded={open}
-        className={`press inline-flex cursor-pointer items-center justify-center gap-1.5 font-bold ${
+        className={`press mt-auto inline-flex cursor-pointer items-center justify-center gap-1.5 font-bold ${
           open
             ? "min-h-11 self-center border-none bg-transparent text-[13px] font-semibold text-muted"
             : "min-h-11 rounded-[14px] border border-[rgba(11,26,20,0.1)] bg-[rgba(11,26,20,0.04)] text-[14px] text-ink"
@@ -118,8 +124,12 @@ function MatchCard({
   );
 }
 
-/** In the "All" view, how many games each league shows before "Show all". */
+/**
+ * In the "All" view, how many games each league shows before "Show all": 3 on phones, 4 on two columns
+ * (an even number, so no card sits alone with a gap beside it).
+ */
 const PREVIEW = 3;
+const PREVIEW_WIDE = 4;
 
 /** League tabs, the biggest gap this week, then one section per league with its games by day. */
 export function MatchList({
@@ -193,14 +203,8 @@ export function MatchList({
       {shownLeagues.map((league) => {
         const games = byLeague.get(league)!;
         const full = tab !== "All" || expanded.has(league) || games.length <= PREVIEW;
-        const visible = full ? games : games.slice(0, PREVIEW);
-        // Games grouped under their day label. Each day is a grid: one column on phones, two on wide screens.
-        const days: { day: string; games: MatchView[] }[] = [];
-        for (const m of visible) {
-          const day = now === null ? "" : dayLabel(new Date(m.kickoffAt), new Date(now));
-          if (days.at(-1)?.day === day) days.at(-1)!.games.push(m);
-          else days.push({ day, games: [m] });
-        }
+        const visible = full ? games : games.slice(0, PREVIEW_WIDE);
+        let lastDay = "";
         return (
           <section key={league} className="flex flex-col gap-2.5" aria-label={league}>
             <div className="flex items-baseline justify-between pt-1.5">
@@ -209,30 +213,38 @@ export function MatchList({
                 {games.length} {games.length === 1 ? "game" : "games"}
               </span>
             </div>
-            {days.map(({ day, games: dayGames }, i) => (
-              <div key={`${day}-${i}`} className="flex flex-col gap-1.5">
-                <span className="min-h-5 pl-0.5 text-[13px] font-bold text-faint">{day}</span>
-                <div className="grid grid-cols-1 items-start gap-2.5 md:grid-cols-2">
-                  {dayGames.map((m) => (
+            {/* One grid per league: one column on phones with day headings between games, two columns on wider
+                screens with the day inside each card, and rows of equal height. */}
+            <div className="grid grid-cols-1 gap-2.5 md:grid-cols-2">
+              {visible.map((m, i) => {
+                const day = now === null ? "" : dayLabel(new Date(m.kickoffAt), new Date(now));
+                const showDay = day !== lastDay;
+                lastDay = day;
+                // The 4th game only fills the second row on two columns; phones show 3.
+                const wideOnly = !full && i >= PREVIEW;
+                return (
+                  <Fragment key={m.id}>
+                    {showDay && <span className={`min-h-5 pl-0.5 text-[13px] font-bold text-faint md:hidden ${wideOnly ? "hidden" : ""}`}>{day}</span>}
                     <MatchCard
-                      key={m.id}
                       m={m}
+                      day={day}
+                      className={wideOnly ? "hidden md:flex" : ""}
                       open={openId === m.id}
                       onToggle={() => setOpenId((id) => (id === m.id ? null : m.id))}
                       record={records[m.id]}
                       signedIn={signedIn}
                       autoPick={m.id === autoId ? autoPick : null}
                     />
-                  ))}
-                </div>
-              </div>
-            ))}
+                  </Fragment>
+                );
+              })}
+            </div>
             {tab === "All" && games.length > PREVIEW && (
               <button
                 type="button"
                 onClick={() => expand(league, !expanded.has(league))}
                 aria-expanded={full}
-                className="press inline-flex min-h-11 cursor-pointer items-center justify-center gap-1.5 rounded-[14px] border border-[rgba(11,26,20,0.1)] bg-[rgba(255,255,255,0.6)] text-[14px] font-bold text-ink"
+                className={`press ${games.length <= PREVIEW_WIDE ? "md:hidden" : ""} inline-flex min-h-11 cursor-pointer items-center justify-center gap-1.5 rounded-[14px] border border-[rgba(11,26,20,0.1)] bg-[rgba(255,255,255,0.6)] text-[14px] font-bold text-ink`}
               >
                 {full ? `Show fewer ${league} games` : `Show all ${games.length} ${league} games`}
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true" className={full ? "rotate-180" : ""}>
