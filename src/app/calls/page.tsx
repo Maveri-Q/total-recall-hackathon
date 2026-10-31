@@ -7,6 +7,7 @@ import { getMyScorecard } from "@/lib/scorecard";
 import { getCurrentUser } from "@/lib/supabase/server";
 import { BottomNav } from "../bottom-nav";
 import { PageHeader } from "../ui/app-header";
+import { Bone, CardSkeleton } from "../ui/skeleton";
 import { LampCard } from "../ui/lamp-card";
 import { RollingNumber } from "../ui/rolling-number";
 import { PageTitle, Shell } from "../ui/shell";
@@ -68,9 +69,9 @@ function CallsLoading() {
   return (
     <div aria-busy="true" className="flex flex-col gap-[18px]">
       <span className="sr-only">Loading your calls</span>
-      <div className="glass h-[236px] rounded-[28px]" />
-      <div className="glass h-[52px] rounded-[18px]" />
-      <div className="glass h-[200px] rounded-[24px]" />
+      <CardSkeleton lines={4} className="min-h-[236px] rounded-[28px]" />
+      <Bone className="h-[52px] rounded-[18px]" />
+      <CardSkeleton lines={3} className="min-h-[200px] rounded-[24px]" />
     </div>
   );
 }

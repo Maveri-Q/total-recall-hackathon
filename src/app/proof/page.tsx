@@ -5,6 +5,7 @@ import { getProofPage } from "@/lib/proof-page";
 import { getCurrentUser } from "@/lib/supabase/server";
 import { BottomNav } from "../bottom-nav";
 import { PageHeader } from "../ui/app-header";
+import { CardSkeleton } from "../ui/skeleton";
 import { PageTitle, Shell } from "../ui/shell";
 import { When } from "../ui/when";
 import { MemoryList, StampRow } from "./proof-lists";
@@ -51,7 +52,7 @@ function Steps() {
           <div className="flex flex-col gap-[3px] pb-4 pt-1">
             <span className="flex flex-wrap items-center gap-2">
               <span className="font-display text-[17px] font-extrabold tracking-[-0.02em]">{s.title}</span>
-              <span className="rounded-full bg-[rgba(11,26,20,0.06)] px-2 py-[3px] text-[11px] font-bold text-ink-2">{s.tag}</span>
+              <span className="rounded-full bg-[rgba(11,26,20,0.06)] px-2 py-[3px] text-[12px] font-bold text-ink-2">{s.tag}</span>
             </span>
             <span className="text-[14px] leading-[1.45] text-muted">{s.text}</span>
           </div>
@@ -68,11 +69,11 @@ function ProofLoading() {
       <span className="sr-only">Loading the live numbers</span>
       <div className="grid grid-cols-3 gap-2">
         {[0, 1, 2].map((i) => (
-          <div key={i} className="glass h-[96px] rounded-[20px]" />
+          <CardSkeleton key={i} lines={1} className="min-h-[96px] rounded-[20px]" />
         ))}
       </div>
       {[0, 1, 2].map((i) => (
-        <div key={i} className="glass h-[68px] rounded-[18px]" />
+        <CardSkeleton key={i} lines={1} className="rounded-[18px]" />
       ))}
     </div>
   );

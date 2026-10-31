@@ -16,12 +16,12 @@ async function SignedInHeader({ next }: { next: string }) {
 }
 
 /**
- * The header for a page: shows straight away with "Sign in", then swaps in the profile button once we know
- * who's signed in. On its own so the title and intro under it draw once, and only the data streams in.
+ * The header for a page: shows straight away with a neutral placeholder, then "Sign in" or the profile button
+ * once we know who's signed in (showing "Sign in" first made signed-in people think they'd been logged out). On its own so the title and intro under it draw once, and only the data streams in.
  */
 export function PageHeader({ next }: { next: string }) {
   return (
-    <Suspense fallback={<AppHeader email={null} next={next} />}>
+    <Suspense fallback={<AppHeader email={null} checking next={next} />}>
       <SignedInHeader next={next} />
     </Suspense>
   );
@@ -68,14 +68,27 @@ export function BigWordmark({ className = "", mark = "#C6F36B" }: { className?: 
 }
 
 /** Logo and wordmark on the left; "Sign in", or the greeting and profile button, on the right. */
-export function AppHeader({ email, greeting, next = "/" }: { email: string | null; greeting?: string | null; next?: string }) {
+export function AppHeader({
+  email,
+  greeting,
+  checking = false,
+  next = "/",
+}: {
+  email: string | null;
+  greeting?: string | null;
+  /** Still finding out who's signed in: show a placeholder the size of the profile button. */
+  checking?: boolean;
+  next?: string;
+}) {
   return (
     <div className="flex items-center justify-between gap-3">
       <Link href="/" aria-label={`${APP_NAME} home`} className="inline-flex min-h-11 shrink-0 items-center gap-2 font-display text-[18px] font-extrabold tracking-[-0.03em] no-underline">
         <LogoMark />
         {WORDMARK}
       </Link>
-      {email ? (
+      {checking ? (
+        <span aria-hidden="true" className="skeleton h-11 w-11 shrink-0 rounded-full" />
+      ) : email ? (
         <span className="flex min-w-0 items-center gap-2.5">
           {greeting && <span className="reveal min-w-0 truncate text-[14px] font-semibold text-muted">{greeting}</span>}
           <ProfileButton email={email} />

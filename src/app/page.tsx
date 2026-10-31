@@ -12,6 +12,7 @@ import { MatchList, type MatchView } from "./coming-up/match-list";
 import { RecordCount } from "./coming-up/record-count";
 import { WeekRange } from "./coming-up/week-range";
 import { PageHeader } from "./ui/app-header";
+import { Bone, GameCardSkeleton } from "./ui/skeleton";
 import { PageTitle, Shell } from "./ui/shell";
 
 /** The biggest-gap card only shows when the two sources are at least this far apart. */
@@ -41,13 +42,14 @@ function GamesLoading() {
   return (
     <div aria-busy="true" className="flex flex-col gap-[18px]">
       <span className="sr-only">Loading this week&apos;s games</span>
-      <div className="flex gap-2">
-        {[64, 140, 92, 92].map((w, i) => (
-          <span key={i} className="glass h-11 shrink-0 rounded-full" style={{ width: w }} />
+      <div className="flex gap-2 overflow-hidden">
+        {["w-16", "w-36", "w-24", "w-24"].map((w, i) => (
+          <Bone key={i} className={`h-11 shrink-0 rounded-full ${w}`} />
         ))}
       </div>
+      <Bone className="mt-1.5 h-7 w-48 rounded-md" />
       {[0, 1, 2].map((i) => (
-        <div key={i} className="glass h-[208px] rounded-[24px]" />
+        <GameCardSkeleton key={i} />
       ))}
     </div>
   );

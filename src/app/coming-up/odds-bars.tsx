@@ -5,9 +5,11 @@ import type { Outcome, ThreeWay } from "@/lib/odds";
 
 const pct = (x: number) => Math.round(x * 100);
 
+// Every number inside a bar reaches 4.5:1 contrast: dark ink on the bright Polymarket green (5.9:1), and the
+// bookies' draw grey a touch darker than UI.md's #6F7C75 so white stays readable on it (5.0:1).
 const SHADES = {
-  bookies: { bg: ["#1E2B25", "#6F7C75", "#D5DBD8"], text: ["#FFFFFF", "#FFFFFF", "#1E2B25"] },
-  poly: { bg: ["#0FA968", "#7FD8B0", "#D3F2E4"], text: ["#FFFFFF", "#06331F", "#06331F"] },
+  bookies: { bg: ["#1E2B25", "#65726B", "#D5DBD8"], text: ["#FFFFFF", "#FFFFFF", "#1E2B25"] },
+  poly: { bg: ["#0FA968", "#7FD8B0", "#D3F2E4"], text: ["#0B1A14", "#06331F", "#06331F"] },
 } as const;
 
 function Row({ source, chances }: { source: "bookies" | "poly"; chances: ThreeWay }) {
@@ -61,6 +63,8 @@ export function OddsBars({
   const [drawAt, setDrawAt] = useState(`${(share("home") + share("draw") / 2) * 100}%`);
   // Whether each team's full name fits beside "Draw". If not, its short code is shown, like a TV scoreboard.
   const [fits, setFits] = useState({ home: true, away: true });
+  // The labels stay hidden until measured, so a long name never flashes cut off while the page loads.
+  const [measured, setMeasured] = useState(false);
   const box = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
     const el = box.current;
@@ -77,6 +81,7 @@ export function OddsBars({
       const row = el.querySelector<HTMLElement>("[data-labels]");
       const width = (side: string) => el.querySelector<HTMLElement>(`[data-full="${side}"]`)?.offsetWidth ?? 0;
       if (row) setFits({ home: width("home") <= draw - LABEL_ROOM, away: width("away") <= row.offsetWidth - draw - LABEL_ROOM });
+      setMeasured(true);
     };
     measure();
     // Names are measured in the page font, so measure again once it has loaded.
@@ -98,9 +103,9 @@ export function OddsBars({
       {poly && <Row source="poly" chances={poly} />}
       {/* "Draw" sits exactly under the middle of the draw part (the two rows averaged). The team names hug the
           ends; a name too long to fit beside "Draw" shows its short code instead. */}
-      <div className="grid grid-cols-[96px_minmax(0,1fr)] gap-2 text-[11px] font-semibold text-faint">
+      <div className="grid grid-cols-[96px_minmax(0,1fr)] gap-2 text-[12px] font-semibold text-faint">
         <span />
-        <span data-labels className="relative h-4" style={{ "--draw": drawAt } as React.CSSProperties}>
+        <span data-labels className={`relative h-4 transition-opacity duration-150 ${measured ? "opacity-100" : "opacity-0"}`} style={{ "--draw": drawAt } as React.CSSProperties}>
           {/* Hidden copies of the full names, measured to decide whether they fit. */}
           <span aria-hidden="true" className="invisible absolute whitespace-nowrap">
             <span data-full="home">{home}</span>

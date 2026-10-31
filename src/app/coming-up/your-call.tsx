@@ -31,7 +31,7 @@ const DUST = [
 function StampCard({ label, stamp, walrus, onRetry, busy }: { label: string; stamp: Stamp; walrus: CurrentCall["walrus"]; onRetry: () => void; busy: boolean }) {
   return (
     <div className="relative">
-      <div className="land flex min-h-14 items-center gap-3 rounded-[18px] bg-ink px-3 py-2.5 text-white shadow-[0_12px_24px_rgba(11,26,20,0.22)]">
+      <div className="land on-dark flex min-h-14 items-center gap-3 rounded-[18px] bg-ink px-3 py-2.5 text-white shadow-[0_12px_24px_rgba(11,26,20,0.22)]">
         <span aria-hidden="true" className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-lime">
           {stamp.state === "stamping" ? (
             <svg className="spinner" width="16" height="16" viewBox="0 0 16 16" fill="none">

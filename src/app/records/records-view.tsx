@@ -82,11 +82,11 @@ function HowItChanged({ steps }: { steps: RecordStep[] }) {
                 i === shown.length - 1 ? "border-ink bg-white" : "border-[rgba(11,26,20,0.08)] bg-white/60"
               }`}
             >
-              <span className="whitespace-nowrap text-[11px] font-semibold text-faint">
+              <span className="whitespace-nowrap text-[12px] font-semibold text-faint">
                 After {s.games} {s.games === 1 ? "game" : "games"}
               </span>
               <span className={`num whitespace-nowrap font-display text-[14px] font-extrabold ${COLOUR[leader(s)]}`}>{scoreText(s)}</span>
-              <span className="whitespace-nowrap text-[11px] text-faint">
+              <span className="whitespace-nowrap text-[12px] text-faint">
                 <When iso={s.savedAt} format="day" />
               </span>
             </a>
@@ -160,7 +160,7 @@ export function RecordsView({ all, leagues }: { all: LeagueRecord | null; league
               }`}
             >
               <span>{t.label}</span>
-              <span className="text-[11px] font-semibold opacity-75">{t.sub}</span>
+              <span className="text-[12px] font-semibold opacity-75">{t.sub}</span>
             </button>
           ))}
         </div>

@@ -31,7 +31,7 @@ function Team({ team }: { team: TeamLook }) {
   return (
     <span className="flex min-w-0 flex-col items-center gap-1.5">
       <TeamBadge team={team} />
-      <span className="max-w-full truncate font-display text-[16px] font-bold tracking-[-0.02em]">{team.short}</span>
+      <span className="max-w-full text-balance font-display text-[16px] font-bold leading-tight tracking-[-0.02em]">{team.short}</span>
     </span>
   );
 }
@@ -118,6 +118,9 @@ function MatchCard({
   );
 }
 
+/** In the "All" view, how many games each league shows before "Show all". */
+const PREVIEW = 3;
+
 /** League tabs, the biggest gap this week, then one section per league with its games by day. */
 export function MatchList({
   matches,
@@ -140,6 +143,16 @@ export function MatchList({
   const autoPick = isCall(autoPickRaw) && matches.some((m) => m.id === autoId) ? autoPickRaw : null;
   const [tab, setTab] = useState("All");
   const [openId, setOpenId] = useState<string | null>(autoPick ? autoId : null);
+  const leagueOf = (id: string) => matches.find((m) => m.id === id)?.leagueName;
+  // In "All", each league shows its next few games until opened in full (a whole week is a very long list).
+  const [expanded, setExpanded] = useState<Set<string>>(() => new Set(autoPick ? [leagueOf(autoId)!] : []));
+  const expand = (league: string | undefined, on = true) =>
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (league && on) next.add(league);
+      else if (league) next.delete(league);
+      return next;
+    });
 
   const byLeague = new Map(leagues.map((l) => [l, matches.filter((m) => m.leagueName === l)]));
   const withGames = leagues.filter((l) => byLeague.get(l)!.length > 0);
@@ -148,6 +161,7 @@ export function MatchList({
 
   const open = (id: string) => {
     setTab("All");
+    expand(leagueOf(id)); // the game may be past the first few in its league
     setOpenId(id);
     requestAnimationFrame(() => document.getElementById(`match-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }));
   };
@@ -178,6 +192,8 @@ export function MatchList({
 
       {shownLeagues.map((league) => {
         const games = byLeague.get(league)!;
+        const full = tab !== "All" || expanded.has(league) || games.length <= PREVIEW;
+        const visible = full ? games : games.slice(0, PREVIEW);
         let lastDay = "";
         return (
           <section key={league} className="flex flex-col gap-2.5" aria-label={league}>
@@ -187,7 +203,7 @@ export function MatchList({
                 {games.length} {games.length === 1 ? "game" : "games"}
               </span>
             </div>
-            {games.map((m) => {
+            {visible.map((m) => {
               const day = now === null ? "" : dayLabel(new Date(m.kickoffAt), new Date(now));
               const showDay = day !== lastDay;
               lastDay = day;
@@ -205,6 +221,19 @@ export function MatchList({
                 </div>
               );
             })}
+            {tab === "All" && games.length > PREVIEW && (
+              <button
+                type="button"
+                onClick={() => expand(league, !expanded.has(league))}
+                aria-expanded={full}
+                className="press inline-flex min-h-11 cursor-pointer items-center justify-center gap-1.5 rounded-[14px] border border-[rgba(11,26,20,0.1)] bg-[rgba(255,255,255,0.6)] text-[14px] font-bold text-ink"
+              >
+                {full ? `Show fewer ${league} games` : `Show all ${games.length} ${league} games`}
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true" className={full ? "rotate-180" : ""}>
+                  <path d="M3 5l4 4 4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            )}
           </section>
         );
       })}

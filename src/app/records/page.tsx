@@ -6,6 +6,7 @@ import { getMyScorecard, getSourceScorecard } from "@/lib/scorecard";
 import { getCurrentUser } from "@/lib/supabase/server";
 import { BottomNav } from "../bottom-nav";
 import { PageHeader } from "../ui/app-header";
+import { CardSkeleton } from "../ui/skeleton";
 import { PageTitle, Shell } from "../ui/shell";
 import { RecordsView } from "./records-view";
 
@@ -19,14 +20,22 @@ export default function Records() {
         <PageTitle text="Records" />
         <p className="m-0 text-[16px] leading-[1.45] text-muted">After every game, we check who got closer to the real result.</p>
       </div>
-      <Suspense fallback={<p className="text-muted">Loading records...</p>}>
+      <Suspense
+        fallback={
+          <div aria-busy="true" className="flex flex-col gap-[18px]">
+            <span className="sr-only">Loading records</span>
+            <CardSkeleton lines={4} className="min-h-[240px] rounded-[28px]" />
+            <CardSkeleton lines={1} className="rounded-[22px]" />
+          </div>
+        }
+      >
         <Sources />
       </Suspense>
       <section className="flex flex-col gap-2.5" aria-labelledby="you-vs">
         <h2 id="you-vs" className="m-0 font-display text-[24px] font-extrabold tracking-[-0.035em]">
           You vs the market
         </h2>
-        <Suspense fallback={<p className="text-muted">Loading your record...</p>}>
+        <Suspense fallback={<CardSkeleton lines={1} className="rounded-[20px]" />}>
           <Mine />
         </Suspense>
       </section>

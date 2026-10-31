@@ -55,6 +55,10 @@
     outline: 2px solid var(--color-ink);
     outline-offset: 3px;
   }
+  /* On dark surfaces (the sign-in panel, the stamp card) an ink ring would vanish, so it turns lime. */
+  .on-dark :is(button, a, input, summary, [role="tab"]):focus-visible {
+    outline-color: var(--color-lime);
+  }
 }
 
 @layer components {
@@ -111,6 +115,24 @@
     transition: opacity 320ms ease;
     -webkit-mask-image: radial-gradient(circle 150px at var(--mx, 50%) var(--my, 50%), #000 0%, rgba(0, 0, 0, 0.5) 45%, transparent 100%);
     mask-image: radial-gradient(circle 150px at var(--mx, 50%) var(--my, 50%), #000 0%, rgba(0, 0, 0, 0.5) 45%, transparent 100%);
+  }
+
+  /* Loading placeholders (ui/skeleton.tsx): a grey shape with a soft light passing over it. */
+  .skeleton {
+    position: relative;
+    overflow: hidden;
+    background: rgba(11, 26, 20, 0.07);
+  }
+  .skeleton::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.65), transparent);
+    animation: shimmer 1.4s ease-in-out infinite;
+  }
+  @keyframes shimmer {
+    to { transform: translateX(100%); }
   }
 
   /* Page title: each word slides up from behind a mask. */
@@ -276,5 +298,6 @@
   .bob1, .bob2, .bob3, .sway, .sway2, .spin, .spin2 { animation: none; }
   .dust, .flow { display: none; }
   .press, .lamp { transition: none; }
+  .skeleton::after { display: none; }
   .rolling { filter: none; opacity: 1; }
 }

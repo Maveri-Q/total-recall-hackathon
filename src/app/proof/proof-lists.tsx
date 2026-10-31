@@ -11,7 +11,7 @@ const KINDS = {
   reading: { icon: "%", title: "Odds saved", style: "bg-[#EEF1EF] text-ink" },
   match_result: { icon: "FT", title: "Result checked", style: "bg-[#E3F6EC] text-poly-text text-[12px]" },
   source_record: { icon: "+1", title: "Record updated", style: "bg-[rgba(79,224,181,0.2)] text-hero-number text-[13px]" },
-  call: { icon: "You", title: "Your call saved", style: "bg-ink text-lime text-[11px]" },
+  call: { icon: "You", title: "Your call saved", style: "bg-ink text-lime text-[12px]" },
 } as const;
 
 /** "Remembered on Walrus": the app's memories, or only the user's own calls. Never other people's calls. */
@@ -118,7 +118,7 @@ function CheckResult({ result }: { result: StampCheck }) {
         </span>
       )}
       {!result.matches && <span className="text-[13px] leading-snug text-ink-2">Our saved copy changed after it was stamped. Don&apos;t trust this one.</span>}
-      <span className="break-all font-mono text-[11px] text-faint">
+      <span className="break-all font-mono text-[12px] text-faint">
         Read from Sui Mainnet through Tatum just now. Fingerprint {result.onchainHash.slice(0, 10)}...{result.onchainHash.slice(-6)}
       </span>
     </div>
@@ -144,7 +144,7 @@ export function StampRow({ stamp: s }: { stamp: ProofStamp }) {
     <div className="glass flex flex-col gap-2.5 rounded-[18px] px-3.5 py-3">
       <div className="flex items-center justify-between gap-2.5">
         <span className="flex min-w-0 flex-col gap-0.5">
-          <span className="truncate font-display text-[16px] font-bold tracking-[-0.02em]">{s.title}</span>
+          <span className="font-display text-[16px] font-bold leading-snug tracking-[-0.02em] [overflow-wrap:anywhere]">{s.title}</span>
           <span className="text-[12px] text-faint">
             {s.mine ? "Saved by you" : "Saved by the app"} · <When iso={s.at} format="dayTime" />
           </span>

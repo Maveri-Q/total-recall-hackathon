@@ -32,7 +32,7 @@ function Recalled({ games, title }: { games: RecalledGame[]; title: string }) {
           rel="noreferrer"
           className="flex min-h-10 items-center justify-between gap-2 border-t border-[rgba(11,26,20,0.06)] text-[13px] text-ink no-underline"
         >
-          <span className="num min-w-0 truncate font-semibold">{g.label}</span>
+          <span className="num min-w-0 py-1.5 font-semibold leading-snug">{g.label}</span>
           <span className="inline-flex shrink-0 items-center gap-1.5 text-ink-2">
             {g.closer !== "tie" && <span aria-hidden="true" className={g.closer === "bookies" ? "mark-bookies" : "mark-poly"} />}
             {CLOSER[g.closer]}

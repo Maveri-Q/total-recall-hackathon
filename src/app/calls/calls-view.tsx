@@ -71,9 +71,9 @@ function CallCard({ c }: { c: CallCardView }) {
                 mine ? "bg-ink text-white" : res ? "border-[1.5px] border-win bg-[rgba(14,122,79,0.08)] text-ink" : "bg-[rgba(11,26,20,0.04)] text-faint"
               } ${mine && res ? "shadow-[inset_0_0_0_2px_#0FA968]" : ""}`}
             >
-              <span className="max-w-full truncate">{label}</span>
-              {mine && <span className="text-[10px] font-bold opacity-80">Your call</span>}
-              {res && !mine && <span className="text-[10px] font-bold text-win">Result</span>}
+              <span className="max-w-full leading-tight [overflow-wrap:anywhere]">{label}</span>
+              {mine && <span className="text-[12px] font-bold opacity-80">Your call</span>}
+              {res && !mine && <span className="text-[12px] font-bold text-win">Result</span>}
             </span>
           );
         })}
