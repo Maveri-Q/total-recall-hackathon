@@ -12,7 +12,11 @@ vi.mock("../walrus", () => ({
   waitForMemories: walrus.waitForMemories,
 }));
 
-const { sendPendingMemories } = await import("./remember");
+const { RETRY_FAILED_AFTER_MS, sendPendingMemories } = await import("./remember");
+
+/** The "re-queue failed memories" update runs every time; these helpers leave it out of the other checks. */
+const REVIVE = { status: "pending", attempts: 0, error: null };
+const otherUpdates = () => writes(calls, "memories", "update").filter((u) => JSON.stringify(u) !== JSON.stringify(REVIVE));
 
 const queued = [{ id: "mem1", attempts: 0, namespace: "results", text: "Graded match: Fiorentina 2-2 Atalanta BC" }];
 let calls: DbCall[];
@@ -36,7 +40,7 @@ describe("sending memories to Walrus", () => {
     walrus.sendMemories.mockRejectedValue(new Error("relayer 502"));
     const log: string[] = [];
     await sendPendingMemories(db as never, log);
-    expect(writes(calls, "memories", "update")).toEqual([]);
+    expect(otherUpdates()).toEqual([]);
     expect(log.join("\n")).toContain("Couldn't send 1 memory(ies) to Walrus, will retry (relayer 502)");
   });
 
@@ -45,7 +49,7 @@ describe("sending memories to Walrus", () => {
     walrus.waitForMemories.mockResolvedValue([{ jobId: "job1", status: "failed", blobId: null, error: "storage node timeout" }]);
     const log: string[] = [];
     await sendPendingMemories(db as never, log);
-    expect(writes(calls, "memories", "update")).toContainEqual({ status: "pending", job_id: null, error: "storage node timeout" });
+    expect(otherUpdates()).toContainEqual({ status: "pending", job_id: null, error: "storage node timeout" });
     expect(log.join("\n")).toContain("Walrus memory failed, will retry (storage node timeout)");
   });
 
@@ -54,8 +58,17 @@ describe("sending memories to Walrus", () => {
     walrus.waitForMemories.mockResolvedValue([{ jobId: "job1", status: "done", blobId: "BLOB1", error: null }]);
     const log: string[] = [];
     await sendPendingMemories(db as never, log);
-    const updates = writes(calls, "memories", "update") as { status?: string; job_id?: string; blob_id?: string }[];
+    const updates = otherUpdates() as { status?: string; job_id?: string; blob_id?: string }[];
     expect(updates[0]).toMatchObject({ status: "sent", job_id: "job1", attempts: 1 });
     expect(updates.some((u) => u.blob_id === "BLOB1")).toBe(true);
+  });
+
+  it("after an outage, memories that failed every try go back in the queue 6 hours after their last try", async () => {
+    walrus.sendMemories.mockRejectedValue(new Error("relayer 502"));
+    const now = new Date("2026-10-31T09:17:00Z");
+    await sendPendingMemories(db as never, [], now);
+    const revive = calls.find((c) => c.table === "memories" && c.op === "update" && JSON.stringify(c.payload) === JSON.stringify(REVIVE));
+    expect(revive?.filters).toContainEqual(["eq", ["status", "failed"]]);
+    expect(revive?.filters).toContainEqual(["lt", ["sent_at", new Date(now.getTime() - RETRY_FAILED_AFTER_MS).toISOString()]]);
   });
 });

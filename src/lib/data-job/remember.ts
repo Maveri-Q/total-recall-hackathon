@@ -168,13 +168,28 @@ async function saveJobResults(db: Db, rows: { id: string; attempts: number }[], 
   return saved;
 }
 
+/**
+ * A memory that failed every try (usually a Walrus outage: on 30 Oct the relayer refused uploads for about
+ * three hours) gets a fresh round of tries this long after its last one. An outage delays a memory, never loses it.
+ */
+export const RETRY_FAILED_AFTER_MS = 6 * 60 * 60 * 1000;
+
 /** Sends queued memories to Walrus Mainnet and records where each one landed. */
-export async function sendPendingMemories(db: Db, log: string[]) {
+export async function sendPendingMemories(db: Db, log: string[], now: Date = new Date()) {
   if (!walrusConfigured()) {
     log.push("Walrus Memory isn't set up yet (MEMWAL keys missing). Memories stay queued.");
     return;
   }
   let saved = 0;
+
+  // Failed ones whose last try was a while ago go back in the queue.
+  const { data: revived } = await db
+    .from("memories")
+    .update({ status: "pending", attempts: 0, error: null })
+    .eq("status", "failed")
+    .lt("sent_at", new Date(now.getTime() - RETRY_FAILED_AFTER_MS).toISOString())
+    .select("id");
+  if (revived?.length) log.push(`${revived.length} failed memory(ies) queued for Walrus again`);
 
   // Sent in an earlier run: check, don't resend.
   const { data: sent } = await db.from("memories").select("id, attempts, job_id").eq("status", "sent").not("job_id", "is", null);

@@ -398,7 +398,7 @@ export async function runDataJob(now: Date = new Date()): Promise<RunSummary> {
     // 7. Remember it all in Walrus Memory: write the texts, then send them.
     try {
       await queueMemories(db, now, log);
-      await sendPendingMemories(db, log);
+      await sendPendingMemories(db, log, now);
     } catch (e) {
       log.push(`Walrus step skipped this run (${errorText(e)})`);
     }

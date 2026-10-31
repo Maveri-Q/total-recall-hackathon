@@ -355,6 +355,9 @@ Each league must pass three checks: The Odds API covers it, Polymarket has match
 - Times must be put back in JS ISO form before rebuilding a reading's fingerprint (the database returns "+00:00"). Checked against every stamped record on 30 Oct: 30 of 30 readings and 20 of 20 calls rebuild exactly.
 - The first 11 readings (27 Oct) were stamped about 9 hours after kickoff, when stamping went live. Check says so plainly. All later stamps are taken before kickoff.
 
+### Walrus outage, 30 to 31 Oct 2026
+- From about 22:17 to 01:18 UTC the Walrus Memory relayer refused uploads ("Enoki API error ... MoveCall to disallowed function system::reserve_space"), a fault on Walrus's side. 9 memories used all 5 tries and were marked failed. Fix: `sendPendingMemories` puts failed memories back in the queue 6 hours after their last try (`RETRY_FAILED_AFTER_MS`), so an outage delays a memory and never loses it.
+
 ### Code quality checks (30 Oct 2026)
 - GitHub check on every push: types (`tsc --noEmit`), lint, then all tests. `metadataBase` is set from `SITE_URL` in `brand.ts`.
 - Failure-case tests for the data job (`src/lib/data-job/run.test.ts`, `remember.test.ts`) use a stand-in database (`test-db.ts`) and stand-ins for The Odds API, Tatum, football-data.org and Walrus. They cover every failure case in the Security section.
