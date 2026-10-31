@@ -59,3 +59,21 @@ export function biggestGap(a: ThreeWay, b: ThreeWay): { outcome: Outcome; points
   }
   return best;
 }
+
+/**
+ * Whole percentages that always add up to exactly 100 (largest remainder): round each down, then give the
+ * points left over to the outcomes with the biggest fractions. Plain rounding can show 53 + 25 + 23 = 101.
+ */
+export function wholePercents(c: ThreeWay): ThreeWay {
+  const raw = OUTCOMES.map((o) => c[o] * 100);
+  const total = Math.round(raw.reduce((a, b) => a + b, 0));
+  const floors = raw.map(Math.floor);
+  let left = total - floors.reduce((a, b) => a + b, 0);
+  const order = raw.map((v, i) => ({ i, frac: v - floors[i] })).sort((a, b) => b.frac - a.frac || a.i - b.i);
+  for (const { i } of order) {
+    if (left <= 0) break;
+    floors[i]++;
+    left--;
+  }
+  return { home: floors[0], draw: floors[1], away: floors[2] };
+}

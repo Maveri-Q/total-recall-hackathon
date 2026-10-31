@@ -194,7 +194,13 @@ export function MatchList({
         const games = byLeague.get(league)!;
         const full = tab !== "All" || expanded.has(league) || games.length <= PREVIEW;
         const visible = full ? games : games.slice(0, PREVIEW);
-        let lastDay = "";
+        // Games grouped under their day label. Each day is a grid: one column on phones, two on wide screens.
+        const days: { day: string; games: MatchView[] }[] = [];
+        for (const m of visible) {
+          const day = now === null ? "" : dayLabel(new Date(m.kickoffAt), new Date(now));
+          if (days.at(-1)?.day === day) days.at(-1)!.games.push(m);
+          else days.push({ day, games: [m] });
+        }
         return (
           <section key={league} className="flex flex-col gap-2.5" aria-label={league}>
             <div className="flex items-baseline justify-between pt-1.5">
@@ -203,24 +209,24 @@ export function MatchList({
                 {games.length} {games.length === 1 ? "game" : "games"}
               </span>
             </div>
-            {visible.map((m) => {
-              const day = now === null ? "" : dayLabel(new Date(m.kickoffAt), new Date(now));
-              const showDay = day !== lastDay;
-              lastDay = day;
-              return (
-                <div key={m.id} className="flex flex-col gap-1.5">
-                  {showDay && <span className="min-h-5 pl-0.5 text-[13px] font-bold text-faint">{day}</span>}
-                  <MatchCard
-                    m={m}
-                    open={openId === m.id}
-                    onToggle={() => setOpenId((id) => (id === m.id ? null : m.id))}
-                    record={records[m.id]}
-                    signedIn={signedIn}
-                    autoPick={m.id === autoId ? autoPick : null}
-                  />
+            {days.map(({ day, games: dayGames }, i) => (
+              <div key={`${day}-${i}`} className="flex flex-col gap-1.5">
+                <span className="min-h-5 pl-0.5 text-[13px] font-bold text-faint">{day}</span>
+                <div className="grid grid-cols-1 items-start gap-2.5 lg:grid-cols-2">
+                  {dayGames.map((m) => (
+                    <MatchCard
+                      key={m.id}
+                      m={m}
+                      open={openId === m.id}
+                      onToggle={() => setOpenId((id) => (id === m.id ? null : m.id))}
+                      record={records[m.id]}
+                      signedIn={signedIn}
+                      autoPick={m.id === autoId ? autoPick : null}
+                    />
+                  ))}
                 </div>
-              );
-            })}
+              </div>
+            ))}
             {tab === "All" && games.length > PREVIEW && (
               <button
                 type="button"

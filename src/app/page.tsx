@@ -4,6 +4,7 @@ import { myCallsOn, type MyCall } from "@/lib/calls";
 import { bandScore, bookiesOf, getUpcomingMatches, polyOf, type UpcomingMatch } from "@/lib/coming-up";
 import { readingGap, type GapBand } from "@/lib/data-job/memories";
 import { LEAGUES } from "@/lib/leagues";
+import { wholePercents } from "@/lib/odds";
 import { biggestGapGame, EARLY_SIGNAL_MATCHES, headline, MIN_GAMES_FOR_SCORE } from "@/lib/scoreline";
 import { getCurrentUser } from "@/lib/supabase/server";
 import { BottomNav } from "./bottom-nav";
@@ -22,12 +23,12 @@ const FEATURE_MIN_POINTS = 5;
 // doesn't slide in a second time when the data arrives.
 export default function Matches() {
   return (
-    <Shell blobs={["lime", "green"]}>
+    <Shell blobs={["lime", "green"]} wide>
       <PageHeader next="/" />
       <div className="flex flex-col gap-1.5 pt-3">
         <WeekRange />
         <PageTitle text="Coming up" />
-        <p className="m-0 mt-1 text-[16px] leading-[1.45] text-muted">Bookies vs Polymarket on every big game, and who&apos;s been right before.</p>
+        <p className="m-0 mt-1 max-w-[520px] text-[16px] leading-[1.45] text-muted">Bookies vs Polymarket on every big game, and who&apos;s been right before.</p>
       </div>
       <Suspense fallback={<GamesLoading />}>
         <Page />
@@ -55,7 +56,6 @@ function GamesLoading() {
   );
 }
 
-const pct = (x: number) => Math.round(x * 100);
 
 function toView(m: UpcomingMatch, call: MyCall | undefined): MatchView {
   const r = m.reading;
@@ -134,8 +134,8 @@ async function Page() {
           kickoffAt: best.kickoffAt,
           title: `${best.home.short} v ${best.away.short}`,
           points: Math.round(best.gap.points),
-          bookies: pct(best.gap.bookies),
-          poly: pct(best.gap.poly),
+          bookies: wholePercents(best.bookies!)[best.gap.outcome],
+          poly: wholePercents(best.poly!)[best.gap.outcome],
           chanceOf: best.gap.outcome === "draw" ? "Chance of a draw" : `Chance ${best.gap.outcome === "home" ? best.home.short : best.away.short} win`,
         }
       : null;

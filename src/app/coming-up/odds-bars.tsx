@@ -1,9 +1,8 @@
 "use client";
 
 import { useLayoutEffect, useRef, useState } from "react";
-import type { Outcome, ThreeWay } from "@/lib/odds";
+import { wholePercents, type Outcome, type ThreeWay } from "@/lib/odds";
 
-const pct = (x: number) => Math.round(x * 100);
 
 // Every number inside a bar reaches 4.5:1 contrast: dark ink on the bright Polymarket green (5.9:1), and the
 // bookies' draw grey a touch darker than UI.md's #6F7C75 so white stays readable on it (5.0:1).
@@ -14,20 +13,21 @@ const SHADES = {
 
 function Row({ source, chances }: { source: "bookies" | "poly"; chances: ThreeWay }) {
   const s = SHADES[source];
+  const pct = wholePercents(chances); // always adds up to 100
   return (
     <div className="grid grid-cols-[96px_minmax(0,1fr)] items-center gap-2">
       <span className={`inline-flex items-center gap-[7px] text-[13px] font-bold ${source === "bookies" ? "text-bookies" : "text-poly-text"}`}>
         <span aria-hidden="true" className={source === "bookies" ? "mark-bookies" : "mark-poly"} />
         {source === "bookies" ? "Bookies" : "Polymarket"}
       </span>
-      <div data-bar className="bar-grow relative flex h-[30px] gap-[2px] overflow-hidden rounded-[9px]" role="img" aria-label={`${source === "bookies" ? "Bookies" : "Polymarket"}: home ${pct(chances.home)}%, draw ${pct(chances.draw)}%, away ${pct(chances.away)}%`}>
+      <div data-bar className="bar-grow relative flex h-[30px] gap-[2px] overflow-hidden rounded-[9px]" role="img" aria-label={`${source === "bookies" ? "Bookies" : "Polymarket"}: home ${pct.home}%, draw ${pct.draw}%, away ${pct.away}%`}>
         {(["home", "draw", "away"] as const).map((o, i) => (
           <span
             key={o}
             className="num inline-flex min-w-[30px] items-center justify-center font-display text-[13px] font-extrabold"
-            style={{ width: `${pct(chances[o])}%`, background: s.bg[i], color: s.text[i] }}
+            style={{ width: `${pct[o]}%`, background: s.bg[i], color: s.text[i] }}
           >
-            {pct(chances[o])}%
+            {pct[o]}%
           </span>
         ))}
       </div>

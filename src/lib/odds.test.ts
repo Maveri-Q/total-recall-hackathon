@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { biggestGap, bookmakerMargin, chancesFromOdds, chancesFromPrices, impliedProbability, normalise } from "./odds";
+import { biggestGap, bookmakerMargin, chancesFromOdds, chancesFromPrices, impliedProbability, normalise, wholePercents } from "./odds";
 
 describe("impliedProbability", () => {
   it("turns decimal odds into a percentage", () => {
@@ -64,5 +64,23 @@ describe("biggestGap", () => {
     const gap = biggestGap(bookies, poly);
     expect(gap.outcome).toBe("home");
     expect(gap.points).toBeCloseTo(13, 6);
+  });
+});
+
+describe("wholePercents", () => {
+  it("adds up to exactly 100 where plain rounding gives 101", () => {
+    const c = { home: 0.525, draw: 0.245, away: 0.23 }; // plain rounding: 53 + 25 + 23 = 101
+    const p = wholePercents(c);
+    expect(p.home + p.draw + p.away).toBe(100);
+    expect(p).toEqual({ home: 53, draw: 24, away: 23 });
+  });
+
+  it("adds up to exactly 100 where plain rounding gives 99", () => {
+    const p = wholePercents({ home: 0.334, draw: 0.333, away: 0.333 }); // plain: 33 + 33 + 33 = 99
+    expect(p).toEqual({ home: 34, draw: 33, away: 33 });
+  });
+
+  it("leaves numbers that already add up alone", () => {
+    expect(wholePercents({ home: 0.48, draw: 0.27, away: 0.25 })).toEqual({ home: 48, draw: 27, away: 25 });
   });
 });
