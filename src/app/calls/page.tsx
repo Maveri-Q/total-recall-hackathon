@@ -102,11 +102,10 @@ async function Calls() {
   const rate = me.settled ? Math.round((me.right / me.settled) * 100) : null;
 
   return (
-    // Desktop (1024px+): your record on the left, your calls on the right.
-    <div className="flex flex-col gap-[18px] lg:grid lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-start lg:gap-6">
-      <div className="lg:sticky lg:top-6">
+    // Desktop (1024px+): your record across the top (number beside your form), your calls in two columns below.
+    <div className="flex flex-col gap-[18px]">
       <LampCard className="lite flex flex-col gap-4 rounded-[28px] p-[18px]">
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 lg:grid lg:grid-cols-2 lg:items-end lg:gap-x-10">
           <div className="flex items-end justify-between gap-3">
             <span className="flex flex-col gap-1">
               <span className="flex items-baseline gap-1.5 font-display font-black tracking-[-0.05em]">
@@ -126,10 +125,7 @@ async function Calls() {
           )}
         </div>
       </LampCard>
-      </div>
-      <div className="flex flex-col gap-[18px]">
-        <CallsView calls={views} />
-      </div>
+      <CallsView calls={views} />
     </div>
   );
 }

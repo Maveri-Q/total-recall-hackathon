@@ -129,7 +129,7 @@ export function CallsView({ calls }: { calls: CallCardView[] }) {
   const shown = tab === "up" ? upcoming : finished;
   return (
     <>
-      <div role="tablist" aria-label="Calls" className="glass grid grid-cols-2 gap-1 rounded-[18px] p-1">
+      <div role="tablist" aria-label="Calls" className="glass grid grid-cols-2 gap-1 rounded-[18px] p-1 lg:max-w-[520px]">
         {(
           [
             ["up", `Upcoming ${upcoming.length}`],
@@ -159,9 +159,11 @@ export function CallsView({ calls }: { calls: CallCardView[] }) {
           )}
         </p>
       )}
-      {shown.map((c) => (
-        <CallCard key={c.id} c={c} />
-      ))}
+      <div className="grid grid-cols-1 items-start gap-[18px] lg:grid-cols-2">
+        {shown.map((c) => (
+          <CallCard key={c.id} c={c} />
+        ))}
+      </div>
     </>
   );
 }
