@@ -16,7 +16,7 @@ import { GrpcTransport } from "@protobuf-ts/grpc-transport";
 import { findMatchingEvent, mapMarkets, teamWords, type EventCandidate } from "./data-job/team-names";
 import type { PolyPrices } from "./data-job/reading";
 import { fetchWithRetry } from "./http";
-import { hashToBytes, refToBytes, STAMP_KIND, type StampItem } from "./sui-stamp";
+import { hashToBytes, refToBytes, STAMP_GAS_BUDGET_MIST, STAMP_KIND, type StampItem } from "./sui-stamp";
 import { decodeStamped, type OnchainStamp } from "./stamp-check";
 
 const PREDICTION_URL = "https://api.tatum.io/v4/data/prediction";
@@ -189,7 +189,6 @@ export async function getAppBalance(): Promise<{ address: string; mist: bigint }
   return { address, mist: BigInt(res.balance.balance) };
 }
 
-const STAMP_GAS_BUDGET_MIST = 50_000_000;
 
 /**
  * Stamps up to MAX_STAMPS_PER_TX hashes in one Sui transaction. Each becomes its own
@@ -202,8 +201,8 @@ export async function stampHashes(items: StampItem[]): Promise<{ digest: string 
 
   const tx = new Transaction();
   tx.setSender(signer.toSuiAddress());
-  // A fixed gas limit saves a trial run before every stamp. Only the gas used is charged:
-  // 11 stamps cost 0.0001 SUI, so 0.05 SUI covers a full batch of 100 many times over.
+  // A fixed gas limit saves a trial run before every stamp. Only the gas used is charged (0.0001 SUI measured),
+  // and 0.005 SUI is 50 times that. See sui-stamp.ts.
   tx.setGasBudget(STAMP_GAS_BUDGET_MIST);
   for (const item of items) {
     tx.moveCall({

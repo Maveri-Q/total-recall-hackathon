@@ -16,7 +16,8 @@ export type CallCardView = {
   scored: boolean;
   score: string | null;
   result: Call | null;
-  versions: { pick: Call; at: string; digest: string | null }[];
+  /** `late`: stamped on Sui after kickoff (e.g. after a wallet top-up), so it isn't proof the call came first. */
+  versions: { pick: Call; at: string; digest: string | null; late: boolean }[];
 };
 
 const STAMP = {
@@ -107,7 +108,7 @@ function CallCard({ c }: { c: CallCardView }) {
                 <span aria-hidden="true" className={`mt-1 h-2.5 w-2.5 rounded-full ${last ? "bg-ink" : "border-2 border-[#9AA8A1]"}`} />
                 <span className="text-[13px] text-ink-2">
                   {i === 0 ? "Called" : "Changed to"} {PICK_TEXT(v.pick, c.homeTeam, c.awayTeam)}
-                  {v.digest ? ", stamped on Sui" : ""}
+                  {v.digest ? (v.late ? ", stamped on Sui after kickoff" : ", stamped on Sui") : ", waiting to be stamped"}
                 </span>
                 <span className="text-[12px] text-faint">
                   <When iso={v.at} format="weekdayTime" />

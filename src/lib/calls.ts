@@ -10,6 +10,7 @@ import type { Outcome } from "./odds";
 import { rememberCallNow } from "./data-job/remember";
 import { createAdminClient } from "./supabase/admin";
 import { createClient } from "./supabase/server";
+import { isOutOfGas } from "./sui-stamp";
 import { stampHashes, stampingConfigured, warmUpSui } from "./tatum";
 
 export type CallVersion = {
@@ -103,9 +104,10 @@ function errorText(message: string | undefined): string {
  * Saves a call (or a change to it) on one game and stamps it on Sui before answering, so the proof
  * is from before kickoff. If the stamp fails, the call is still saved and the hourly job retries.
  */
-export type CallResult =
-  | { ok: true; stamp: { digest: string; stampedAt: string } | null }
-  | { ok: false; error: string };
+export type StampProof = { digest: string; stampedAt: string };
+
+/** `waiting`: saved, but the app wallet can't pay for the stamp yet. The hourly job stamps it after a top-up. */
+export type CallResult = { ok: true; stamp: StampProof | null; waiting?: boolean } | { ok: false; error: string };
 
 export async function makeCall(userId: string, matchId: string, pick: Call): Promise<CallResult> {
   const started = Date.now();
@@ -156,7 +158,7 @@ export async function makeCall(userId: string, matchId: string, pick: Call): Pro
   // Stamp now and answer as soon as Sui confirms (about a second). Walrus is saved afterwards, in the background.
   const stamp = await stampCallVersion(predictionId, version, hash, versionId);
   console.log(`[call] saved in ${saved - started}ms, stamped on Sui in ${Date.now() - saved}ms, total ${Date.now() - started}ms`);
-  return { ok: true, stamp };
+  return stamp === "waiting" ? { ok: true, stamp: null, waiting: true } : { ok: true, stamp };
 }
 
 /**
@@ -168,7 +170,7 @@ async function stampCallVersion(
   version: number,
   hash: string,
   knownId?: string,
-): Promise<{ digest: string; stampedAt: string } | null> {
+): Promise<StampProof | "waiting" | null> {
   const admin = createAdminClient();
   const row = knownId
     ? { id: knownId }
@@ -187,6 +189,11 @@ async function stampCallVersion(
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     console.error("stamp call", message);
+    if (isOutOfGas(e)) {
+      // Not a failure: the call stays "pending" (waiting to be stamped) until the wallet is topped up.
+      await admin.from("prediction_versions").update({ sui_status: "pending", sui_error: "Waiting for the app wallet to be topped up" }).eq("id", row.id);
+      return "waiting";
+    }
     await admin.from("prediction_versions").update({ sui_status: "failed", sui_error: message.slice(0, 500) }).eq("id", row.id);
     return null;
   }
@@ -202,7 +209,8 @@ export async function retryCallStamp(matchId: string): Promise<CallResult> {
   }
   if (Date.now() >= Date.parse(call.kickoffAt)) return { ok: false, error: "Too late. This game has kicked off." };
   warmUpSui();
-  return { ok: true, stamp: await stampCallVersion(call.id, latest.version, latest.content_hash) };
+  const stamp = await stampCallVersion(call.id, latest.version, latest.content_hash);
+  return stamp === "waiting" ? { ok: true, stamp: null, waiting: true } : { ok: true, stamp };
 }
 
 /** Adds each call version's Walrus memory status (calls are saved to Walrus after their Sui stamp). */

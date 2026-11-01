@@ -13,7 +13,7 @@ import { LEAGUES } from "../leagues";
 import { resultFromScore } from "../scoring";
 import { fetchLeagueOdds, listEvents } from "../odds-api";
 import { createAdminClient } from "../supabase/admin";
-import { chunk, explorerTxUrl, LOW_BALANCE_MIST, MAX_STAMPS_PER_TX, mistToSui } from "../sui-stamp";
+import { canStamp, chunk, explorerTxUrl, isOutOfGas, LOW_BALANCE_MIST, MAX_STAMPS_PER_TX, mistToSui } from "../sui-stamp";
 import {
   fetchPolymarketPrices,
   findPolymarketMatch,
@@ -61,22 +61,40 @@ function errorText(e: unknown): string {
 
 const STAMP_RETRY_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 
+type Wallet = { address: string; mist: bigint } | null;
+
+/** The app wallet's balance, with a warning in the log when it's low. Null if it couldn't be checked. */
+async function checkWallet(log: string[]): Promise<Wallet> {
+  try {
+    const wallet = await getAppBalance();
+    if (wallet.mist < LOW_BALANCE_MIST) {
+      log.push(`WARNING: app wallet ${wallet.address} is low on SUI (${mistToSui(wallet.mist)} SUI left). Top it up.`);
+    }
+    return wallet;
+  } catch (e) {
+    log.push(`Couldn't check the app wallet balance (${errorText(e)})`);
+    return null;
+  }
+}
+
+/** The wallet can't pay: say so and leave everything waiting. It's all stamped on the first run after a top-up. */
+function walletEmpty(wallet: Wallet, count: number, what: string, log: string[]): boolean {
+  if (!wallet || canStamp(wallet.mist)) return false;
+  log.push(
+    `App wallet ${wallet.address} can't pay for stamps (${mistToSui(wallet.mist)} SUI). ${count} ${what} waiting to be stamped; they'll be stamped after a top-up.`,
+  );
+  return true;
+}
+
 /**
  * Stamps every reading that isn't on Sui yet, in batches of up to 100 per transaction.
- * A failed batch is marked "failed" and tried again on the next run.
+ * A failed batch is marked "failed" and tried again on the next run. If the wallet can't pay, the readings stay
+ * "pending" (waiting to be stamped) instead: nothing is lost, and the next run after a top-up stamps them.
  */
-async function stampPendingReadings(db: ReturnType<typeof createAdminClient>, now: Date, log: string[]) {
+async function stampPendingReadings(db: ReturnType<typeof createAdminClient>, now: Date, log: string[], wallet: Wallet) {
   if (!stampingConfigured()) {
     log.push("Sui stamping isn't set up yet (wallet key or package id missing). Readings stay unstamped.");
     return;
-  }
-  try {
-    const { address, mist } = await getAppBalance();
-    if (mist < LOW_BALANCE_MIST) {
-      log.push(`WARNING: app wallet ${address} is low on SUI (${mistToSui(mist)} SUI left). Top it up.`);
-    }
-  } catch (e) {
-    log.push(`Couldn't check the app wallet balance (${errorText(e)})`);
   }
 
   const { data: pending, error } = await db
@@ -90,8 +108,9 @@ async function stampPendingReadings(db: ReturnType<typeof createAdminClient>, no
     log.push(`Couldn't load readings to stamp (${error.message})`);
     return;
   }
+  if (!pending?.length || walletEmpty(wallet, pending.length, "reading(s)", log)) return;
 
-  for (const batch of chunk(pending ?? [], MAX_STAMPS_PER_TX)) {
+  for (const batch of chunk(pending, MAX_STAMPS_PER_TX)) {
     const ids = batch.map((r) => r.id);
     try {
       const { digest } = await stampHashes(batch.map((r) => ({ kind: "reading", hash: r.content_hash, refId: r.id })));
@@ -101,6 +120,10 @@ async function stampPendingReadings(db: ReturnType<typeof createAdminClient>, no
         .in("id", ids);
       log.push(`Stamped ${batch.length} reading(s) on Sui: ${explorerTxUrl(digest)}`);
     } catch (e) {
+      if (isOutOfGas(e)) {
+        log.push(`App wallet ran out of SUI: ${batch.length} reading(s) waiting to be stamped; they'll be stamped after a top-up.`);
+        return; // left "pending", and later batches would fail the same way
+      }
       await db.from("readings").update({ sui_status: "failed" }).in("id", ids);
       log.push(`Sui stamp failed for ${batch.length} reading(s), will retry next run (${errorText(e)})`);
     }
@@ -112,7 +135,7 @@ async function stampPendingReadings(db: ReturnType<typeof createAdminClient>, no
  * are still pending after 5 minutes. A late stamp still shows its own Sui time, so it's never passed off
  * as earlier than it was.
  */
-async function stampPendingCalls(db: ReturnType<typeof createAdminClient>, now: Date, log: string[]) {
+async function stampPendingCalls(db: ReturnType<typeof createAdminClient>, now: Date, log: string[], wallet: Wallet) {
   if (!stampingConfigured()) return;
   const { data: pending, error } = await db
     .from("prediction_versions")
@@ -125,7 +148,7 @@ async function stampPendingCalls(db: ReturnType<typeof createAdminClient>, now: 
     log.push(`Couldn't load calls to stamp (${error.message})`);
     return;
   }
-  if (!pending?.length) return;
+  if (!pending?.length || walletEmpty(wallet, pending.length, "call(s)", log)) return;
   const ids = pending.map((v) => v.id);
   try {
     const { digest } = await stampHashes(pending.map((v) => ({ kind: "pick", hash: v.content_hash, refId: v.id })));
@@ -135,6 +158,10 @@ async function stampPendingCalls(db: ReturnType<typeof createAdminClient>, now: 
       .in("id", ids);
     log.push(`Stamped ${pending.length} late call(s) on Sui: ${explorerTxUrl(digest)}`);
   } catch (e) {
+    if (isOutOfGas(e)) {
+      log.push(`App wallet ran out of SUI: ${pending.length} call(s) waiting to be stamped; they'll be stamped after a top-up.`);
+      return;
+    }
     await db.from("prediction_versions").update({ sui_status: "failed", sui_error: errorText(e).slice(0, 500) }).in("id", ids);
     log.push(`Sui stamp failed for ${pending.length} call(s), will retry next run (${errorText(e)})`);
   }
@@ -389,8 +416,9 @@ export async function runDataJob(now: Date = new Date()): Promise<RunSummary> {
     }
 
     // 5. Stamp new readings on Sui (and retry any that failed in the last week).
-    await stampPendingReadings(db, now, log);
-    await stampPendingCalls(db, now, log);
+    const wallet = stampingConfigured() ? await checkWallet(log) : null;
+    await stampPendingReadings(db, now, log, wallet);
+    await stampPendingCalls(db, now, log, wallet);
 
     // 6. Grade matches that have finished.
     await gradeFinishedMatches(db, now, log);

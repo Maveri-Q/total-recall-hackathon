@@ -148,6 +148,7 @@ export function StampRow({ stamp: s }: { stamp: ProofStamp }) {
           <span className="text-[12px] text-faint">
             {s.mine ? "Saved by you" : "Saved by the app"} · <When iso={s.at} format="dayTime" />
           </span>
+          {s.late && <span className="self-start rounded-full bg-[rgba(11,26,20,0.06)] px-2 py-0.5 text-[12px] font-bold text-ink-2">Stamped after kickoff</span>}
         </span>
         <span className="flex shrink-0 items-center gap-1.5">
           <button

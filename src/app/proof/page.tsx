@@ -113,7 +113,7 @@ async function Content() {
           <div className="grid grid-cols-3 gap-2">
             {[
               { n: page.memories, label: "Walrus memories" },
-              { n: page.stamps, label: "Sui stamps" },
+              { n: page.stamps, label: page.lateStamps ? `Sui stamps before kickoff (+${page.lateStamps} after)` : "Sui stamps before kickoff" },
               { n: page.polymarketChecksToday, label: "Polymarket checks via Tatum today" },
             ].map((c) => (
               <div key={c.label} className="glass flex flex-col gap-0.5 rounded-[20px] px-2.5 py-3.5">
@@ -151,6 +151,18 @@ async function Content() {
               { label: "Last Polymarket price check", value: page.lastPolymarketCheck && <When iso={page.lastPolymarketCheck} format="dayTime" /> },
               { label: "Last Sui stamp sent", value: page.lastSuiStamp && <When iso={page.lastSuiStamp} format="dayTime" /> },
               { label: "Network", value: "Sui Mainnet" },
+              {
+                label: "App wallet (pays every stamp)",
+                value: page.wallet && (
+                  <a href={`https://suiscan.xyz/mainnet/account/${page.wallet.address}`} target="_blank" rel="noreferrer" className="num">
+                    {page.wallet.address.slice(0, 6)}...{page.wallet.address.slice(-4)}
+                  </a>
+                ),
+              },
+              { label: "Balance", value: page.wallet && `${page.wallet.balanceSui} SUI${page.wallet.low ? " (low, top-up due)" : ""}` },
+              { label: "Cost per stamp (measured)", value: page.wallet && `${page.wallet.costPerStampSui} SUI` },
+              { label: "Stamps left, roughly", value: page.wallet && page.wallet.stampsLeft.toLocaleString("en-GB") },
+              ...(page.waitingStamps ? [{ label: "Waiting to be stamped", value: String(page.waitingStamps) }] : []),
             ].map((row) => (
               <div key={row.label} className="flex justify-between gap-2.5 border-t border-[rgba(11,26,20,0.06)] py-1.5 text-[14px]">
                 <span className="text-ink-2">{row.label}</span>

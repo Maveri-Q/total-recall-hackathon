@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { listMyCalls } from "@/lib/calls";
 import { getMyScorecard } from "@/lib/scorecard";
+import { stampedBeforeKickoff } from "@/lib/sui-stamp";
 import { getCurrentUser } from "@/lib/supabase/server";
 import { BottomNav } from "../bottom-nav";
 import { PageHeader } from "../ui/app-header";
@@ -93,7 +94,12 @@ async function Calls() {
     scored: c.matchId !== null, // calls from before "Your call" existed aren't scored
     score: c.game?.home_goals != null ? `${c.game.home_goals}-${c.game.away_goals}` : null,
     result: c.game?.result ?? null,
-    versions: c.versions.map((v) => ({ pick: v.pick, at: v.created_at, digest: v.sui_status === "stamped" ? v.sui_digest : null })),
+    versions: c.versions.map((v) => ({
+      pick: v.pick,
+      at: v.created_at,
+      digest: v.sui_status === "stamped" ? v.sui_digest : null,
+      late: v.sui_status === "stamped" && !!v.stamped_at && !stampedBeforeKickoff(v.stamped_at, c.kickoffAt),
+    })),
   }));
   const form = views
     .filter((c) => c.scored && (c.outcome === "called_it" || c.outcome === "not_this_time"))

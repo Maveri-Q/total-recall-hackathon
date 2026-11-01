@@ -119,18 +119,24 @@ These help the score. None of them change the core features. Order matters.
 
 **Do now (outside the app, no app code changes):**
 1. **Tests on every push.** Add a GitHub Actions workflow that runs all tests on every push and pull request. Put the test status badge at the top of the README.
-2. **Judge quick start.** At the top of the README: live link, a 60-second tour (what to tap and what you'll see), and "No sign-up needed to look around."
+2. **"How to test" at the very top of the README.** A judge who can't run it can't score it. Include: the live link; "No sign-up needed to look around"; a 60-second tour (what to tap and what you'll see); a **judge test account** (email + password, made only for judges, limited to normal user rights, rate-limited like any user, never an admin) so they can make a call without using their own Google account; a note that no wallet, SUI or faucet is needed because the app pays gas; and short "run it locally" steps with `.env.example`. Test the judge account end to end on the live site before submitting.
 3. **Mainnet proof section in the README.** Walrus memory count (with the date), `MEMWAL_AGENT_ID`, Sui package ID, 3–5 Suiscan links to real stamps, and a link to the Walrus Memory dashboard. Keep it filled in, never "TODO". Update it right before submitting.
 4. **Real data only.** Say in the README that the live app uses real odds, prices and results, with no demo data. Label anything imported or seeded.
 
-**Do after the core features are finished and tested (small app changes):**
+**Do after the core features are finished and tested (small app changes, in this order; cut from the bottom if time is short):**
+A. **Fair scoring: "too close to call".** If the gap between bookies and Polymarket is under 3 points, or their Brier scores are within 0.01, give neither side a point. Still save, stamp and count the game in the sample size. Show it, e.g. "Bookies 3 – Polymarket 6. 2 too close to call." Also keep each source's average Brier score over all games, so the overall picture uses every game fairly. Add tests.
+B. **The gap record is the hero feature.** It's what makes Vernier unique: others grade people, Vernier grades the markets by how much they disagree. Every match with a 5+ gap shows its gap record line ("When they disagreed by 10+ points in Serie A, Polymarket was closer 9 of 14 times."). The gap control (All / Close / Medium / Big) leads the Records page. README first line: "The only app that grades the bookies and Polymarket against each other, by how much they disagree."
+C. **Personal memory line before a call.** For a signed-in user, above the call buttons, show one line from their own Walrus memory, e.g. "Last 3 times you went against Polymarket in Serie A, you were wrong 2 times." Only when they have 3+ past calls of that kind. Counting stays in the database.
+D. **Movement line.** From the two real readings (day before and 2–4 hours before kickoff): "Polymarket moved Arsenal from 52% to 60% since yesterday. Bookies stayed at 55%." If nothing moved more than 2 points: "No big change since yesterday."
 5. **Show the app learning.** Once a week, save a snapshot of each league's "who's been closer" record, in the database and as a Walrus memory. On the Records page, add one small line, "How this changed", e.g. "Week 1: not enough games. Week 2: Polymarket 6 of 8." Counting stays in the database.
 
 **For the blog and demo video (no app changes):**
 6. **With vs without memory.** For 2–3 real games, show what the app would say with no memory ("Bookies 48%, Polymarket 60%") next to what it says with memory ("...and Polymarket was closer 9 of 14 times"). Use the weekly snapshots to show the advice changing over time.
 7. **Social post.** On submission day, post on X and LinkedIn tagging Tatum, Walrus and Sui. The hackathon lists this as a bonus.
 
-Never let an extra delay a core requirement. If time is short, tell Maverick and drop extras 5–7 first.
+Never let an extra delay a core requirement. If time is short, tell Maverick and drop from the bottom: 7, 6, 5, D, C, then B. Keep A (fair scoring) if at all possible.
+
+**Dropped (don't build):** Kalshi, naming individual bookies, a bookie-cut line, AI agents, payments.
 
 ## Honesty rules
 - Never fabricate odds, prices, results or records and present them as real.

@@ -203,3 +203,44 @@ describe("data job, when things go wrong", () => {
     finishedRun();
   });
 });
+
+describe("data job, when the app wallet can't pay for stamps", () => {
+  const waiting = [{ id: "r1", content_hash: "ab".repeat(32) }];
+  const pendingReadings = (c: DbCall) => (c.table === "readings" && c.op === "select" && has(c, "in", "sui_status") ? { data: waiting } : undefined);
+
+  it("empty wallet: readings stay waiting, nothing is marked failed, no transaction is sent", async () => {
+    services.getAppBalance.mockResolvedValue({ address: "0xapp", mist: 0n });
+    extra = pendingReadings;
+    const summary = await runDataJob(now);
+    expect(services.stampHashes).not.toHaveBeenCalled();
+    expect(writes(calls, "readings", "update")).not.toContainEqual({ sui_status: "failed" });
+    expect(summary.log.join("\n")).toMatch(/can't pay for stamps \(0\.0000 SUI\)\. 1 reading\(s\) waiting to be stamped/);
+    expect(summary.readingsSaved).toBe(1); // the new reading is still saved
+  });
+
+  it("empty wallet: calls wait too", async () => {
+    services.getAppBalance.mockResolvedValue({ address: "0xapp", mist: 0n });
+    extra = (c) =>
+      c.table === "prediction_versions" && c.op === "select" ? { data: [{ id: "v1", content_hash: "cd".repeat(32), sui_status: "pending", created_at: NOW }] } : undefined;
+    const summary = await runDataJob(now);
+    expect(services.stampHashes).not.toHaveBeenCalled();
+    expect(writes(calls, "prediction_versions", "update")).toEqual([]);
+    expect(summary.log.join("\n")).toContain("1 call(s) waiting to be stamped");
+  });
+
+  it("wallet runs out during a stamp: the readings wait instead of failing", async () => {
+    extra = pendingReadings;
+    services.stampHashes.mockRejectedValue(new Error("No valid gas coins found for the transaction."));
+    const summary = await runDataJob(now);
+    expect(writes(calls, "readings", "update")).not.toContainEqual({ sui_status: "failed" });
+    expect(summary.log.join("\n")).toContain("App wallet ran out of SUI: 1 reading(s) waiting to be stamped");
+  });
+
+  it("after a top-up, the waiting readings are stamped on the next run", async () => {
+    extra = pendingReadings; // default balance is 5 SUI
+    await runDataJob(now);
+    expect(services.stampHashes).toHaveBeenCalledWith([{ kind: "reading", hash: "ab".repeat(32), refId: "r1" }]);
+    expect(writes(calls, "readings", "update")).toContainEqual(expect.objectContaining({ sui_status: "stamped", sui_digest: "DIGEST" }));
+  });
+});
+

@@ -19,7 +19,8 @@ export type CurrentCall = {
   walrus: "saved" | "saving" | null;
 };
 
-type Stamp = { state: "stamping" } | { state: "stamped"; digest: string; stampedAt: string } | { state: "failed" };
+/** "waiting": saved, but the app wallet can't pay for the stamp yet; it's stamped automatically after a top-up. */
+type Stamp = { state: "stamping" } | { state: "stamped"; digest: string; stampedAt: string } | { state: "waiting" } | { state: "failed" };
 
 // [left %, dx px, dy px, size px]: dust bursts from the card's bottom corners (design-reference/Main).
 const DUST = [
@@ -41,6 +42,11 @@ function StampCard({ label, stamp, walrus, onRetry, busy }: { label: string; sta
             <svg width="16" height="16" viewBox="0 0 14 14" fill="none">
               <path d="M3 7.5 L6 10 L11 4" stroke="#0B1A14" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
+          ) : stamp.state === "waiting" ? (
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <circle cx="8" cy="8" r="5.6" stroke="#0B1A14" strokeWidth="1.7" />
+              <path d="M8 5v3.2l2 1.3" stroke="#0B1A14" strokeWidth="1.7" strokeLinecap="round" />
+            </svg>
           ) : (
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <path d="M4 4l6 6M10 4l-6 6" stroke="#0B1A14" strokeWidth="2" strokeLinecap="round" />
@@ -52,6 +58,7 @@ function StampCard({ label, stamp, walrus, onRetry, busy }: { label: string; sta
           <span className="text-[12px] text-[#C9D6CE]">
             {stamp.state === "stamping" && "Stamping on Sui..."}
             {stamp.state === "failed" && "Couldn't stamp. Try again."}
+            {stamp.state === "waiting" && "Saved. Waiting to be stamped on Sui."}
             {stamp.state === "stamped" && (
               <>
                 Stamped on Sui at <When iso={stamp.stampedAt} format="timeZone" />.
@@ -149,7 +156,7 @@ export function YourCall({
             ? { state: "stamped", digest: current.suiDigest, stampedAt: current.stampedAt }
             : current.suiStatus === "failed"
               ? { state: "failed" }
-              : { state: "stamping" },
+              : { state: "waiting" }, // saved but not on Sui yet: the hourly job stamps it
       }
     : null;
   const shown = local ?? fromServer;
@@ -164,7 +171,7 @@ export function YourCall({
       setLocal(null);
       return;
     }
-    setLocal({ pick, key, stamp: state.stamp ? { state: "stamped", ...state.stamp } : { state: "failed" } });
+    setLocal({ pick, key, stamp: state.stamp ? { state: "stamped", ...state.stamp } : state.waiting ? { state: "waiting" } : { state: "failed" } });
     router.refresh(); // pick up the saved call and its Walrus status in the background
   };
 

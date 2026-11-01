@@ -108,13 +108,26 @@ All in `src/lib/odds.ts` and `src/lib/scoring.ts`, tested against sums worked ou
 - **One app wallet pays for every stamp** (below). Users don't sign anything, so a call's stamp proves *the app* recorded it at that time.
 - **Walrus Memory's relayer sees the text it saves.** We only save public match data, and calls carry an anonymous fan id: never a name or an email.
 
-## The app wallet
+## How gas works
 
-Users never need a wallet or SUI. One app wallet, held server-side, pays the gas for every stamp:
+**One server wallet pays for every stamp.** Users never need a wallet, SUI or a faucet. Judges don't either.
 
-- **Cost:** about 0.0001 SUI per transaction. One transaction can stamp up to 100 readings. A month of stamping costs well under 0.01 SUI.
-- **Key safety:** the key lives only in the server's environment variables (`.env.local` and the GitHub and Vercel secrets). It's never in the code or the browser.
-- **Low balance:** under 0.5 SUI, the hourly job writes a warning to its log.
+| | |
+|---|---|
+| App wallet | [`0x6d7a28ce…e388f88f3a`](https://suiscan.xyz/mainnet/account/0x6d7a28ce3c59ebe4596e2d13ac7872b2ef9a828945bfd6cbad9df8e388f88f3a) (live balance on the Proof page) |
+| Cost per stamp transaction | **0.0001 SUI**, measured on 14 real Mainnet transactions on 1 Nov 2026. Every one cost exactly 100,000 MIST, whether it held 1 stamp or 6. A call is one transaction; an hour's readings share one. |
+| Balance on 1 Nov 2026 | **5.4872 SUI**, about **54,800 more stamp transactions** |
+| Gas limit per transaction | 0.005 SUI. Sui only charges what's used, but the wallet must hold at least this to stamp. |
+
+- **Key safety:** the wallet's key lives only in the server's environment variables (`.env.local`, and the GitHub and Vercel secrets). It's never in the code or the browser.
+- **Low-balance warning:** under 0.5 SUI (about 5,000 stamps), every hourly job run writes a warning to its log, and the Proof page marks the balance "low, top-up due".
+- **Topping up:** send SUI to the wallet address above from any Sui wallet or exchange. Nothing else to do: the next hourly run notices the new balance.
+- **If it runs out, nothing breaks:**
+  - Readings and calls are still saved, with "waiting to be stamped".
+  - A user's call says "Saved. Waiting to be stamped on Sui." instead of an error.
+  - After a top-up, the next hourly run stamps everything that was waiting.
+  - A reading or call stamped **after its game's kickoff** is labelled "Stamped after kickoff" everywhere it appears, and isn't counted in "Sui stamps before kickoff", because it no longer proves when it was made.
+  - All of this is tested: `src/lib/data-job/run.test.ts` ("when the app wallet can't pay for stamps") and `src/lib/sui-stamp.test.ts`.
 - **No spamming:** each user can make at most 30 calls a day (enforced by the database), and calls lock at kickoff.
 
 ## Run it yourself
@@ -154,6 +167,7 @@ You need Node 24, and free accounts with Supabase, Tatum, The Odds API, football
 | `src/lib/data-job/` | The hourly job: readings, stamps, grading, memories |
 | `src/lib/stamp-check.ts`, `src/lib/check-stamp.ts` | "Check this stamp" |
 | `move/sources/stamp.move` | The Sui Move module |
+| `src/lib/sui-stamp.ts`, `src/lib/wallet.ts` | Gas limits, cost per stamp, the app wallet's status |
 | `supabase/migrations/` | The database, one numbered file per change |
 | `.github/workflows/` | The hourly data job, and the checks on every push |
 
