@@ -23,6 +23,8 @@ export type UpcomingMatch = {
   away: TeamLook;
   kickoffAt: string;
   reading: ReadingRow | null;
+  /** The day-before reading, when the latest one is the pre-kickoff reading: for the movement line. */
+  firstReading: ReadingRow | null;
 };
 
 export type RecalledGame = {
@@ -86,6 +88,7 @@ export async function getUpcomingMatches(now: Date): Promise<UpcomingMatch[]> {
       away: teamLook(m.away_team, leagueTeams),
       kickoffAt: m.kickoff_at,
       reading: readings.sort((a, b) => b.odds_fetched_at.localeCompare(a.odds_fetched_at))[0] ?? null,
+      firstReading: readings[0]?.kind === "pre_kickoff" ? (readings.find((r) => r.kind === "day_before") ?? null) : null,
     };
   });
 }

@@ -4,6 +4,7 @@ import { myCallsOn, type MyCall } from "@/lib/calls";
 import { bandScore, bookiesOf, getUpcomingMatches, polyOf, type UpcomingMatch } from "@/lib/coming-up";
 import { readingGap, type GapBand } from "@/lib/data-job/memories";
 import { LEAGUES } from "@/lib/leagues";
+import { movementLine } from "@/lib/movement";
 import { wholePercents } from "@/lib/odds";
 import { biggestGapGame, EARLY_SIGNAL_MATCHES, headline, MIN_GAMES_FOR_SCORE } from "@/lib/scoreline";
 import { getCurrentUser } from "@/lib/supabase/server";
@@ -62,6 +63,14 @@ function toView(m: UpcomingMatch, call: MyCall | undefined): MatchView {
   const bookies = r ? bookiesOf(r) : null;
   const poly = r && r.poly_status !== "not_found" ? polyOf(r) : null;
   const latest = call?.versions.at(-1);
+  // Movement only between two readings with a proper Polymarket market (thin markets jump about).
+  const f = m.firstReading;
+  const fBookies = f ? bookiesOf(f) : null;
+  const fPoly = f?.poly_status === "ok" ? polyOf(f) : null;
+  const movement =
+    fBookies && fPoly && bookies && poly && r?.poly_status === "ok"
+      ? movementLine({ bookies: fBookies, poly: fPoly }, { bookies, poly }, m.home.short, m.away.short)
+      : null;
   return {
     id: m.id,
     leagueCode: m.leagueCode,
@@ -72,6 +81,7 @@ function toView(m: UpcomingMatch, call: MyCall | undefined): MatchView {
     bookies,
     poly,
     gap: r && bookies && poly ? readingGap(r) : null,
+    movement,
     call: latest
       ? {
           version: latest.version,

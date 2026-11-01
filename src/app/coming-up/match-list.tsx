@@ -24,6 +24,8 @@ export type MatchView = {
   bookies: ThreeWay | null;
   poly: ThreeWay | null;
   gap: { outcome: Outcome; points: number; polyHigher: boolean } | null;
+  /** How the odds moved between our two readings, or null with only one. */
+  movement: string | null;
   call: CurrentCall | null;
 };
 
@@ -87,7 +89,10 @@ function MatchCard({
       </div>
 
       {m.bookies ? (
-        <OddsBars bookies={m.bookies} poly={m.poly} home={m.home.short} away={m.away.short} homeCode={m.home.initials} awayCode={m.away.initials} gap={m.gap} />
+        <>
+          <OddsBars bookies={m.bookies} poly={m.poly} home={m.home.short} away={m.away.short} homeCode={m.home.initials} awayCode={m.away.initials} gap={m.gap} />
+          {m.movement && <p className="m-0 text-[13px] leading-snug text-ink-2">{m.movement}</p>}
+        </>
       ) : (
         <span className="flex items-center gap-2 text-[14px] text-muted">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
