@@ -9,12 +9,18 @@ function recordLine(b: number, p: number, n: number, league: string): string {
   const games = `${n} ${league} ${n === 1 ? "game" : "games"}`;
   if (p > b) return `When they disagreed like this before, Polymarket got closer in ${p} of ${games}.`;
   if (b > p) return `When they disagreed like this before, the bookies got closer in ${b} of ${games}.`;
+  if (b === 0) return `All ${games} like this before were too close to call.`;
   return `When they disagreed like this before, they were level: ${b} each in ${games}.`;
+}
+
+/** Games where the sources nearly agreed, or scored almost the same: no one got the point. */
+export function tooCloseLine(level: number): string | null {
+  return level > 0 ? `${level} too close to call` : null;
 }
 
 export type RecalledGame = { matchId: string; label: string; closer: "bookies" | "polymarket" | "tie"; blobId: string };
 
-const CLOSER = { bookies: "Bookies closer", polymarket: "Polymarket closer", tie: "Level" } as const;
+const CLOSER = { bookies: "Bookies closer", polymarket: "Polymarket closer", tie: "Too close to call" } as const;
 /** How many recalled games to list; the rest are counted in "and N more". */
 const SHOW = 3;
 
@@ -53,6 +59,7 @@ function Recalled({ games, title }: { games: RecalledGame[]; title: string }) {
 export function RecordCount({
   bookies,
   polymarket,
+  level = 0,
   games,
   leagueName,
   min,
@@ -61,6 +68,8 @@ export function RecordCount({
 }: {
   bookies: number;
   polymarket: number;
+  /** Counted games where neither got the point. */
+  level?: number;
   games: number;
   leagueName: string;
   min: number;
@@ -69,6 +78,7 @@ export function RecordCount({
   /** The past games Walrus brought back that were counted, nearest first. */
   recalled: RecalledGame[];
 }) {
+  const allTooClose = bookies === 0 && polymarket === 0;
   if (games < min) {
     return (
       <div className="flex flex-col gap-2 rounded-2xl bg-[rgba(11,26,20,0.04)] px-3.5 py-3">
@@ -107,6 +117,7 @@ export function RecordCount({
             <RollingNumber value={polymarket} seed={4} className="self-end font-display text-[68px] font-black leading-[0.82] tracking-[-0.05em] text-poly-text" />
           </span>
         </div>
+        {!allTooClose && tooCloseLine(level) && <span className="text-center text-[12px] font-semibold text-muted">{tooCloseLine(level)}</span>}
         <Recalled games={recalled} title="The games Walrus brought back" />
       </div>
     </LampCard>

@@ -99,6 +99,30 @@ describe("gradeReading", () => {
     expect(g.closer).toBeNull();
   });
 
+  it("too close to call when the sources nearly agreed: under a 3-point gap, no one gets the point", () => {
+    // Biggest gap 2 points (home 0.50 v 0.52). Brier: bookies 0.38, Polymarket 0.48² + 0.29² + 0.19² = 0.2304 + 0.0841 + 0.0361 = 0.3506.
+    // Polymarket is a little closer, but the sources agreed, so neither gets a point.
+    const g = gradeReading({ ...reading, poly_home: 0.52, poly_draw: 0.29, poly_away: 0.19 }, "home");
+    expect(g.poly_brier).toBeCloseTo(0.3506, 10);
+    expect(g.closer).toBe("tie");
+  });
+
+  it("too close to call when the scores are within 0.01, even with a 3-point gap", () => {
+    // Gap 3 points on the draw (0.30 v 0.33) and 3 on the away side. Result: home.
+    // Bookies 0.38. Polymarket 0.5² + 0.33² + 0.17² = 0.25 + 0.1089 + 0.0289 = 0.3878. Difference 0.0078, under 0.01.
+    const g = gradeReading({ ...reading, poly_home: 0.5, poly_draw: 0.33, poly_away: 0.17 }, "home");
+    expect(g.bookie_brier).toBeCloseTo(0.38, 10);
+    expect(g.poly_brier).toBeCloseTo(0.3878, 10);
+    expect(g.closer).toBe("tie");
+  });
+
+  it("a 3-point gap with a clear score difference still gives a winner", () => {
+    // Gap exactly 3 points on the home side (0.50 v 0.53). Polymarket 0.47² + 0.27² + 0.2² = 0.2209 + 0.0729 + 0.04 = 0.3338.
+    const g = gradeReading({ ...reading, poly_home: 0.53, poly_draw: 0.27, poly_away: 0.2 }, "home");
+    expect(g.poly_brier).toBeCloseTo(0.3338, 10);
+    expect(g.closer).toBe("polymarket");
+  });
+
   it("scores the bookies alone when there was no Polymarket market", () => {
     const g = gradeReading({ ...reading, poly_home: null, poly_draw: null, poly_away: null, usable: false }, "draw");
     // 0.25 + 0.49 + 0.04 = 0.78

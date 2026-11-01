@@ -38,7 +38,7 @@ function SplitBar({ b, p, height }: { b: number; p: number; height: string }) {
   );
 }
 
-const CLOSER = { bookies: "Bookies closer", polymarket: "Polymarket closer", tie: "Level" } as const;
+const CLOSER = { bookies: "Bookies closer", polymarket: "Polymarket closer", tie: "Too close to call" } as const;
 
 const COLOUR = { polymarket: "text-poly-text", bookies: "text-bookies", level: "text-ink" } as const;
 
@@ -137,6 +137,7 @@ export function RecordsView({ all, leagues }: { all: LeagueRecord | null; league
             </span>
           </div>
           <SplitBar b={b} p={p} height="h-2.5" />
+          {(rec?.ties ?? 0) > 0 && <span className="text-[12px] font-semibold text-hero-muted">{rec?.ties} too close to call</span>}
           {tab === "all" && all && <HowItChanged steps={all.history} />}
           {games === 0 && <span className="text-[14px] text-hero-muted">No games with a gap this big yet. Check back after the weekend.</span>}
         </div>
@@ -195,7 +196,7 @@ export function RecordsView({ all, leagues }: { all: LeagueRecord | null; league
                 </span>
                 <SplitBar b={r.bookies} p={r.polymarket} height="h-2" />
                 <span className="text-[12px] font-semibold text-faint">
-                  {r.matches} {r.matches === 1 ? "game" : "games"}.{r.matches < MIN ? " Early signal, under 10 games." : ""}
+                  {r.matches} {r.matches === 1 ? "game" : "games"}{r.ties > 0 ? `, ${r.ties} too close to call` : ""}.{r.matches < MIN ? " Early signal, under 10 games." : ""}
                 </span>
               </button>
               {isOpen && (

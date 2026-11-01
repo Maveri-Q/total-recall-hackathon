@@ -104,6 +104,7 @@ async function Record({ m, band, weekAgo }: { m: MatchView; band: GapBand; weekA
     <RecordCount
       bookies={score.bookies}
       polymarket={score.polymarket}
+      level={score.level}
       games={score.games}
       leagueName={m.leagueName}
       min={MIN_GAMES_FOR_SCORE}

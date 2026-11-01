@@ -367,3 +367,7 @@ Each league must pass three checks: The Odds API covers it, Polymarket has match
 ### Code quality checks (30 Oct 2026)
 - GitHub check on every push: types (`tsc --noEmit`), lint, then all tests. `metadataBase` is set from `SITE_URL` in `brand.ts`.
 - Failure-case tests for the data job (`src/lib/data-job/run.test.ts`, `remember.test.ts`) use a stand-in database (`test-db.ts`) and stand-ins for The Odds API, Tatum, football-data.org and Walrus. They cover every failure case in the Security section.
+
+### Too close to call (extra A, 1 Nov 2026)
+- A graded reading is "too close to call" (stored as `closer = 'tie'`) when the biggest gap is under 3 points (`CALL_MIN_GAP_POINTS`) or the two Brier scores are within 0.01 (`CALL_MIN_BRIER_DIFF`), in `src/lib/data-job/grading.ts`. Neither source gets a point; the game still counts in the sample size. Average Brier scores are still kept.
+- Old readings re-graded with `npx tsx scripts/regrade-too-close.mts --save`: 52 of 74 changed. Result on 1 Nov: **all 35 graded games too close to call** (every one under a 5-point gap). Old Walrus record memories keep the old rule; each league's next record memory uses the new one.

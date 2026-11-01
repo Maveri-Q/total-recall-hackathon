@@ -106,8 +106,8 @@ describe("sourceRecord", () => {
   it("writes the record with its sample size and an early-signal label", () => {
     const text = sourceRecordMemoryText("Serie A", sourceRecord([v("polymarket", 1.7, 0.4379, 0.4097)]), "2026-10-28T03:00:00Z");
     expect(text).toContain("Source record, Serie A, after 1 graded match (to Wed 28 Oct 2026).");
-    expect(text).toContain("Polymarket was closer in 1, the bookies in 0, level in 0.");
-    expect(text).toContain("small gap (under 5 points): 1 match, Polymarket closer 1, bookies 0, level 0");
+    expect(text).toContain("Polymarket was closer in 1, the bookies in 0, too close to call in 0.");
+    expect(text).toContain("small gap (under 5 points): 1 match, Polymarket closer 1, bookies 0, too close to call 0");
     expect(text).toContain("Early signal only: fewer than 10 matches.");
   });
 

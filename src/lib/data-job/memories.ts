@@ -149,7 +149,7 @@ export function matchVerdict(readings: ReadingRow[]): Verdict | null {
   return null;
 }
 
-const CLOSER_TEXT = { bookies: "The bookies were closer.", polymarket: "Polymarket was closer.", tie: "Level: both equally close." };
+const CLOSER_TEXT = { bookies: "The bookies were closer.", polymarket: "Polymarket was closer.", tie: "Too close to call: the sources nearly agreed, or scored almost the same." };
 
 /** Memory for one graded match: score, both readings, who was closer. */
 export function matchResultMemoryText(
@@ -231,7 +231,7 @@ export function sourceRecord(verdicts: Verdict[]): SourceRecord {
 export function sourceRecordMemoryText(scope: string, rec: SourceRecord, asOf: string): string {
   const parts = [
     `Source record, ${scope}, after ${rec.matches} graded ${rec.matches === 1 ? "match" : "matches"} (to ${day(asOf)}).`,
-    `Polymarket was closer in ${rec.polymarket}, the bookies in ${rec.bookies}, level in ${rec.ties}.`,
+    `Polymarket was closer in ${rec.polymarket}, the bookies in ${rec.bookies}, too close to call in ${rec.ties}.`,
   ];
   if (rec.avgBookieBrier !== null && rec.avgPolyBrier !== null) {
     parts.push(`Average Brier score, lower is better: bookies ${brier(rec.avgBookieBrier)}, Polymarket ${brier(rec.avgPolyBrier)}.`);
@@ -240,7 +240,7 @@ export function sourceRecordMemoryText(scope: string, rec: SourceRecord, asOf: s
     .filter((b) => rec.byBand[b].matches > 0)
     .map((b) => {
       const t = rec.byBand[b];
-      return `${BAND_TEXT[b]}: ${t.matches} ${t.matches === 1 ? "match" : "matches"}, Polymarket closer ${t.polymarket}, bookies ${t.bookies}, level ${t.ties}`;
+      return `${BAND_TEXT[b]}: ${t.matches} ${t.matches === 1 ? "match" : "matches"}, Polymarket closer ${t.polymarket}, bookies ${t.bookies}, too close to call ${t.ties}`;
     });
   if (bands.length) parts.push(`By gap size: ${bands.join("; ")}.`);
   if (rec.matches < EARLY_SIGNAL_MATCHES) {

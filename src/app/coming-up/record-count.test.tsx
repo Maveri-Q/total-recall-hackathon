@@ -32,6 +32,21 @@ describe("RecordCount", () => {
     expect(html).toContain("Walrus has found 2 so far");
   });
 
+  it("says how many games were too close to call, and none when there weren't any", () => {
+    const withLevel = renderToStaticMarkup(
+      <RecordCount bookies={1} polymarket={3} level={2} games={6} leagueName="Serie A" min={3} early={10} recalled={recalled} />,
+    );
+    expect(withLevel).toContain("2 too close to call");
+    expect(card(4, recalled)).not.toContain("too close to call</span>");
+  });
+
+  it("says so plainly when every past game was too close to call", () => {
+    const html = renderToStaticMarkup(
+      <RecordCount bookies={0} polymarket={0} level={4} games={4} leagueName="Serie A" min={3} early={10} recalled={recalled} />,
+    );
+    expect(html).toContain("All 4 Serie A games like this before were too close to call.");
+  });
+
   it("shows no list when Walrus found nothing", () => {
     expect(card(0, [])).not.toContain("Walrus has found");
   });
