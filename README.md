@@ -13,13 +13,30 @@ Built for the Total Recall hackathon (Tatum × Walrus), Track 1: Markets and Spo
 
 ---
 
-## Judge quick start (60 seconds)
+## How to test
 
-1. **Matches** (home): this week's games from 6 leagues. Each game shows the bookies' chances next to Polymarket's as two bars, with "Draw" under the draw.
-2. **Make your call** on any game. The card opens a record built from **Walrus recall**: "When they disagreed like this before, Polymarket got closer in 7 of 10 Serie A games", and under it **the actual past games Walrus brought back**, each linking to its memory.
-3. Tap a pick. Signed out, you get a sign-in card and nothing is saved. Signed in, your call is **stamped on Sui in about 2 seconds**, with a link to the transaction.
-4. **Records**: the score so far by gap size and league, and **How this changed**: the record after each graded game, each step a Walrus memory saved that day.
+**Live app: https://vernier-odds.vercel.app**
+
+- **No sign-up needed to look around.** Matches, Records and Proof are open to everyone.
+- **No wallet, no SUI, no faucet.** The app pays the gas for every stamp from its own wallet (see [How gas works](#how-gas-works)).
+
+### Judge test account
+To make a call without using your own Google account, sign in with email:
+
+- Email: `JUDGE_EMAIL`
+- Password: `JUDGE_PASSWORD`
+
+It's a normal user account, made only for judges. It has no admin rights, and it has the same limit as everyone else: 30 calls a day.
+
+### A 60-second tour
+1. **Matches** (home): this week's games from 6 leagues. Each game shows the bookies' chances next to Polymarket's, as two bars. Under them: "They agree on this one" or the gap, and how the odds moved since our first check.
+2. **Make your call** on any game. The card opens the record from **Walrus recall**: the past games like this one that Walrus brought back, each linking to its memory, and who got closer in them.
+3. **Tap a pick** (signed in). Your call is **stamped on Sui in about 2 seconds**, with a link to the transaction. Change it before kickoff and the new version gets its own stamp.
+4. **Records**: the score so far, by gap size and by league, and **How this changed**: the record after each graded game, each step a Walrus memory.
 5. **Proof**: tap **Check** on any stamp. The app reads it back from Sui Mainnet through Tatum, rebuilds the fingerprint from what we saved, and tells you if it matches and how long before kickoff it was stamped.
+
+### Run it locally
+Short version: `npm install`, copy `.env.example` to `.env.local` and fill in the keys, then `npm run dev`. Full steps in [Run it yourself](#run-it-yourself).
 
 ## Check our claims yourself
 
@@ -28,7 +45,7 @@ Built for the Total Recall hackathon (Tatum × Walrus), Track 1: Markets and Spo
 | Odds are recorded before kickoff and can't be changed after | Proof → **Check** on any stamp. Or open it on Suiscan and compare the `Stamped` event's time with kickoff. |
 | Walrus remembers every reading, result and record | Proof → **Check** on any memory opens its blob on Walruscan. 68 memories and counting. |
 | Walrus recall drives the advice | Open a game's record card: the games listed under "The games Walrus brought back" are the ones counted. |
-| The app learns as games are played | Records → **How this changed**: Serie A went Polymarket 3-0, 5-1, 6-2, 7-2, 7-3, each step a Walrus memory. |
+| The app learns as games are played | Records → **How this changed**: the record after each graded game, each step a Walrus memory saved that day. |
 | It's all real data | Every number comes from The Odds API, Polymarket (via Tatum) or football-data.org. No demo or seeded data. |
 
 ## The problem
