@@ -87,5 +87,12 @@ const TIMES = ["you weren't right once", "you were right once", "you were right 
 export function againstOddsNote(against: { right: number; total: number }): string | null {
   if (against.total < 3) return null;
   const right = TIMES[against.right] ?? `you were right ${against.right} times`;
-  return `Last ${against.total} times you picked against the bookies and Polymarket, ${right}.`;
+  return `Last ${against.total} times you went against the odds, ${right}.`;
+}
+
+/** The one-line verdict under "Your gut v the odds". */
+export function gutVerdict(right: number, oddsRight: number): string {
+  const d = right - oddsRight;
+  if (d === 0) return "Level. Your gut is matching the odds.";
+  return d > 0 ? `Your gut is ${d} ahead of the odds.` : `The odds are ${-d} ahead of your gut.`;
 }

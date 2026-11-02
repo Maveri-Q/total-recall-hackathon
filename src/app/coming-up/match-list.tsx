@@ -153,7 +153,7 @@ export function MatchList({
   featured: Featured | null;
   records: Record<string, ReactNode>;
   signedIn: boolean;
-  /** "Last 4 times you picked against the bookies and Polymarket, you were right once." Signed in, 3+ such calls. */
+  /** "Last 4 times you went against the odds, you were right once." Signed in, 3+ such calls. */
   note: string | null;
 }) {
   const now = useNow();

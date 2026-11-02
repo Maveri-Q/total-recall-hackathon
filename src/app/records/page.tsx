@@ -83,8 +83,8 @@ async function Mine() {
   return (
     <div className="grid grid-cols-3 gap-2">
       <Tile value={`${me.right}/${me.settled}`} label="Your calls right" />
-      <Tile value={`${me.vOdds.oddsRight}/${me.vOdds.calls}`} label="Picking what the odds rated most likely" tone="bookies" />
-      <Tile value={`${me.vOdds.against.right}/${me.vOdds.against.total}`} label="When you picked against the bookies and Polymarket" tone="poly" />
+      <Tile value={`${me.vOdds.oddsRight}/${me.vOdds.calls}`} label="Always backing the odds" tone="bookies" />
+      <Tile value={`${me.vOdds.against.right}/${me.vOdds.against.total}`} label="When you went against the odds" tone="poly" />
     </div>
   );
 }

@@ -62,10 +62,16 @@ function StampCard({ label, stamp, walrus, onRetry, busy }: { label: string; sta
             {stamp.state === "stamped" && (
               <>
                 Stamped on Sui at <When iso={stamp.stampedAt} format="timeZone" />.
-                {walrus === "saved" ? " Saved on Walrus." : " Saving to Walrus..."}
+                {walrus === "saved" ? " Saved on Walrus." : " Saving to Walrus, about 20 seconds..."}
               </>
             )}
           </span>
+          {stamp.state === "stamped" && (
+            // Walrus takes 20 to 23 seconds to store a memory (measured). The bar fills over that time, then completes when it's saved.
+            <span aria-hidden="true" className="mt-1 block h-[3px] overflow-hidden rounded-full bg-white/15">
+              <span className={`walrus-bar block h-full rounded-full bg-lime ${walrus === "saved" ? "done" : ""}`} />
+            </span>
+          )}
         </span>
         {stamp.state === "stamped" && (
           <a
@@ -163,9 +169,14 @@ export function YourCall({
       }
     : null;
   const shown = local ?? fromServer;
-  // The server's Walrus status only counts if it's for the same stamp we're showing (not the call before a change).
-  const walrus: CurrentCall["walrus"] =
-    shown?.stamp.state === "stamped" && current?.suiDigest === shown.stamp.digest ? current.walrus : shown?.stamp.state === "stamped" ? "saving" : null;
+  // Saved on Walrus: from the page, or from the quick check below. Only for the stamp we're showing (not the call before a change).
+  const [savedDigest, setSavedDigest] = useState<string | null>(null);
+  const shownDigest = shown?.stamp.state === "stamped" ? shown.stamp.digest : null;
+  const walrus: CurrentCall["walrus"] = !shownDigest
+    ? null
+    : savedDigest === shownDigest || (current?.suiDigest === shownDigest && current.walrus === "saved")
+      ? "saved"
+      : "saving";
   const cardKey = local ? `l${local.key}` : `s${current?.version ?? 0}`;
 
   const finish = (pick: Call, key: number, state: CallState) => {
@@ -211,14 +222,31 @@ export function YourCall({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- runs once, on arrival
   }, [autoPick, signedIn]);
 
-  // Walrus saves about half a minute after the stamp. Check back until it shows (up to two minutes).
-  const waitingWalrus = walrus === "saving";
+  // Walrus saves 20 to 23 seconds after the stamp. Ask a small endpoint every 2 seconds (up to 2 minutes) instead of
+  // reloading the whole page, then refresh once so the rest of the page catches up.
+  const waitingFor = walrus === "saving" ? shownDigest : null;
   useEffect(() => {
-    if (!waitingWalrus) return;
+    if (!waitingFor) return;
     let tries = 0;
-    const t = setInterval(() => (++tries > 24 ? clearInterval(t) : router.refresh()), 5000);
-    return () => clearInterval(t);
-  }, [waitingWalrus, router]);
+    let stopped = false;
+    const t = setInterval(async () => {
+      if (++tries > 60) return clearInterval(t);
+      try {
+        const res = await fetch(`/api/walrus-status?digest=${waitingFor}`, { cache: "no-store" });
+        if (!stopped && res.ok && (await res.json()).saved) {
+          clearInterval(t);
+          setSavedDigest(waitingFor);
+          router.refresh();
+        }
+      } catch {
+        // offline for a moment: try again on the next tick
+      }
+    }, 2000);
+    return () => {
+      stopped = true;
+      clearInterval(t);
+    };
+  }, [waitingFor, router]);
 
   const next = (pick: Call) => `/?call=${matchId}.${pick}#match-${matchId}`;
 

@@ -301,3 +301,9 @@
   .skeleton::after { display: none; }
   .rolling { filter: none !important; opacity: 1; }
 }
+
+/* Walrus save progress on the call card: fills over the measured 20 to 23 seconds, completes once saved. */
+@keyframes walrus-fill { from { width: 4%; } to { width: 92%; } }
+.walrus-bar { width: 4%; animation: walrus-fill 22s cubic-bezier(0.2, 0.6, 0.4, 1) forwards; }
+.walrus-bar.done { width: 100%; animation: none; transition: width 300ms ease-out; }
+@media (prefers-reduced-motion: reduce) { .walrus-bar { animation: none; width: 50%; } .walrus-bar.done { width: 100%; } }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { againstOddsNote, againstRecord, callLabel, callOutcome, callRecord, isCall, youVOdds } from "./call-result";
+import { againstOddsNote, againstRecord, callLabel, callOutcome, callRecord, gutVerdict, isCall, youVOdds } from "./call-result";
 
 describe("callLabel", () => {
   it("names the buttons after the teams", () => {
@@ -84,9 +84,17 @@ describe("youVOdds", () => {
 describe("againstOddsNote", () => {
   it("needs 3 calls against the odds, then says how many were right in plain words", () => {
     expect(againstOddsNote({ right: 1, total: 2 })).toBeNull();
-    expect(againstOddsNote({ right: 0, total: 3 })).toBe("Last 3 times you picked against the bookies and Polymarket, you weren't right once.");
-    expect(againstOddsNote({ right: 1, total: 4 })).toBe("Last 4 times you picked against the bookies and Polymarket, you were right once.");
-    expect(againstOddsNote({ right: 2, total: 5 })).toBe("Last 5 times you picked against the bookies and Polymarket, you were right twice.");
-    expect(againstOddsNote({ right: 4, total: 9 })).toBe("Last 9 times you picked against the bookies and Polymarket, you were right 4 times.");
+    expect(againstOddsNote({ right: 0, total: 3 })).toBe("Last 3 times you went against the odds, you weren't right once.");
+    expect(againstOddsNote({ right: 1, total: 4 })).toBe("Last 4 times you went against the odds, you were right once.");
+    expect(againstOddsNote({ right: 2, total: 5 })).toBe("Last 5 times you went against the odds, you were right twice.");
+    expect(againstOddsNote({ right: 4, total: 9 })).toBe("Last 9 times you went against the odds, you were right 4 times.");
+  });
+});
+
+describe("gutVerdict", () => {
+  it("says who's ahead, and by how many", () => {
+    expect(gutVerdict(5, 5)).toBe("Level. Your gut is matching the odds.");
+    expect(gutVerdict(8, 7)).toBe("Your gut is 1 ahead of the odds.");
+    expect(gutVerdict(4, 7)).toBe("The odds are 3 ahead of your gut.");
   });
 });
