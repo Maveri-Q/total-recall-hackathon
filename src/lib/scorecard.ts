@@ -3,12 +3,12 @@
 // Walrus keeps a copy of each league's record, and we show which memory that is.
 import "server-only";
 import { cacheLife } from "next/cache";
-import { againstRecord, callRecord } from "./call-result";
+import { callRecord, youVOdds, type YouVOdds } from "./call-result";
 import { listMyCalls } from "./calls";
 import { bookiesOf, polyOf } from "./coming-up";
 import { matchVerdict, sourceRecord, type ReadingRow, type SourceRecord, type Verdict } from "./data-job/memories";
 import { LEAGUES } from "./leagues";
-import { recordSteps, type RecordStep } from "./memory-history";
+import { recordKey, recordSteps, type RecordStep } from "./memory-history";
 import { favourite } from "./scoreline";
 import { createAdminClient } from "./supabase/admin";
 
@@ -55,7 +55,7 @@ export async function getSourceScorecard(): Promise<LeagueRecord[]> {
     .eq("kind", "source_record")
     .eq("status", "saved");
   const blobFor = (code: string, games: number) =>
-    memories?.find((m) => m.ref_key === `${code}:${games}`)?.blob_id ?? null;
+    memories?.find((m) => m.ref_key === recordKey(code, games))?.blob_id ?? null;
 
   return [...verdicts]
     .filter(([, vs]) => vs.length > 0)
@@ -73,11 +73,11 @@ export async function getSourceScorecard(): Promise<LeagueRecord[]> {
 export type MyScorecard = {
   right: number;
   settled: number;
-  againstPolymarket: { right: number; total: number };
-  againstBookies: { right: number; total: number };
+  /** Your calls next to picking what the bookies and Polymarket rated most likely. */
+  vOdds: YouVOdds;
 };
 
-/** The signed-in user's record, and how they did when they went against each source. */
+/** The signed-in user's record, and how it compares with simply following the odds. */
 export async function getMyScorecard(): Promise<MyScorecard> {
   const calls = (await listMyCalls()).filter((c) => c.matchId);
   const { data: readings } = await createAdminClient()
@@ -98,6 +98,7 @@ export async function getMyScorecard(): Promise<MyScorecard> {
     return {
       call: c.versions.at(-1)!.pick,
       outcome: c.outcome,
+      result: c.game?.result ?? null,
       polyFavourite: poly ? favourite(poly) : null,
       bookieFavourite: bookies ? favourite(bookies) : null,
     };
@@ -107,7 +108,6 @@ export async function getMyScorecard(): Promise<MyScorecard> {
   return {
     right,
     settled,
-    againstPolymarket: againstRecord(rows.map((r) => ({ ...r, favourite: r.polyFavourite }))),
-    againstBookies: againstRecord(rows.map((r) => ({ ...r, favourite: r.bookieFavourite }))),
+    vOdds: youVOdds(rows),
   };
 }

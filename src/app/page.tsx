@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { connection } from "next/server";
+import { againstOddsNote } from "@/lib/call-result";
 import { myCallsOn, type MyCall } from "@/lib/calls";
 import { bandScore, bookiesOf, getUpcomingMatches, polyOf, type UpcomingMatch } from "@/lib/coming-up";
 import { readingGap, type GapBand } from "@/lib/data-job/memories";
@@ -7,6 +8,7 @@ import { LEAGUES } from "@/lib/leagues";
 import { movementLine } from "@/lib/movement";
 import { wholePercents } from "@/lib/odds";
 import { biggestGapGame, EARLY_SIGNAL_MATCHES, headline, MIN_GAMES_FOR_SCORE } from "@/lib/scoreline";
+import { getMyScorecard } from "@/lib/scorecard";
 import { getCurrentUser } from "@/lib/supabase/server";
 import { BottomNav } from "./bottom-nav";
 import type { Featured } from "./coming-up/featured";
@@ -128,7 +130,18 @@ async function Page() {
   await connection();
   const now = new Date();
   const [matches, user] = await Promise.all([getUpcomingMatches(now), getCurrentUser()]);
-  const calls = user ? await myCallsOn(matches.map((m) => m.id)) : new Map<string, MyCall>();
+  const [calls, note] = user
+    ? await Promise.all([
+        myCallsOn(matches.map((m) => m.id)),
+        // The note above the call buttons is a nice-to-have: if it fails, the page still shows.
+        getMyScorecard()
+          .then((me) => againstOddsNote(me.vOdds.against))
+          .catch((e) => {
+            console.error("against-odds note", e instanceof Error ? e.message : e);
+            return null;
+          }),
+      ])
+    : [new Map<string, MyCall>(), null];
   const views = matches.map((m) => toView(m, calls.get(m.id)));
 
   // Biggest gap this week: games still to kick off, with a big enough Polymarket market, 5+ points apart.
@@ -163,5 +176,5 @@ async function Page() {
       ]),
   );
 
-  return <MatchList matches={views} leagues={LEAGUES.map((l) => l.name)} featured={featured} records={records} signedIn={!!user} />;
+  return <MatchList matches={views} leagues={LEAGUES.map((l) => l.name)} featured={featured} records={records} signedIn={!!user} note={note} />;
 }

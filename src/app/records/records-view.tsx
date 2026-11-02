@@ -77,7 +77,7 @@ function HowItChanged({ steps }: { steps: RecordStep[] }) {
               href={walrusUrl(s.blobId)}
               target="_blank"
               rel="noreferrer"
-              aria-label={`After ${s.games} ${s.games === 1 ? "game" : "games"}: bookies ${s.bookies}, Polymarket ${s.polymarket}. Check it on Walrus.`}
+              aria-label={`After ${s.games} ${s.games === 1 ? "game" : "games"}: bookies ${s.bookies}, Polymarket ${s.polymarket}, ${s.tooClose} too close to call. Check it on Walrus.`}
               className={`press flex min-h-11 flex-col items-start justify-center gap-px rounded-[12px] border px-2.5 py-1.5 no-underline ${
                 i === shown.length - 1 ? "border-ink bg-white" : "border-[rgba(11,26,20,0.08)] bg-white/60"
               }`}
@@ -86,6 +86,7 @@ function HowItChanged({ steps }: { steps: RecordStep[] }) {
                 After {s.games} {s.games === 1 ? "game" : "games"}
               </span>
               <span className={`num whitespace-nowrap font-display text-[14px] font-extrabold ${COLOUR[leader(s)]}`}>{scoreText(s)}</span>
+              {s.tooClose > 0 && <span className="whitespace-nowrap text-[12px] text-faint">{s.tooClose} too close</span>}
               <span className="whitespace-nowrap text-[12px] text-faint">
                 <When iso={s.savedAt} format="day" />
               </span>

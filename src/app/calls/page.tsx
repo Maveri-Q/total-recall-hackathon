@@ -3,7 +3,8 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { listMyCalls } from "@/lib/calls";
-import { getMyScorecard } from "@/lib/scorecard";
+import { EARLY_SIGNAL_MATCHES, MIN_GAMES_FOR_SCORE } from "@/lib/scoreline";
+import { getMyScorecard, type MyScorecard } from "@/lib/scorecard";
 import { stampedBeforeKickoff } from "@/lib/sui-stamp";
 import { getCurrentUser } from "@/lib/supabase/server";
 import { BottomNav } from "../bottom-nav";
@@ -61,6 +62,25 @@ function Form({ results }: { results: boolean[] }) {
           </span>
         ))}
       </div>
+    </div>
+  );
+}
+
+/**
+ * Your calls next to simply following the odds: "You were right in 8 of your 14 calls. Picking what the bookies
+ * and Polymarket rated most likely every time would have got 7." Counted in code (youVOdds), from 3 calls.
+ */
+function YouVOddsLines({ v }: { v: MyScorecard["vOdds"] }) {
+  const n = (value: number, seed: number) => <RollingNumber value={value} seed={seed} className="font-display text-[22px] font-black tracking-[-0.03em]" />;
+  return (
+    <div className="flex flex-col gap-1.5 rounded-2xl bg-[rgba(11,26,20,0.04)] px-3.5 py-3 text-[14px] leading-normal lg:col-span-2">
+      <p className="m-0">
+        You were right in {n(v.right, 5)} of your <span className="num font-bold">{v.calls}</span> calls.
+      </p>
+      <p className="m-0">
+        Picking what the bookies and Polymarket rated most likely every time would have got {n(v.oddsRight, 6)}.
+      </p>
+      {v.calls < EARLY_SIGNAL_MATCHES && <span className="text-[12px] font-semibold text-hero-muted">Early signal, only {v.calls} calls</span>}
     </div>
   );
 }
@@ -123,12 +143,7 @@ async function Calls() {
             {rate !== null && <span className="num rounded-2xl bg-ink px-3 py-2 font-display text-[22px] font-black tracking-[-0.03em] text-white">{rate}%</span>}
           </div>
           <Form results={form} />
-          {me.againstPolymarket.total > 0 && (
-            <span className="inline-flex items-center gap-[7px] self-start rounded-full bg-[rgba(15,169,104,0.1)] px-3 py-[7px] text-[13px] font-bold text-poly-text">
-              <span aria-hidden="true" className="mark-poly" />
-              Went against Polymarket&apos;s pick: right {me.againstPolymarket.right} of {me.againstPolymarket.total}
-            </span>
-          )}
+          {me.vOdds.calls >= MIN_GAMES_FOR_SCORE && <YouVOddsLines v={me.vOdds} />}
         </div>
       </LampCard>
       <CallsView calls={views} />

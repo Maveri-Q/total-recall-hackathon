@@ -139,6 +139,6 @@ describe("feed summaries", () => {
     expect(matchResultSummary(match, { homeGoals: 2, awayGoals: 6 }, [pre, dayBefore])).toBe("Sassuolo 2-6 Lazio. Polymarket was closer.");
     expect(matchResultSummary(match, { homeGoals: 2, awayGoals: 6 }, [dayBefore])).toBe("Sassuolo 2-6 Lazio. Not counted: no usable reading.");
     const rec = sourceRecord([{ kind: "pre_kickoff", closer: "polymarket", gapPoints: 2, bookieBrier: 0.4, polyBrier: 0.3 }]);
-    expect(sourceRecordSummary("Serie A", rec)).toBe("Serie A: Bookies 0, Polymarket 1, from 1 game.");
+    expect(sourceRecordSummary("Serie A", rec)).toBe("Serie A: Bookies 0, Polymarket 1, too close to call 0, from 1 game.");
   });
 });

@@ -6,6 +6,7 @@
 //   fan id only. rememberCallNow saves a call straight after its Sui stamp; the hourly run catches any it missed.
 // sendPendingMemories: sends queued memories to Walrus, 20 per call, and records each blob id.
 //   A memory sent in an earlier run is checked, never sent twice.
+import { recordKey } from "../memory-history";
 import { LEAGUES } from "../leagues";
 import type { Outcome } from "../odds";
 import type { createAdminClient } from "../supabase/admin";
@@ -120,6 +121,7 @@ export async function queueMemories(db: Db, now: Date, log: string[]) {
   }
 
   // Source records: every graded match ever, one vote each. A new memory when a count grows.
+  // Keys end ":tc" (the too-close-to-call rule); records from before it keep their old keys.
   const verdicts = new Map<string, Verdict[]>([["ALL", []]]);
   for (const m of matches) {
     const v = matchVerdict(m.readings);
@@ -129,7 +131,7 @@ export async function queueMemories(db: Db, now: Date, log: string[]) {
   }
   const records = [...verdicts]
     .filter(([, vs]) => vs.length > 0)
-    .map(([code, vs]) => ({ key: `${code}:${vs.length}`, scope: code === "ALL" ? "all leagues" : leagueName(code), vs }));
+    .map(([code, vs]) => ({ key: recordKey(code, vs.length), scope: code === "ALL" ? "all leagues" : leagueName(code), vs }));
   const haveRecord = await existingKeys(db, "source_record", records.map((r) => r.key));
   for (const r of records) {
     if (haveRecord.has(r.key)) continue;

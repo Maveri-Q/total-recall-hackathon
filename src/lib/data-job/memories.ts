@@ -286,7 +286,7 @@ export function matchResultSummary(m: MatchInfo, score: { homeGoals: number; awa
   return v ? `${line} ${CLOSER_TEXT[v.closer]}` : `${line} Not counted: no usable reading.`;
 }
 export function sourceRecordSummary(scope: string, rec: SourceRecord): string {
-  return `${scope}: Bookies ${rec.bookies}, Polymarket ${rec.polymarket}, from ${rec.matches} ${rec.matches === 1 ? "game" : "games"}.`;
+  return `${scope}: Bookies ${rec.bookies}, Polymarket ${rec.polymarket}, too close to call ${rec.ties}, from ${rec.matches} ${rec.matches === 1 ? "game" : "games"}.`;
 }
 export function callSummary(m: MatchInfo, pickLabel: string): string {
   return `${m.homeTeam} v ${m.awayTeam}. Picked ${pickLabel}.`;

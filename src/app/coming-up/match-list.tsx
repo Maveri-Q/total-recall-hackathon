@@ -57,6 +57,7 @@ function MatchCard({
   onToggle,
   record,
   signedIn,
+  note,
   autoPick,
   day,
   className = "",
@@ -66,6 +67,7 @@ function MatchCard({
   onToggle: () => void;
   record: ReactNode;
   signedIn: boolean;
+  note: string | null;
   autoPick: Call | null;
   /** "Today", "Sun 1 Nov": shown inside the card on two columns, where separate day headings would split the grid. */
   day: string;
@@ -122,7 +124,7 @@ function MatchCard({
       {open && (
         <div className="reveal flex flex-col gap-3.5">
           {m.poly && record}
-          <YourCall matchId={m.id} home={m.home.short} away={m.away.short} current={m.call} signedIn={signedIn} autoPick={autoPick} />
+          <YourCall matchId={m.id} home={m.home.short} away={m.away.short} current={m.call} signedIn={signedIn} note={note} autoPick={autoPick} />
         </div>
       )}
     </article>
@@ -143,6 +145,7 @@ export function MatchList({
   featured,
   records,
   signedIn,
+  note,
 }: {
   matches: MatchView[];
   /** Every covered league, in order, including ones with no games this week. */
@@ -150,6 +153,8 @@ export function MatchList({
   featured: Featured | null;
   records: Record<string, ReactNode>;
   signedIn: boolean;
+  /** "Last 4 times you picked against the bookies and Polymarket, you were right once." Signed in, 3+ such calls. */
+  note: string | null;
 }) {
   const now = useNow();
   const params = useSearchParams();
@@ -238,6 +243,7 @@ export function MatchList({
                       onToggle={() => setOpenId((id) => (id === m.id ? null : m.id))}
                       record={records[m.id]}
                       signedIn={signedIn}
+                      note={note}
                       autoPick={m.id === autoId ? autoPick : null}
                     />
                   </Fragment>

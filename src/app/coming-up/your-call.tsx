@@ -133,6 +133,7 @@ export function YourCall({
   away,
   current,
   signedIn,
+  note = null,
   autoPick,
 }: {
   matchId: string;
@@ -140,6 +141,8 @@ export function YourCall({
   away: string;
   current: CurrentCall | null;
   signedIn: boolean;
+  /** Your record when you went against the odds, shown above the buttons. */
+  note?: string | null;
   autoPick: Call | null;
 }) {
   const router = useRouter();
@@ -223,6 +226,7 @@ export function YourCall({
     <div className="flex flex-col gap-3">
       <div key={shown?.stamp.state === "stamped" ? `thud-${cardKey}` : "row"} className={`flex flex-col gap-2 ${shown?.stamp.state === "stamped" ? "thud" : ""}`}>
         <span className="font-display text-[16px] font-bold">Your call</span>
+        {signedIn && note && <p className="m-0 rounded-2xl bg-[rgba(11,26,20,0.04)] px-3.5 py-2.5 text-[14px] leading-normal text-ink-2">{note}</p>}
         <div className="grid grid-cols-3 gap-2">
           {CALLS.map((pick) => {
             const on = (ask ?? shown?.pick) === pick;
