@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
-import { gutVerdict } from "@/lib/call-result";
+import { oddsVerdict } from "@/lib/call-result";
 import { listMyCalls } from "@/lib/calls";
 import { EARLY_SIGNAL_MATCHES, MIN_GAMES_FOR_SCORE } from "@/lib/scoreline";
 import { getMyScorecard, type MyScorecard } from "@/lib/scorecard";
@@ -68,16 +68,16 @@ function Form({ results }: { results: boolean[] }) {
 }
 
 /**
- * "Your gut v the odds": your right calls against always backing the result the bookies and Polymarket rated most
+ * "You v the odds": your right calls against always backing the result the bookies and Polymarket rated most
  * likely, on the same games. A scoreline like Bookies v Polymarket, so it reads at a glance. Counted in code
  * (youVOdds), shown from 3 calls.
  */
-function GutVOdds({ v }: { v: MyScorecard["vOdds"] }) {
+function YouVOdds({ v }: { v: MyScorecard["vOdds"] }) {
   const big = "font-display text-[44px] font-black leading-[0.85] tracking-[-0.05em]";
   return (
     <div className="flex flex-col gap-2.5 rounded-[20px] bg-[rgba(11,26,20,0.04)] p-3.5 lg:col-span-2">
       <div className="flex items-center justify-between gap-2">
-        <span className="font-display text-[16px] font-bold">Your gut v the odds</span>
+        <span className="font-display text-[16px] font-bold">You v the odds</span>
         {v.calls < EARLY_SIGNAL_MATCHES && <span className="rounded-full bg-ink px-2.5 py-1 text-[12px] font-bold text-white">Early signal</span>}
       </div>
       <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-end">
@@ -95,7 +95,7 @@ function GutVOdds({ v }: { v: MyScorecard["vOdds"] }) {
           <RollingNumber value={v.oddsRight} seed={6} className={`self-end text-poly-text ${big}`} />
         </span>
       </div>
-      <span className="text-[14px] font-semibold">{gutVerdict(v.right, v.oddsRight)}</span>
+      <span className="text-[14px] font-semibold">{oddsVerdict(v.right, v.oddsRight)}</span>
       <span className="text-[12px] leading-snug text-hero-muted">The odds always back the team the bookies and Polymarket rate most likely.</span>
     </div>
   );
@@ -159,7 +159,7 @@ async function Calls() {
             {rate !== null && <span className="num rounded-2xl bg-ink px-3 py-2 font-display text-[22px] font-black tracking-[-0.03em] text-white">{rate}%</span>}
           </div>
           <Form results={form} />
-          {me.vOdds.calls >= MIN_GAMES_FOR_SCORE && <GutVOdds v={me.vOdds} />}
+          {me.vOdds.calls >= MIN_GAMES_FOR_SCORE && <YouVOdds v={me.vOdds} />}
         </div>
       </LampCard>
       <CallsView calls={views} />

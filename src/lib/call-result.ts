@@ -90,9 +90,9 @@ export function againstOddsNote(against: { right: number; total: number }): stri
   return `Last ${against.total} times you went against the odds, ${right}.`;
 }
 
-/** The one-line verdict under "Your gut v the odds". */
-export function gutVerdict(right: number, oddsRight: number): string {
+/** The one-line verdict under "You v the odds". */
+export function oddsVerdict(right: number, oddsRight: number): string {
   const d = right - oddsRight;
-  if (d === 0) return "Level. Your gut is matching the odds.";
-  return d > 0 ? `Your gut is ${d} ahead of the odds.` : `The odds are ${-d} ahead of your gut.`;
+  if (d === 0) return "You and the odds got the same number right.";
+  return d > 0 ? `You got ${d} more right than the odds.` : `The odds got ${-d} more right than you.`;
 }

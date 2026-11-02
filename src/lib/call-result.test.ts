@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { againstOddsNote, againstRecord, callLabel, callOutcome, callRecord, gutVerdict, isCall, youVOdds } from "./call-result";
+import { againstOddsNote, againstRecord, callLabel, callOutcome, callRecord, isCall, oddsVerdict, youVOdds } from "./call-result";
 
 describe("callLabel", () => {
   it("names the buttons after the teams", () => {
@@ -91,10 +91,10 @@ describe("againstOddsNote", () => {
   });
 });
 
-describe("gutVerdict", () => {
-  it("says who's ahead, and by how many", () => {
-    expect(gutVerdict(5, 5)).toBe("Level. Your gut is matching the odds.");
-    expect(gutVerdict(8, 7)).toBe("Your gut is 1 ahead of the odds.");
-    expect(gutVerdict(4, 7)).toBe("The odds are 3 ahead of your gut.");
+describe("oddsVerdict", () => {
+  it("says who got more right, and by how many", () => {
+    expect(oddsVerdict(5, 5)).toBe("You and the odds got the same number right.");
+    expect(oddsVerdict(8, 6)).toBe("You got 2 more right than the odds.");
+    expect(oddsVerdict(4, 7)).toBe("The odds got 3 more right than you.");
   });
 });
