@@ -20,14 +20,6 @@ Built for the Total Recall hackathon (Tatum × Walrus), Track 1: Markets and Spo
 - **No sign-up needed to look around.** Matches, Records and Proof are open to everyone.
 - **No wallet, no SUI, no faucet.** The app pays the gas for every stamp from its own wallet (see [How gas works](#how-gas-works)).
 
-### Judge test account
-To make a call without using your own Google account, sign in with email:
-
-- Email: `JUDGE_EMAIL`
-- Password: `JUDGE_PASSWORD`
-
-It's a normal user account, made only for judges. It has no admin rights, and it has the same limit as everyone else: 30 calls a day.
-
 ### A 60-second tour
 1. **Matches** (home): this week's games from 6 leagues. Each game shows the bookies' chances next to Polymarket's, as two bars. Under them: "They agree on this one" or the gap, and how the odds moved since our first check.
 2. **Make your call** on any game. The card opens the record from **Walrus recall**: the past games like this one that Walrus brought back, each linking to its memory, and who got closer in them.
