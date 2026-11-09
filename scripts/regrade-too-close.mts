@@ -1,5 +1,5 @@
-// One-off: re-grades every graded reading with the "too close to call" rule (grading.ts), so games
-// graded before the rule follow it too. Same readings and results in, same answer out.
+// Re-grades every graded reading with the current rule in grading.ts (lower Brier score is closer; only a
+// same-score tie gives no point), so older games follow it too. Same readings and results in, same answer out.
 // Dry run (shows what would change): npx tsx scripts/regrade-too-close.mts
 // Save the changes:                  npx tsx scripts/regrade-too-close.mts --save
 import { existsSync } from "node:fs";

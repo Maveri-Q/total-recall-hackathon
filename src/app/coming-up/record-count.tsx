@@ -9,18 +9,18 @@ function recordLine(b: number, p: number, n: number, league: string): string {
   const games = `${n} ${league} ${n === 1 ? "game" : "games"}`;
   if (p > b) return `When they disagreed like this before, Polymarket got closer in ${p} of ${games}.`;
   if (b > p) return `When they disagreed like this before, the bookies got closer in ${b} of ${games}.`;
-  if (b === 0) return `All ${games} like this before were too close to call.`;
+  if (b === 0) return `In all ${games} like this before, they had the same score.`;
   return `When they disagreed like this before, they were level: ${b} each in ${games}.`;
 }
 
-/** Games where the sources nearly agreed, or scored almost the same: no one got the point. */
+/** Games where both had the same score: no one got the point. */
 export function tooCloseLine(level: number): string | null {
-  return level > 0 ? `${level} too close to call` : null;
+  return level > 0 ? `${level} same score` : null;
 }
 
 export type RecalledGame = { matchId: string; label: string; closer: "bookies" | "polymarket" | "tie"; blobId: string };
 
-const CLOSER = { bookies: "Bookies closer", polymarket: "Polymarket closer", tie: "Too close to call" } as const;
+const CLOSER = { bookies: "Bookies closer", polymarket: "Polymarket closer", tie: "Same score" } as const;
 /** How many recalled games to list; the rest are counted in "and N more". */
 const SHOW = 3;
 

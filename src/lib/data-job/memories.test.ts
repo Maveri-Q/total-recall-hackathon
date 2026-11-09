@@ -106,8 +106,8 @@ describe("sourceRecord", () => {
   it("writes the record with its sample size and an early-signal label", () => {
     const text = sourceRecordMemoryText("Serie A", sourceRecord([v("polymarket", 1.7, 0.4379, 0.4097)]), "2026-10-28T03:00:00Z");
     expect(text).toContain("Source record, Serie A, after 1 graded match (to Wed 28 Oct 2026).");
-    expect(text).toContain("Polymarket was closer in 1, the bookies in 0, too close to call in 0.");
-    expect(text).toContain("small gap (under 5 points): 1 match, Polymarket closer 1, bookies 0, too close to call 0");
+    expect(text).toContain("Polymarket was closer in 1, the bookies in 0, same score in 0.");
+    expect(text).toContain("small gap (under 5 points): 1 match, Polymarket closer 1, bookies 0, same score 0");
     expect(text).toContain("Early signal only: fewer than 10 matches.");
   });
 
@@ -139,6 +139,6 @@ describe("feed summaries", () => {
     expect(matchResultSummary(match, { homeGoals: 2, awayGoals: 6 }, [pre, dayBefore])).toBe("Sassuolo 2-6 Lazio. Polymarket was closer.");
     expect(matchResultSummary(match, { homeGoals: 2, awayGoals: 6 }, [dayBefore])).toBe("Sassuolo 2-6 Lazio. Not counted: no usable reading.");
     const rec = sourceRecord([{ kind: "pre_kickoff", closer: "polymarket", gapPoints: 2, bookieBrier: 0.4, polyBrier: 0.3 }]);
-    expect(sourceRecordSummary("Serie A", rec)).toBe("Serie A: Bookies 0, Polymarket 1, too close to call 0, from 1 game.");
+    expect(sourceRecordSummary("Serie A", rec)).toBe("Serie A: Bookies 0, Polymarket 1, same score 0, from 1 game.");
   });
 });

@@ -5,20 +5,21 @@
 // Those saved memories are the steps shown here, each with the date it was saved and its Walrus blob,
 // so nothing is worked out after the fact.
 //
-// On 1 Nov 2026 grading gained "too close to call" (grading.ts). Records saved before that used the old rule,
-// so they are left out here; records under the new rule have keys ending in RECORD_KEY_SUFFIX ("SA:10:tc").
+// The grading rule changed twice (1 Nov 2026: "too close to call" added; 10 Nov 2026: dropped, so the lower
+// Brier score always gets the point). Records saved under an older rule are left out here; records under the
+// current rule have keys ending in RECORD_KEY_SUFFIX ("SA:10:v3").
 
 export type RecordMemory = { ref_key: string; summary: string | null; saved_at: string | null; blob_id: string | null };
 export type RecordStep = { games: number; bookies: number; polymarket: number; tooClose: number; savedAt: string; blobId: string };
 
-/** Marks a record memory saved under the "too close to call" rule. */
-export const RECORD_KEY_SUFFIX = ":tc";
+/** Marks a record memory saved under the current rule (lower Brier score is closer). */
+export const RECORD_KEY_SUFFIX = ":v3";
 
 /** The memory key for a league's record after `games` graded games ("ALL" for all leagues). */
 export const recordKey = (code: string, games: number) => `${code}:${games}${RECORD_KEY_SUFFIX}`;
 
-/** Matches sourceRecordSummary: "Serie A: Bookies 3, Polymarket 7, too close to call 2, from 12 games." */
-const SUMMARY = /Bookies (\d+), Polymarket (\d+), too close to call (\d+), from (\d+) games?/;
+/** Matches sourceRecordSummary: "Serie A: Bookies 3, Polymarket 7, same score 2, from 12 games." */
+const SUMMARY = /Bookies (\d+), Polymarket (\d+), same score (\d+), from (\d+) games?/;
 
 /** The saved steps of one league's record ("ALL" for all leagues), fewest games first. */
 export function recordSteps(memories: RecordMemory[], code: string): RecordStep[] {

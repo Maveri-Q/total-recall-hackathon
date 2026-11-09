@@ -4,10 +4,11 @@
 //    and there must be exactly one candidate. Never guessed.
 // 2. Take the 90-minute score. In a knockout game that goes to extra time, odds and Polymarket
 //    markets are settled on 90 minutes, so extra-time goals don't count.
-// 3. Score each reading with the Brier score and record which source was closer. When the two sources
-//    nearly agreed, or their scores are nearly the same, it's "too close to call" (stored as "tie"):
-//    neither side gets a point, but the game still counts in the sample size.
-import { biggestGap, type Outcome } from "../odds";
+// 3. Score each reading with the Brier score. The lower score was closer and gets the point, however small
+//    the gap. Only an exact tie (same score) gives neither side a point ("tie"); it still counts in the sample size.
+//    Until 10 Nov 2026 a "too close to call" rule also gave no point when the gap was under 3 points or the scores
+//    were within 0.01. It was dropped so every number in the app counts the same way (see scripts/regrade-too-close.mts).
+import type { Outcome } from "../odds";
 import { brierScore, closerSource } from "../scoring";
 import { KICKOFF_TOLERANCE_MS, sameTeam } from "./team-names";
 
@@ -80,11 +81,6 @@ function threeWay(home: unknown, draw: unknown, away: unknown) {
   return { home: Number(home), draw: Number(draw), away: Number(away) };
 }
 
-/** Under this gap (in percentage points, on the outcome they disagree on most) the sources basically agreed. */
-export const CALL_MIN_GAP_POINTS = 3;
-/** Brier scores closer together than this are too close to call. */
-export const CALL_MIN_BRIER_DIFF = 0.01;
-
 /**
  * Brier score for each source that has chances. "Closer" only for usable readings
  * (both sources there, market not thin, fetched within 5 minutes), so weak readings never count.
@@ -99,13 +95,9 @@ export function gradeReading(r: ReadingChances, result: Outcome): ReadingGrade {
           chances: { bookies, polymarket: poly },
         }
       : null;
-  const tooClose =
-    both &&
-    (biggestGap(both.chances.bookies, both.chances.polymarket).points < CALL_MIN_GAP_POINTS ||
-      Math.abs(both.scores.bookies - both.scores.polymarket) < CALL_MIN_BRIER_DIFF);
   return {
     bookie_brier: bookies ? brierScore(bookies, result) : null,
     poly_brier: poly ? brierScore(poly, result) : null,
-    closer: both ? (tooClose ? "tie" : both.winner) : null,
+    closer: both ? both.winner : null,
   };
 }

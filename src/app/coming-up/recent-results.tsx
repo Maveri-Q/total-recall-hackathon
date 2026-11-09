@@ -2,7 +2,7 @@ import type { RecentResult } from "@/lib/recent-results";
 import { resultsTally } from "@/lib/recent-results";
 import { When } from "../ui/when";
 
-const CLOSER = { bookies: "Bookies closer", polymarket: "Polymarket closer", tie: "Too close to call" } as const;
+const CLOSER = { bookies: "Bookies closer", polymarket: "Polymarket closer", tie: "Same score" } as const;
 const CLOSER_COLOUR = { bookies: "text-bookies", polymarket: "text-poly-text", tie: "text-faint" } as const;
 
 /** "Last week's results": every graded game from the latest round, what happened and who got closer. */
@@ -14,7 +14,7 @@ export function RecentResults({ games, nearly }: { games: RecentResult[]; nearly
       <div className="flex flex-col gap-1">
         <h2 className="m-0 font-display text-[26px] font-extrabold tracking-[-0.035em]">Last week&apos;s results</h2>
         <p className="m-0 text-[15px] font-semibold text-ink-2">
-          {games.length} {games.length === 1 ? "game" : "games"} checked. Polymarket closer in {t.polymarket}, bookies in {t.bookies}. {t.tooClose} too close to call.
+          {games.length} {games.length === 1 ? "game" : "games"} checked. Polymarket closer in {t.polymarket}, bookies in {t.bookies}.{t.tooClose > 0 ? ` Same score in ${t.tooClose}.` : ""}
         </p>
         {nearly && <p className="m-0 text-[14px] leading-snug text-ink-2">{nearly}</p>}
       </div>

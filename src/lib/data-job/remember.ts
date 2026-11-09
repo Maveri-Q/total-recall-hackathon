@@ -121,7 +121,7 @@ export async function queueMemories(db: Db, now: Date, log: string[]) {
   }
 
   // Source records: every graded match ever, one vote each. A new memory when a count grows.
-  // Keys end ":tc" (the too-close-to-call rule); records from before it keep their old keys.
+  // Keys end ":v3" (the current rule, see memory-history.ts); records from older rules keep their old keys.
   const verdicts = new Map<string, Verdict[]>([["ALL", []]]);
   for (const m of matches) {
     const v = matchVerdict(m.readings);

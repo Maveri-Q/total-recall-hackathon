@@ -85,14 +85,14 @@ describe("breakReturn", () => {
 });
 
 describe("littleCloser and nearlyAgreeLine", () => {
-  const v = (bookieBrier: number, polyBrier: number, gapPoints: number) => ({ bookieBrier, polyBrier, gapPoints });
-  it("counts the lower Brier score in every game, ties or not", () => {
-    const x = littleCloser([v(0.5, 0.49, 0.4), v(0.5, 0.48, 0.9), v(0.4, 0.42, 2.5), v(0.3, 0.3, 0.2)]);
+  const v = (closer: "bookies" | "polymarket" | "tie", gapPoints: number) => ({ closer, gapPoints });
+  it("counts who was closer in every game; a same-score tie counts in the games only", () => {
+    const x = littleCloser([v("polymarket", 0.4), v("polymarket", 0.9), v("bookies", 2.5), v("tie", 0.2)]);
     expect(x).toEqual({ games: 4, polymarket: 2, bookies: 1, medianGap: 0.65 });
     expect(nearlyAgreeLine(x)).toBe("Even when they nearly agree, Polymarket was a little closer in 2 of 4 games. The gaps were small, usually under 1 point.");
   });
   it("names the bookies when they lead, and a bigger gap in whole points", () => {
-    const x = littleCloser([v(0.4, 0.45, 1.2), v(0.4, 0.45, 1.0), v(0.5, 0.4, 3)]);
+    const x = littleCloser([v("bookies", 1.2), v("bookies", 1.0), v("polymarket", 3)]);
     expect(nearlyAgreeLine(x)).toBe("Even when they nearly agree, the bookies were a little closer in 2 of 3 games. The gaps were small, usually under 2 points.");
   });
   it("says nothing with no games", () => {

@@ -382,3 +382,8 @@ Each league must pass three checks: The Odds API covers it, Polymarket has match
 - If Polymarket can't be reached, the reading keeps the bookie odds with `poly_status = 'unavailable'` (migration 0011), left out of scoring, card says "Polymarket unavailable".
 - Saving credits: wallet balance cached 1 hour (`wallet.ts`); each stamp check reads Sui once per transaction, then cached (`check-stamp.ts`).
 - The job lists games 21 days ahead (`LOOKAHEAD_MS`), free via The Odds API /events. Matches shows "International break. Club games return on ..." when the first game is 4+ days away, and "Last week's results" (`recent-results.ts`, tested) below the games.
+
+### One way of counting (10 Nov 2026, Maverick)
+- "Too close to call" (extra A) is dropped: the lower Brier score is closer and gets the point, however small the gap. Only a same score (within `TIE_MARGIN` 0.0005) is a tie, shown as "same score". All 168 graded readings re-graded with `scripts/regrade-too-close.mts --save` (104 changed). Records, Matches and Last week's results all count from the stored `closer`.
+- Result on 10 Nov: Polymarket 51 · Bookies 21, from 72 games, all under a 5-point gap. Record memories restart with keys ending `:v3`.
+- Records page title is "Who's been closer". League cards show only "Polymarket X · Bookies Y" and "From N games." (early signal under 20).

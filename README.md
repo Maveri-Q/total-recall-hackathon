@@ -106,12 +106,13 @@ All in `src/lib/odds.ts` and `src/lib/scoring.ts`, tested against sums worked ou
 - **Who was closer: the Brier score.** For each source, add up (chance given − what happened)² over the three results. Lower is better.
   - *Example:* bookies Chelsea 48% / draw 27% / Man United 25%, Polymarket 60% / 22% / 18%, and Chelsea win.
   - Bookies: 0.52² + 0.27² + 0.25² = **0.406**. Polymarket: 0.40² + 0.22² + 0.18² = **0.241**. Polymarket was closer.
+  - The lower score gets the point, however small the difference. Only the same score (within 0.0005) gives neither a point.
 - **One vote per game:** the pre-kickoff reading if it's usable, otherwise the day-before one.
 - **Gap size:** the biggest difference between the two on any result. Close is under 5 points, medium is 5 to 10, big is 10+. A game is compared with past games of the same size gap.
 
 ## Honest limits
 
-- **It's early.** 72 graded games so far, across 6 leagues. Nearly all were too close to call: the bookies and Polymarket usually agree within 3 points. Small samples are always labelled, and every claim shows how many games it's based on.
+- **It's early, and the gaps are small.** 72 graded games so far, across 6 leagues. Polymarket was closer in 51, the bookies in 21. But the two usually agree to within 1 point, so most wins are by a hair. Small samples are always labelled, and every claim shows how many games it's based on.
 - **Our first Tatum account (the one on the submission form) ran out of free credits on 6 Nov, so the 7–8 Nov games weren't recorded.** The live app now uses a second Tatum account so it keeps working during judging.
 - **A stamp proves when we recorded something,** not that every bettor could get that price, and not that a source is trustworthy.
 - **Our first 11 readings were stamped late** (27 Oct, before stamping went live). Check says so plainly. Every reading since is stamped before kickoff.
@@ -149,7 +150,7 @@ You need Node 24, and free accounts with Supabase, Tatum, The Odds API, football
    git clone https://github.com/Maveri-Q/total-recall-hackathon.git && cd total-recall-hackathon && npm ci
    ```
 2. **Keys:** copy `.env.example` to `.env.local` and fill it in. Each line says where the value comes from.
-3. **Database:** in the Supabase SQL Editor, run each file in `supabase/migrations/` in number order (0001 to 0010).
+3. **Database:** in the Supabase SQL Editor, run each file in `supabase/migrations/` in number order (0001 to 0011).
 4. **Sui (optional, for stamping):** `npx tsx scripts/create-app-wallet.mts` makes the app wallet and saves its key into `.env.local` (only the address is printed). Send it a little SUI, then `npx tsx scripts/publish-move.mts` publishes the Move module and saves the package id into `.env.local`. The compiled module is already in `move/bytecode.json`, so you don't need the Sui CLI.
 5. **Fill it with data:**
    ```bash

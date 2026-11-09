@@ -77,7 +77,7 @@ export function recentResults(matches: GradedMatch[]): RecentResult[] {
   return all.filter((g) => Date.parse(g.kickoffAt) > from);
 }
 
-/** The count line: how many each source was closer in, and how many were too close to call. */
+/** The count line: how many each source was closer in, and how many had the same score. */
 export function resultsTally(games: RecentResult[]): { bookies: number; polymarket: number; tooClose: number } {
   return {
     bookies: games.filter((g) => g.closer === "bookies").length,
@@ -99,16 +99,16 @@ export const NEARLY_EARLY_SIGNAL_GAMES = 20;
 export type LittleCloser = { games: number; polymarket: number; bookies: number; medianGap: number };
 
 /**
- * Who had the lower Brier score in each graded game, ignoring the "too close to call" rule. The gaps are
- * usually tiny, so this is a lean, not a win: the line says so.
+ * Who was closer (lower Brier score) in each graded game, as stored by grading. Same-score ties count in the
+ * games but for neither side. The gaps are usually tiny, so the line on Matches says so.
  */
-export function littleCloser(verdicts: Pick<Verdict, "bookieBrier" | "polyBrier" | "gapPoints">[]): LittleCloser {
+export function littleCloser(verdicts: Pick<Verdict, "closer" | "gapPoints">[]): LittleCloser {
   const gaps = verdicts.map((v) => v.gapPoints).sort((a, b) => a - b);
   const mid = Math.floor(gaps.length / 2);
   return {
     games: verdicts.length,
-    polymarket: verdicts.filter((v) => v.polyBrier < v.bookieBrier).length,
-    bookies: verdicts.filter((v) => v.bookieBrier < v.polyBrier).length,
+    polymarket: verdicts.filter((v) => v.closer === "polymarket").length,
+    bookies: verdicts.filter((v) => v.closer === "bookies").length,
     medianGap: gaps.length === 0 ? 0 : gaps.length % 2 ? gaps[mid] : (gaps[mid - 1] + gaps[mid]) / 2,
   };
 }

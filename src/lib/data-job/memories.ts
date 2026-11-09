@@ -152,7 +152,7 @@ export function matchVerdict(readings: ReadingRow[]): Verdict | null {
   return null;
 }
 
-const CLOSER_TEXT = { bookies: "The bookies were closer.", polymarket: "Polymarket was closer.", tie: "Too close to call: the sources nearly agreed, or scored almost the same." };
+const CLOSER_TEXT = { bookies: "The bookies were closer.", polymarket: "Polymarket was closer.", tie: "Same score: neither was closer." };
 
 /** Memory for one graded match: score, both readings, who was closer. */
 export function matchResultMemoryText(
@@ -234,7 +234,7 @@ export function sourceRecord(verdicts: Verdict[]): SourceRecord {
 export function sourceRecordMemoryText(scope: string, rec: SourceRecord, asOf: string): string {
   const parts = [
     `Source record, ${scope}, after ${rec.matches} graded ${rec.matches === 1 ? "match" : "matches"} (to ${day(asOf)}).`,
-    `Polymarket was closer in ${rec.polymarket}, the bookies in ${rec.bookies}, too close to call in ${rec.ties}.`,
+    `Polymarket was closer in ${rec.polymarket}, the bookies in ${rec.bookies}, same score in ${rec.ties}.`,
   ];
   if (rec.avgBookieBrier !== null && rec.avgPolyBrier !== null) {
     parts.push(`Average Brier score, lower is better: bookies ${brier(rec.avgBookieBrier)}, Polymarket ${brier(rec.avgPolyBrier)}.`);
@@ -243,7 +243,7 @@ export function sourceRecordMemoryText(scope: string, rec: SourceRecord, asOf: s
     .filter((b) => rec.byBand[b].matches > 0)
     .map((b) => {
       const t = rec.byBand[b];
-      return `${BAND_TEXT[b]}: ${t.matches} ${t.matches === 1 ? "match" : "matches"}, Polymarket closer ${t.polymarket}, bookies ${t.bookies}, too close to call ${t.ties}`;
+      return `${BAND_TEXT[b]}: ${t.matches} ${t.matches === 1 ? "match" : "matches"}, Polymarket closer ${t.polymarket}, bookies ${t.bookies}, same score ${t.ties}`;
     });
   if (bands.length) parts.push(`By gap size: ${bands.join("; ")}.`);
   if (rec.matches < EARLY_SIGNAL_MATCHES) {
@@ -289,7 +289,7 @@ export function matchResultSummary(m: MatchInfo, score: { homeGoals: number; awa
   return v ? `${line} ${CLOSER_TEXT[v.closer]}` : `${line} Not counted: no usable reading.`;
 }
 export function sourceRecordSummary(scope: string, rec: SourceRecord): string {
-  return `${scope}: Bookies ${rec.bookies}, Polymarket ${rec.polymarket}, too close to call ${rec.ties}, from ${rec.matches} ${rec.matches === 1 ? "game" : "games"}.`;
+  return `${scope}: Bookies ${rec.bookies}, Polymarket ${rec.polymarket}, same score ${rec.ties}, from ${rec.matches} ${rec.matches === 1 ? "game" : "games"}.`;
 }
 export function callSummary(m: MatchInfo, pickLabel: string): string {
   return `${m.homeTeam} v ${m.awayTeam}. Picked ${pickLabel}.`;
