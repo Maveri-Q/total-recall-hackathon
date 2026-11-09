@@ -1,6 +1,7 @@
 // Data for the Scorecard page: how often the bookies and Polymarket were closer, by league and gap size,
 // and the signed-in user's own record. All counting is done here in code (see memories.ts and call-result.ts);
 // Walrus keeps a copy of each league's record, and we show which memory that is.
+import { littleCloser, type LittleCloser } from "./recent-results";
 import "server-only";
 import { cacheLife } from "next/cache";
 import { callRecord, youVOdds, type YouVOdds } from "./call-result";
@@ -21,6 +22,8 @@ export type LeagueRecord = {
   recent: RecentGame[];
   /** How the record moved as games were graded: each step is a memory saved on Walrus at the time. */
   history: RecordStep[];
+  /** Who had the lower Brier score in every graded game, ties included (see littleCloser). */
+  nearly: LittleCloser;
 };
 
 /** Every league with at least one counted game, plus "All leagues" first. Cached for 15 minutes. */
@@ -63,6 +66,7 @@ export async function getSourceScorecard(): Promise<LeagueRecord[]> {
       code,
       name: code === "ALL" ? "All leagues" : (LEAGUES.find((l) => l.code === code)?.name ?? code),
       record: sourceRecord(vs),
+      nearly: littleCloser(vs),
       blobId: blobFor(code, vs.length),
       recent: (recent.get(code) ?? []).sort((a, b) => b.kickoffAt.localeCompare(a.kickoffAt)).slice(0, 3),
       history: recordSteps(memories ?? [], code),

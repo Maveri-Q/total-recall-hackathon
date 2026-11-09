@@ -8,7 +8,8 @@ import { LEAGUES } from "@/lib/leagues";
 import { movementLine } from "@/lib/movement";
 import { wholePercents } from "@/lib/odds";
 import { biggestGapGame, EARLY_SIGNAL_MATCHES, headline, MIN_GAMES_FOR_SCORE } from "@/lib/scoreline";
-import { getMyScorecard } from "@/lib/scorecard";
+import { nearlyAgreeLine } from "@/lib/recent-results";
+import { getMyScorecard, getSourceScorecard } from "@/lib/scorecard";
 import { getCurrentUser } from "@/lib/supabase/server";
 import { BottomNav } from "./bottom-nav";
 import type { Featured } from "./coming-up/featured";
@@ -131,7 +132,7 @@ async function Record({ m, band, weekAgo }: { m: MatchView; band: GapBand; weekA
 async function Page() {
   await connection();
   const now = new Date();
-  const [matches, user, results] = await Promise.all([
+  const [matches, user, results, nearly] = await Promise.all([
     getUpcomingMatches(now),
     getCurrentUser(),
     // Last week's results are extra: if they fail to load, the upcoming games still show.
@@ -139,6 +140,16 @@ async function Page() {
       console.error("recent results", e instanceof Error ? e.message : e);
       return [];
     }),
+    // The "a little closer" line uses every graded game (the Records data, cached).
+    getSourceScorecard()
+      .then((all) => {
+        const everything = all.find((l) => l.code === "ALL");
+        return everything ? nearlyAgreeLine(everything.nearly) : null;
+      })
+      .catch((e) => {
+        console.error("nearly-agree line", e instanceof Error ? e.message : e);
+        return null;
+      }),
   ]);
   const [calls, note] = user
     ? await Promise.all([
@@ -189,7 +200,7 @@ async function Page() {
   return (
     <>
       <MatchList matches={views} leagues={LEAGUES.map((l) => l.name)} featured={featured} records={records} signedIn={!!user} note={note} />
-      <RecentResults games={results} />
+      <RecentResults games={results} nearly={nearly} />
     </>
   );
 }

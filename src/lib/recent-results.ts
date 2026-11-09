@@ -3,7 +3,7 @@
 // A game is shown once it's graded and has a usable reading (the same one vote per match as the source records,
 // see matchVerdict in data-job/memories.ts). We show the latest 7 days that have graded games, so during an
 // international break the list still shows the last real round instead of going empty.
-import { matchVerdict, type ReadingRow } from "./data-job/memories";
+import { matchVerdict, type ReadingRow, type Verdict } from "./data-job/memories";
 import { wholePercents, type Outcome, type ThreeWay } from "./odds";
 import { resultFromScore } from "./scoring";
 
@@ -91,4 +91,37 @@ export function breakReturn(kickoffs: string[], now: number): Date | null {
   if (kickoffs.length === 0) return null;
   const first = Math.min(...kickoffs.map((k) => Date.parse(k)));
   return first - now >= BREAK_MIN_DAYS * DAY_MS ? new Date(first) : null;
+}
+
+/** Below this many games, the "a little closer" line on Records is labelled an early signal. */
+export const NEARLY_EARLY_SIGNAL_GAMES = 20;
+
+export type LittleCloser = { games: number; polymarket: number; bookies: number; medianGap: number };
+
+/**
+ * Who had the lower Brier score in each graded game, ignoring the "too close to call" rule. The gaps are
+ * usually tiny, so this is a lean, not a win: the line says so.
+ */
+export function littleCloser(verdicts: Pick<Verdict, "bookieBrier" | "polyBrier" | "gapPoints">[]): LittleCloser {
+  const gaps = verdicts.map((v) => v.gapPoints).sort((a, b) => a - b);
+  const mid = Math.floor(gaps.length / 2);
+  return {
+    games: verdicts.length,
+    polymarket: verdicts.filter((v) => v.polyBrier < v.bookieBrier).length,
+    bookies: verdicts.filter((v) => v.bookieBrier < v.polyBrier).length,
+    medianGap: gaps.length === 0 ? 0 : gaps.length % 2 ? gaps[mid] : (gaps[mid - 1] + gaps[mid]) / 2,
+  };
+}
+
+/** "Even when they nearly agree, Polymarket was a little closer in 51 of 72 games. The gaps were small, usually under 1 point." */
+export function nearlyAgreeLine(x: LittleCloser): string | null {
+  if (x.games === 0) return null;
+  const lead =
+    x.polymarket > x.bookies
+      ? `Polymarket was a little closer in ${x.polymarket} of ${x.games} games.`
+      : x.bookies > x.polymarket
+        ? `the bookies were a little closer in ${x.bookies} of ${x.games} games.`
+        : `each was a little closer in ${x.polymarket} of ${x.games} games.`;
+  const under = Math.floor(x.medianGap) + 1; // "under 1 point" only when the middle gap really is below 1
+  return `Even when they nearly agree, ${lead} The gaps were small, usually under ${under} ${under === 1 ? "point" : "points"}.`;
 }

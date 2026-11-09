@@ -6,7 +6,7 @@ const CLOSER = { bookies: "Bookies closer", polymarket: "Polymarket closer", tie
 const CLOSER_COLOUR = { bookies: "text-bookies", polymarket: "text-poly-text", tie: "text-faint" } as const;
 
 /** "Last week's results": every graded game from the latest round, what happened and who got closer. */
-export function RecentResults({ games }: { games: RecentResult[] }) {
+export function RecentResults({ games, nearly }: { games: RecentResult[]; nearly: string | null }) {
   if (games.length === 0) return null;
   const t = resultsTally(games);
   return (
@@ -14,9 +14,9 @@ export function RecentResults({ games }: { games: RecentResult[] }) {
       <div className="flex flex-col gap-1">
         <h2 className="m-0 font-display text-[26px] font-extrabold tracking-[-0.035em]">Last week&apos;s results</h2>
         <p className="m-0 text-[15px] font-semibold text-ink-2">
-          Bookies {t.bookies} · Polymarket {t.polymarket} · {t.tooClose} too close to call
+          {games.length} {games.length === 1 ? "game" : "games"} checked. Polymarket closer in {t.polymarket}, bookies in {t.bookies}. {t.tooClose} too close to call.
         </p>
-        <p className="m-0 text-[13px] text-muted">The chance each one gave the result that happened.</p>
+        {nearly && <p className="m-0 text-[14px] leading-snug text-ink-2">{nearly}</p>}
       </div>
       <ul className="glass m-0 flex list-none flex-col rounded-[24px] p-0">
         {games.map((g) => {

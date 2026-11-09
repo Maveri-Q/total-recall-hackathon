@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ReadingRow } from "./data-job/memories";
-import { breakReturn, recentResults, resultsTally, type GradedMatch } from "./recent-results";
+import { breakReturn, littleCloser, nearlyAgreeLine, recentResults, resultsTally, type GradedMatch } from "./recent-results";
 
 function reading(kind: ReadingRow["kind"], over: Partial<ReadingRow> = {}): ReadingRow {
   return {
@@ -81,5 +81,21 @@ describe("breakReturn", () => {
   it("no break line when a game is coming up soon, or when there are no games at all", () => {
     expect(breakReturn(["2026-11-12T19:45:00Z", "2026-11-21T12:30:00Z"], now)).toBeNull();
     expect(breakReturn([], now)).toBeNull();
+  });
+});
+
+describe("littleCloser and nearlyAgreeLine", () => {
+  const v = (bookieBrier: number, polyBrier: number, gapPoints: number) => ({ bookieBrier, polyBrier, gapPoints });
+  it("counts the lower Brier score in every game, ties or not", () => {
+    const x = littleCloser([v(0.5, 0.49, 0.4), v(0.5, 0.48, 0.9), v(0.4, 0.42, 2.5), v(0.3, 0.3, 0.2)]);
+    expect(x).toEqual({ games: 4, polymarket: 2, bookies: 1, medianGap: 0.65 });
+    expect(nearlyAgreeLine(x)).toBe("Even when they nearly agree, Polymarket was a little closer in 2 of 4 games. The gaps were small, usually under 1 point.");
+  });
+  it("names the bookies when they lead, and a bigger gap in whole points", () => {
+    const x = littleCloser([v(0.4, 0.45, 1.2), v(0.4, 0.45, 1.0), v(0.5, 0.4, 3)]);
+    expect(nearlyAgreeLine(x)).toBe("Even when they nearly agree, the bookies were a little closer in 2 of 3 games. The gaps were small, usually under 2 points.");
+  });
+  it("says nothing with no games", () => {
+    expect(nearlyAgreeLine(littleCloser([]))).toBeNull();
   });
 });

@@ -1,5 +1,6 @@
 "use client";
 
+import { NEARLY_EARLY_SIGNAL_GAMES, nearlyAgreeLine } from "@/lib/recent-results";
 import Link from "next/link";
 import { useState } from "react";
 import type { GapBand } from "@/lib/data-job/memories";
@@ -199,6 +200,12 @@ export function RecordsView({ all, leagues }: { all: LeagueRecord | null; league
                 <span className="text-[12px] font-semibold text-faint">
                   {r.matches} {r.matches === 1 ? "game" : "games"}{r.ties > 0 ? `, ${r.ties} too close to call` : ""}.{r.matches < MIN ? " Early signal, under 10 games." : ""}
                 </span>
+                {nearlyAgreeLine(l.nearly) && (
+                  <span className="text-[13px] leading-snug text-ink-2">
+                    {nearlyAgreeLine(l.nearly)}
+                    {l.nearly.games < NEARLY_EARLY_SIGNAL_GAMES ? ` Early signal, under ${NEARLY_EARLY_SIGNAL_GAMES} games.` : ""}
+                  </span>
+                )}
               </button>
               {isOpen && (
                 <div className="reveal flex flex-col px-4 pb-3">
