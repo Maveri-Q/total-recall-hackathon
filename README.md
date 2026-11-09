@@ -35,7 +35,7 @@ Short version: `npm install`, copy `.env.example` to `.env.local` and fill in th
 | We say | How to check it |
 |---|---|
 | Odds are recorded before kickoff and can't be changed after | Proof → **Check** on any stamp. Or open it on Suiscan and compare the `Stamped` event's time with kickoff. |
-| Walrus remembers every reading, result and record | Proof → **Check** on any memory opens its blob on Walruscan. 68 memories and counting. |
+| Walrus remembers every reading, result and record | Proof → **Check** on any memory opens its blob on Walruscan. 408 memories and counting (9 Nov). |
 | Walrus recall drives the advice | Open a game's record card: the games listed under "The games Walrus brought back" are the ones counted. |
 | The app learns as games are played | Records → **How this changed**: the record after each graded game, each step a Walrus memory saved that day. |
 | It's all real data | Every number comes from The Odds API, Polymarket (via Tatum) or football-data.org. No demo or seeded data. |
@@ -76,17 +76,17 @@ Every hour, at :17 past (Supabase `pg_cron` starts the job on time; GitHub's own
 
 ## Mainnet proof
 
-Checked 30 Oct 2026. Updated again right before submission.
+Checked 9 Nov 2026.
 
 | What | Value |
 |---|---|
-| Walrus memories saved on Mainnet | **68**: 30 odds readings, 10 graded games, 10 league records, 18 user calls |
+| Walrus memories saved on Mainnet | **408**: 168 odds readings, 124 match results, 81 league records, 35 user calls |
 | `MEMWAL_AGENT_ID` (Walrus Memory account ID) | `0xfdf452a10a829d4b5f7331a2a993b5ee088456717d9b6cd221b18dbf868f27b8` |
-| Sui stamps | **50**: 30 odds readings and 20 user calls |
+| Sui stamps | **205**: 168 odds readings and 37 user calls |
 | Sui package (`stamp` Move module) | [`0xa4b3e8cc…df210237`](https://suiscan.xyz/mainnet/object/0xa4b3e8ccb8b9331838bb8257c4ec06d3ea7848b67c4cabde3248b7e6df210237) |
 | App wallet that pays for stamps | [`0x6d7a28ce…e388f88f3a`](https://suiscan.xyz/mainnet/account/0x6d7a28ce3c59ebe4596e2d13ac7872b2ef9a828945bfd6cbad9df8e388f88f3a) |
-| Games tracked / graded so far | 76 / 10 |
-| Hourly data job runs | 83 |
+| Games with readings / graded so far | 92 / 72, across 6 leagues |
+| Hourly data job runs | 358 |
 | Walrus Memory dashboard | https://memory.walrus.xyz/dashboard |
 
 Real stamps on Suiscan:
@@ -111,7 +111,7 @@ All in `src/lib/odds.ts` and `src/lib/scoring.ts`, tested against sums worked ou
 
 ## Honest limits
 
-- **It's early.** 10 graded games so far, all in Serie A, so every record says "early signal". This weekend's games across all 6 leagues add more. Small samples are always labelled, and every claim shows how many games it's based on.
+- **It's early.** 72 graded games so far, across 6 leagues. Nearly all were too close to call: the bookies and Polymarket usually agree within 3 points. Small samples are always labelled, and every claim shows how many games it's based on.
 - **A stamp proves when we recorded something,** not that every bettor could get that price, and not that a source is trustworthy.
 - **Our first 11 readings were stamped late** (27 Oct, before stamping went live). Check says so plainly. Every reading since is stamped before kickoff.
 - **One app wallet pays for every stamp** (below). Users don't sign anything, so a call's stamp proves *the app* recorded it at that time.
@@ -125,7 +125,7 @@ All in `src/lib/odds.ts` and `src/lib/scoring.ts`, tested against sums worked ou
 |---|---|
 | App wallet | [`0x6d7a28ce…e388f88f3a`](https://suiscan.xyz/mainnet/account/0x6d7a28ce3c59ebe4596e2d13ac7872b2ef9a828945bfd6cbad9df8e388f88f3a) (live balance on the Proof page) |
 | Cost per stamp transaction | **0.0001 SUI**, measured on 14 real Mainnet transactions on 1 Nov 2026. Every one cost exactly 100,000 MIST, whether it held 1 stamp or 6. A call is one transaction; an hour's readings share one. |
-| Balance on 1 Nov 2026 | **5.4872 SUI**, about **54,800 more stamp transactions** |
+| Balance on 9 Nov 2026 | **5.4847 SUI**, about **54,800 more stamp transactions** |
 | Gas limit per transaction | 0.005 SUI. Sui only charges what's used, but the wallet must hold at least this to stamp. |
 
 - **Key safety:** the wallet's key lives only in the server's environment variables (`.env.local`, and the GitHub and Vercel secrets). It's never in the code or the browser.
@@ -182,7 +182,7 @@ You need Node 24, and free accounts with Supabase, Tatum, The Odds API, football
 
 ## Tests
 
-Every push runs three checks on GitHub (the first badge): **types, lint, then 163 tests**.
+Every push runs three checks on GitHub (the first badge): **types, lint, then 190 tests**.
 
 - **The maths:** odds to chances, Brier scores, grading, the reading schedule, team-name matching, memory texts, the record history.
 - **Stamps:** fingerprints rebuilt from saved rows match the ones stamped (checked against every real stamp on 30 Oct: 30 of 30 readings, 20 of 20 calls). Editing one bookie price after stamping is caught.
