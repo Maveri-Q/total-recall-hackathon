@@ -5,6 +5,7 @@ import { cacheLife } from "next/cache";
 import { bandCasesQuery, NAMESPACES, type GapBand, type ReadingRow } from "./data-job/memories";
 import { leagueByCode } from "./leagues";
 import type { ThreeWay } from "./odds";
+import { recentResults, type GradedMatch, type RecentResult } from "./recent-results";
 import { scoreline, type PastGame, type Scoreline } from "./scoreline";
 import { createAdminClient } from "./supabase/admin";
 import { teamLook, type TeamLook, type TeamRow } from "./team-look";
@@ -91,6 +92,31 @@ export async function getUpcomingMatches(now: Date): Promise<UpcomingMatch[]> {
       firstReading: readings[0]?.kind === "pre_kickoff" ? (readings.find((r) => r.kind === "day_before") ?? null) : null,
     };
   });
+}
+
+/** "Last week's results": graded games from the latest 7 days that have any (see recent-results.ts). Database only. */
+export async function getRecentResults(now: Date): Promise<RecentResult[]> {
+  const { data, error } = await createAdminClient()
+    .from("matches")
+    .select("id, league_code, home_team, away_team, kickoff_at, home_goals, away_goals, readings(*)")
+    .not("graded_at", "is", null)
+    .eq("result_status", "finished")
+    .gte("kickoff_at", new Date(now.getTime() - 30 * 24 * 3600_000).toISOString())
+    .order("kickoff_at", { ascending: false });
+  if (error) throw new Error(`loading results: ${error.message}`);
+  const games: GradedMatch[] = (data ?? [])
+    .filter((m) => m.home_goals != null && m.away_goals != null)
+    .map((m) => ({
+      id: m.id,
+      leagueName: leagueByCode(m.league_code)?.name ?? m.league_code,
+      homeTeam: m.home_team,
+      awayTeam: m.away_team,
+      kickoffAt: m.kickoff_at,
+      homeGoals: m.home_goals!,
+      awayGoals: m.away_goals!,
+      readings: (m.readings ?? []) as ReadingRow[],
+    }));
+  return recentResults(games);
 }
 
 /** When the hourly data job last finished, for "Updated 20 min ago". */

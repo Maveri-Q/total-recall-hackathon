@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { connection } from "next/server";
 import { againstOddsNote } from "@/lib/call-result";
 import { myCallsOn, type MyCall } from "@/lib/calls";
-import { bandScore, bookiesOf, getUpcomingMatches, polyOf, type UpcomingMatch } from "@/lib/coming-up";
+import { bandScore, bookiesOf, getRecentResults, getUpcomingMatches, polyOf, type UpcomingMatch } from "@/lib/coming-up";
 import { readingGap, type GapBand } from "@/lib/data-job/memories";
 import { LEAGUES } from "@/lib/leagues";
 import { movementLine } from "@/lib/movement";
@@ -13,6 +13,7 @@ import { getCurrentUser } from "@/lib/supabase/server";
 import { BottomNav } from "./bottom-nav";
 import type { Featured } from "./coming-up/featured";
 import { MatchList, type MatchView } from "./coming-up/match-list";
+import { RecentResults } from "./coming-up/recent-results";
 import { RecordCount } from "./coming-up/record-count";
 import { WeekRange } from "./coming-up/week-range";
 import { PageHeader } from "./ui/app-header";
@@ -130,7 +131,15 @@ async function Record({ m, band, weekAgo }: { m: MatchView; band: GapBand; weekA
 async function Page() {
   await connection();
   const now = new Date();
-  const [matches, user] = await Promise.all([getUpcomingMatches(now), getCurrentUser()]);
+  const [matches, user, results] = await Promise.all([
+    getUpcomingMatches(now),
+    getCurrentUser(),
+    // Last week's results are extra: if they fail to load, the upcoming games still show.
+    getRecentResults(now).catch((e) => {
+      console.error("recent results", e instanceof Error ? e.message : e);
+      return [];
+    }),
+  ]);
   const [calls, note] = user
     ? await Promise.all([
         myCallsOn(matches.map((m) => m.id)),
@@ -177,5 +186,10 @@ async function Page() {
       ]),
   );
 
-  return <MatchList matches={views} leagues={LEAGUES.map((l) => l.name)} featured={featured} records={records} signedIn={!!user} note={note} />;
+  return (
+    <>
+      <MatchList matches={views} leagues={LEAGUES.map((l) => l.name)} featured={featured} records={records} signedIn={!!user} note={note} />
+      <RecentResults games={results} />
+    </>
+  );
 }

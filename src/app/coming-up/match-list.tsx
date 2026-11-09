@@ -1,5 +1,6 @@
 "use client";
 
+import { breakReturn } from "@/lib/recent-results";
 import { useSearchParams } from "next/navigation";
 import { Fragment, useState, type ReactNode } from "react";
 import { callLabel, isCall, type Call } from "@/lib/call-result";
@@ -46,6 +47,8 @@ function OddsDue({ kickoffAt }: { kickoffAt: string }) {
   const due = firstReadingAt(kickoffAt);
   // One span, so the card's flex gap doesn't split the sentence around the time.
   if (now !== null && now > due.getTime() + 15 * 60_000) return <span>Odds are on their way. We check every hour.</span>;
+  // More than 6 days off, a weekday alone ("Fri") would point at the wrong week.
+  if (now === null || due.getTime() - now > 6 * 24 * 3600_000) return <span>Odds come in the day before kickoff.</span>;
   return (
     <span>
       Odds come in around <When iso={due.toISOString()} format="weekdayTime" />.
@@ -180,6 +183,7 @@ export function MatchList({
   const withGames = leagues.filter((l) => byLeague.get(l)!.length > 0);
   const empty = leagues.filter((l) => byLeague.get(l)!.length === 0);
   const shownLeagues = withGames.filter((l) => tab === "All" || tab === l);
+  const back = now === null ? null : breakReturn(matches.map((m) => m.kickoffAt), now);
 
   const open = (id: string) => {
     setTab("All");
@@ -190,6 +194,11 @@ export function MatchList({
 
   return (
     <>
+      {back && (
+        <p className="m-0 rounded-[16px] bg-[rgba(11,26,20,0.05)] px-4 py-3 text-[15px] font-semibold text-ink-2">
+          International break. Club games return on {dayLabel(back, new Date(now!))}.
+        </p>
+      )}
       <div className="no-scrollbar -mx-[18px] flex gap-2 overflow-x-auto px-[18px] pb-1 pt-0.5" role="group" aria-label="Filter by league">
         {[{ name: "All", count: matches.length }, ...withGames.map((l) => ({ name: l, count: byLeague.get(l)!.length }))].map(({ name, count }) => {
           const on = tab === name;
@@ -269,11 +278,11 @@ export function MatchList({
         );
       })}
 
-      {matches.length === 0 && <p className="m-0 text-muted">No games in the next week. We check every hour.</p>}
+      {matches.length === 0 && <p className="m-0 text-muted">No games in the next 3 weeks. We check every hour.</p>}
 
       {tab === "All" && empty.length > 0 && (
         <div className="flex flex-wrap items-center gap-2 pt-1">
-          <span className="text-[13px] font-semibold text-faint">No games this week:</span>
+          <span className="text-[13px] font-semibold text-faint">No games in the next 3 weeks:</span>
           {empty.map((l) => (
             <span key={l} className="rounded-full bg-[rgba(11,26,20,0.05)] px-[11px] py-[5px] text-[13px] font-semibold text-ink-2">
               {l}
