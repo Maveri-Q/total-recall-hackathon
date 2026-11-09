@@ -1,6 +1,6 @@
 "use client";
 
-import { NEARLY_EARLY_SIGNAL_GAMES, nearlyAgreeLine } from "@/lib/recent-results";
+import { NEARLY_EARLY_SIGNAL_GAMES } from "@/lib/recent-results";
 import Link from "next/link";
 import { useState } from "react";
 import type { GapBand } from "@/lib/data-job/memories";
@@ -39,7 +39,6 @@ function SplitBar({ b, p, height }: { b: number; p: number; height: string }) {
   );
 }
 
-const CLOSER = { bookies: "Bookies closer", polymarket: "Polymarket closer", tie: "Too close to call" } as const;
 
 const COLOUR = { polymarket: "text-poly-text", bookies: "text-bookies", level: "text-ink" } as const;
 
@@ -101,7 +100,6 @@ function HowItChanged({ steps }: { steps: RecordStep[] }) {
 
 export function RecordsView({ all, leagues }: { all: LeagueRecord | null; leagues: LeagueRecord[] }) {
   const [tab, setTab] = useState<Tab>("all");
-  const [open, setOpen] = useState<string | null>(null);
   const rec = all ? (tab === "all" ? all.record : all.record.byBand[tab]) : null;
   const games = rec?.matches ?? 0;
   const b = rec?.bookies ?? 0;
@@ -178,56 +176,19 @@ export function RecordsView({ all, leagues }: { all: LeagueRecord | null; league
           By league
         </h2>
         {leagues.length === 0 && <p className="m-0 text-muted">No finished games yet.</p>}
-        {leagues.map((l) => {
-          const r = l.record;
-          const isOpen = open === l.code;
-          return (
-            <div key={l.code} className="glass overflow-hidden rounded-[22px]">
-              <button
-                type="button"
-                onClick={() => setOpen(isOpen ? null : l.code)}
-                aria-expanded={isOpen}
-                className="flex w-full cursor-pointer flex-col gap-2.5 border-none bg-transparent px-4 py-3.5 text-left text-ink"
-              >
-                <span className="flex w-full items-baseline justify-between">
-                  <span className="font-display text-[17px] font-bold tracking-[-0.02em]">{l.name}</span>
-                  <span className="num font-display text-[17px] font-extrabold" aria-label={`Bookies ${r.bookies}, Polymarket ${r.polymarket}`}>
-                    <span className="text-bookies">{r.bookies}</span> <span className="text-[#9AA8A1]">-</span>{" "}
-                    <span className="text-poly-text">{r.polymarket}</span>
-                  </span>
-                </span>
-                <SplitBar b={r.bookies} p={r.polymarket} height="h-2" />
-                <span className="text-[12px] font-semibold text-faint">
-                  {r.matches} {r.matches === 1 ? "game" : "games"}{r.ties > 0 ? `, ${r.ties} too close to call` : ""}.{r.matches < MIN ? " Early signal, under 10 games." : ""}
-                </span>
-                {nearlyAgreeLine(l.nearly) && (
-                  <span className="text-[13px] leading-snug text-ink-2">
-                    {nearlyAgreeLine(l.nearly)}
-                    {l.nearly.games < NEARLY_EARLY_SIGNAL_GAMES ? ` Early signal, under ${NEARLY_EARLY_SIGNAL_GAMES} games.` : ""}
-                  </span>
-                )}
-              </button>
-              {isOpen && (
-                <div className="reveal flex flex-col px-4 pb-3">
-                  {l.history.length > 1 && (
-                    <div className="pb-3">
-                      <HowItChanged steps={l.history} />
-                    </div>
-                  )}
-                  {l.recent.map((g) => (
-                    <div key={g.label + g.kickoffAt} className="flex items-center justify-between gap-2 border-t border-[rgba(11,26,20,0.06)] py-[9px] text-[13px]">
-                      <span className="num font-semibold">{g.label}</span>
-                      <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-ink-2">
-                        {g.closer !== "tie" && <span aria-hidden="true" className={g.closer === "bookies" ? "mark-bookies" : "mark-poly"} />}
-                        {CLOSER[g.closer]}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          );
-        })}
+        {leagues.map((l) => (
+          <div key={l.code} className="glass flex flex-col gap-1 rounded-[22px] px-4 py-3.5">
+            <span className="font-display text-[17px] font-bold tracking-[-0.02em]">{l.name}</span>
+            {/* Who had the lower Brier score in each game; games where they scored exactly the same are left out. */}
+            <span className="num text-[15px] font-bold">
+              <span className="text-poly-text">Polymarket {l.nearly.polymarket}</span> <span className="text-faint">·</span>{" "}
+              <span className="text-bookies">Bookies {l.nearly.bookies}</span>
+            </span>
+            <span className="text-[13px] font-semibold text-faint">
+              From {l.nearly.games} {l.nearly.games === 1 ? "game" : "games"}.{l.nearly.games < NEARLY_EARLY_SIGNAL_GAMES ? " Early signal." : ""}
+            </span>
+          </div>
+        ))}
       </section>
 
       <Link href="/proof" className="inline-flex min-h-11 items-center self-center text-center text-[13px] font-semibold text-poly-text">

@@ -10,14 +10,14 @@ import { CardSkeleton } from "../ui/skeleton";
 import { PageTitle, Shell } from "../ui/shell";
 import { RecordsView } from "./records-view";
 
-export const metadata: Metadata = { title: "Records" };
+export const metadata: Metadata = { title: "Who's been closer" };
 
 export default function Records() {
   return (
     <Shell blobs={["green", "lime"]}>
       <PageHeader next="/records" />
       <div className="flex flex-col gap-2 pt-2.5">
-        <PageTitle text="Records" />
+        <PageTitle text="Who’s been closer" />
         <p className="m-0 text-[16px] leading-[1.45] text-muted">After every game, we check who got closer to the real result.</p>
       </div>
       <Suspense
