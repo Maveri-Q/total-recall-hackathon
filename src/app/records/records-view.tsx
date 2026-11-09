@@ -127,6 +127,12 @@ export function RecordsView({ all, leagues }: { all: LeagueRecord | null; league
               of <span className="num">{games}</span>
               <br />
               {games === 1 ? "game" : "games"}
+              {/* The typical (middle) gap between the two sources, over every graded game. */}
+              {tab === "all" && all && games > 0 && (
+                <span className="mx-auto mt-1.5 block max-w-[104px] text-[12px] font-semibold leading-tight text-hero-muted">
+                  Usually less than {Math.floor(all.nearly.medianGap) + 1}% apart.
+                </span>
+              )}
             </span>
             <span className="flex flex-col items-end gap-1">
               <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-poly-text">
