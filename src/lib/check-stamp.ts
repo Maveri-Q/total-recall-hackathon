@@ -1,6 +1,7 @@
 // "Check this stamp": reads one stamp back from Sui Mainnet through Tatum, rebuilds the record's fingerprint from
 // what we saved, and says whether they match and whether the stamp came before kickoff. Anyone can run it.
 import "server-only";
+import { cacheLife } from "next/cache";
 import { callFingerprint, readingFingerprint, type SavedCall, type SavedMatch, type SavedReading } from "./stamp-check";
 import { STAMP_KIND } from "./sui-stamp";
 import { createAdminClient } from "./supabase/admin";
@@ -25,10 +26,20 @@ export type StampCheck =
 const DIGEST = /^[1-9A-HJ-NP-Za-km-z]{32,50}$/;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
+/**
+ * A Sui transaction never changes once it's on chain, so each one is read through Tatum once and then cached.
+ * Checking the same stamp again costs no Tatum credits. Errors aren't cached: the next try asks Sui again.
+ */
+async function cachedReadStamps(digest: string) {
+  "use cache";
+  cacheLife("weeks");
+  return readStamps(digest);
+}
+
 export async function checkStamp(digest: string, refId: string): Promise<StampCheck> {
   if (!DIGEST.test(digest) || !UUID.test(refId)) return { ok: false, error: "That isn't a stamp we know." };
 
-  const { timestampMs, stamps } = await readStamps(digest);
+  const { timestampMs, stamps } = await cachedReadStamps(digest);
   const stamp = stamps.find((s) => s.refId === refId);
   if (!stamp) return { ok: false, error: "That record isn't in this Sui transaction." };
 

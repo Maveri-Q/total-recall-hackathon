@@ -54,6 +54,11 @@ describe("buildReading", () => {
       poly_status: "thin_market",
       usable: false,
     });
+    expect(buildReading(match, "pre_kickoff", "2026-10-31T09:30:00Z", bookies, null, true)).toMatchObject({
+      poly_status: "unavailable",
+      usable: false,
+      poly_home: null,
+    });
     expect(buildReading(match, "pre_kickoff", "2026-10-31T09:30:00Z", bookies, null)).toMatchObject({
       poly_status: "not_found",
       in_sync: false,

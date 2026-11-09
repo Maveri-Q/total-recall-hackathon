@@ -16,10 +16,10 @@ export type WalletStatus = {
   canStamp: boolean;
 };
 
-/** Cached for a few minutes, so the Proof page doesn't ask Sui on every visit. */
+/** Asks Sui (through Tatum) at most once an hour, so page visits don't use up Tatum credits. */
 export async function getWalletStatus(): Promise<WalletStatus> {
   "use cache";
-  cacheLife({ stale: 120, revalidate: 300, expire: 3600 });
+  cacheLife({ stale: 300, revalidate: 3600, expire: 7200 });
   const { address, mist } = await getAppBalance();
   return {
     address,

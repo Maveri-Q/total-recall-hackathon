@@ -112,6 +112,7 @@ All in `src/lib/odds.ts` and `src/lib/scoring.ts`, tested against sums worked ou
 ## Honest limits
 
 - **It's early.** 72 graded games so far, across 6 leagues. Nearly all were too close to call: the bookies and Polymarket usually agree within 3 points. Small samples are always labelled, and every claim shows how many games it's based on.
+- **Our first Tatum account (the one on the submission form) ran out of free credits on 6 Nov, so the 7–8 Nov games weren't recorded.** The live app now uses a second Tatum account so it keeps working during judging.
 - **A stamp proves when we recorded something,** not that every bettor could get that price, and not that a source is trustworthy.
 - **Our first 11 readings were stamped late** (27 Oct, before stamping went live). Check says so plainly. Every reading since is stamped before kickoff.
 - **One app wallet pays for every stamp** (below). Users don't sign anything, so a call's stamp proves *the app* recorded it at that time.

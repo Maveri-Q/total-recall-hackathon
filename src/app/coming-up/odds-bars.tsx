@@ -47,6 +47,7 @@ export function OddsBars({
   homeCode,
   awayCode,
   gap,
+  polyUnavailable = false,
 }: {
   bookies: ThreeWay;
   poly: ThreeWay | null;
@@ -56,6 +57,7 @@ export function OddsBars({
   homeCode: string;
   awayCode: string;
   gap: { outcome: Outcome; points: number; polyHigher: boolean } | null;
+  polyUnavailable?: boolean;
 }) {
   // Where the middle of the draw part of the bars is. A first guess from the chances, then measured from the
   // bars themselves (each part has a minimum width, so a small part is drawn wider than its percentage).
@@ -93,7 +95,9 @@ export function OddsBars({
   const n = gap ? Math.round(gap.points) : 0;
   const what = !gap ? "" : gap.outcome === "home" ? home : gap.outcome === "away" ? away : "a draw";
   const verdict = !poly
-    ? "No Polymarket market for this game yet"
+    ? polyUnavailable
+      ? "Polymarket unavailable"
+      : "No Polymarket market for this game yet"
     : n >= 5
       ? `${gap!.polyHigher ? "Polymarket rates" : "Bookies rate"} ${what} ${n} points higher`
       : "They agree on this one";

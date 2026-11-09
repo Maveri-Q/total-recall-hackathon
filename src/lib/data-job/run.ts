@@ -339,6 +339,7 @@ export async function runDataJob(now: Date = new Date()): Promise<RunSummary> {
           }
 
           let poly = null;
+          let polyUnavailable = false;
           try {
             let link: PolymarketLink | null =
               match.polymarket_status === "matched" && match.polymarket_event_id && match.polymarket_markets
@@ -373,9 +374,10 @@ export async function runDataJob(now: Date = new Date()): Promise<RunSummary> {
             }
             poly = link ? await fetchPolymarketPrices(link) : null;
           } catch (e) {
-            // Tatum trouble: don't save a half reading. The next run tries again.
-            log.push(`${label}: Tatum error, will try next run (${errorText(e)})`);
-            continue;
+            // Tatum trouble: keep the bookie odds, marked "Polymarket unavailable". No Polymarket numbers are
+            // saved or guessed, and the reading is left out of scoring.
+            log.push(`${label}: Polymarket unavailable, saving bookie odds only (${errorText(e)})`);
+            polyUnavailable = true;
           }
 
           // 4. Save.
@@ -392,6 +394,7 @@ export async function runDataJob(now: Date = new Date()): Promise<RunSummary> {
               odds.fetchedAt,
               bookies,
               poly,
+              polyUnavailable,
             );
             const { error } = await db
               .from("readings")

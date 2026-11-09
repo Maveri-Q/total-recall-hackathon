@@ -44,7 +44,8 @@ export type Reading = {
   bookie_home: number | null;
   bookie_draw: number | null;
   bookie_away: number | null;
-  poly_status: "ok" | "thin_market" | "not_found";
+  /** "unavailable": Polymarket (through Tatum) couldn't be reached, so only the bookie odds were saved. */
+  poly_status: "ok" | "thin_market" | "not_found" | "unavailable";
   poly_fetched_at: string | null;
   poly_volume: number | null;
   poly_yes_home: number | null;
@@ -100,10 +101,18 @@ export function buildReading(
   oddsFetchedAt: string,
   bookies: BookiePrice[],
   poly: PolyPrices | null,
+  /** Polymarket couldn't be reached: save the bookie odds alone, marked "unavailable" (poly must be null). */
+  polyUnavailable = false,
 ): Reading {
   const consensus = bookieConsensus(bookies);
   const polyChances = poly ? chancesFromPrices(poly.yes) : null;
-  const polyStatus = !poly || !polyChances ? "not_found" : poly.volume < MIN_POLY_VOLUME_USD ? "thin_market" : "ok";
+  const polyStatus = polyUnavailable
+    ? "unavailable"
+    : !poly || !polyChances
+      ? "not_found"
+      : poly.volume < MIN_POLY_VOLUME_USD
+        ? "thin_market"
+        : "ok";
   const synced = inSync(oddsFetchedAt, poly?.fetchedAt ?? null);
 
   return {

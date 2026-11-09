@@ -82,6 +82,7 @@ function toView(m: UpcomingMatch, call: MyCall | undefined): MatchView {
     away: m.away,
     bookies,
     poly,
+    polyUnavailable: r?.poly_status === "unavailable",
     gap: r && bookies && poly ? readingGap(r) : null,
     movement,
     call: latest

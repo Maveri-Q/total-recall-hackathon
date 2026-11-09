@@ -100,11 +100,14 @@ describe("data job, normal run", () => {
 });
 
 describe("data job, when things go wrong", () => {
-  it("Tatum down: saves no half reading and tries again next run", async () => {
-    services.findPolymarketMatch.mockRejectedValue(new Error("Tatum 503 Service Unavailable"));
+  it("Tatum down: keeps the bookie odds, marked Polymarket unavailable, never guessed", async () => {
+    services.findPolymarketMatch.mockRejectedValue(new Error("Tatum 402 plan limit exceeded"));
     const summary = await runDataJob(now);
-    expect(writes(calls, "readings", "upsert")).toEqual([]);
-    expect(summary.log.join("\n")).toContain("Tatum error, will try next run");
+    const [reading] = writes(calls, "readings", "upsert") as { poly_status: string; usable: boolean; poly_home: number | null; bookie_home: number | null }[];
+    expect(reading).toMatchObject({ poly_status: "unavailable", usable: false, poly_home: null });
+    expect(reading.bookie_home).not.toBeNull();
+    expect(writes(calls, "matches", "update")).toEqual([]); // the match isn't marked "no market"
+    expect(summary.log.join("\n")).toContain("Polymarket unavailable, saving bookie odds only");
     expect(services.queueMemories).toHaveBeenCalled(); // later steps still run
     finishedRun();
   });

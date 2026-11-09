@@ -25,7 +25,7 @@ export type ReadingRow = {
   bookie_home: number | string | null;
   bookie_draw: number | string | null;
   bookie_away: number | string | null;
-  poly_status: "ok" | "thin_market" | "not_found";
+  poly_status: "ok" | "thin_market" | "not_found" | "unavailable";
   poly_volume: number | string | null;
   poly_home: number | string | null;
   poly_draw: number | string | null;
@@ -86,6 +86,7 @@ export function readingGap(r: ReadingRow): { outcome: Outcome; points: number; p
 
 function whyNotCounted(r: ReadingRow): string {
   if (r.poly_status === "not_found") return "no Polymarket market for this match";
+  if (r.poly_status === "unavailable") return "Polymarket unavailable when we checked";
   if (r.poly_status === "thin_market") return `Polymarket market too thin (${usd(r.poly_volume ?? 0)} traded)`;
   if (!r.in_sync) return "bookie and Polymarket prices fetched more than 5 minutes apart";
   return "missing prices";
@@ -110,7 +111,9 @@ export function readingMemoryText(m: MatchInfo, r: ReadingRow): string {
     `Odds reading for ${m.homeTeam} v ${m.awayTeam} (${m.leagueName}), kickoff ${kickoff(m.kickoffAt)}.`,
     `${KIND_TEXT[r.kind]}, taken ${beforeKickoff(r, m)} before kickoff.`,
     b ? `Bookies (middle of ${r.bookie_count}): ${threeWayText(b, m)}.` : "Bookies: no odds.",
-    r.poly_status === "not_found"
+    r.poly_status === "unavailable"
+      ? "Polymarket: unavailable when we checked."
+      : r.poly_status === "not_found"
       ? "Polymarket: no market for this match."
       : p
         ? `Polymarket (${usd(r.poly_volume ?? 0)} traded): ${threeWayText(p, m)}.`
