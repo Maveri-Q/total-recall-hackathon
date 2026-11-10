@@ -1,0 +1,45 @@
+[
+  {"scene": "problem", "lines": [
+    "Racing Santander against Real Madrid.",
+    "The bookies give Madrid seventy-eight percent.",
+    "Polymarket says eighty-one.",
+    "Same match. Two prices.",
+    "Who do you trust?"
+  ]},
+  {"scene": "read", "lines": [
+    "Vernier reads both prices before every big game.",
+    "Odds from twenty bookies. Polymarket prices through Tatum, with three hundred thousand dollars traded on this one."
+  ]},
+  {"scene": "stamp", "lines": [
+    "Every reading is stamped on Sui Mainnet, through Tatum.",
+    "This one, nearly four hours before kickoff.",
+    "Nobody can change it later. Not even us."
+  ]},
+  {"scene": "grade", "lines": [
+    "After full time, Vernier checks who was closer.",
+    "Madrid won three nil. Polymarket was closer.",
+    "The reading, the result and the score go into Walrus Memory.",
+    "Four hundred and fifteen memories on Walrus Mainnet so far."
+  ]},
+  {"scene": "learn", "lines": [
+    "After seventy-two games, a pattern.",
+    "They nearly always agree. Usually less than one percent apart.",
+    "But Polymarket was a little closer fifty-one times. The bookies, twenty-one."
+  ]},
+  {"scene": "recall", "lines": [
+    "Before the next game, Vernier recalls games like it from Walrus.",
+    "So you see who's been closer, before you pick."
+  ]},
+  {"scene": "call", "lines": [
+    "Then make your own call. One tap.",
+    "It's stamped on Sui, and graded after the match.",
+    "No wallet. No gas. Vernier remembers your record too."
+  ]},
+  {"scene": "built", "lines": [
+    "Odds in. Stamped on Sui. Remembered on Walrus.",
+    "Two hundred tests passing. Real data. All on Mainnet."
+  ]},
+  {"scene": "close", "lines": [
+    "Vernier. Bookies versus Polymarket, measured to the last point."
+  ]}
+]

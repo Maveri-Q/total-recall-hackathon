@@ -4,8 +4,19 @@
     {
       "name": "dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
       "port": 3000
+    },
+    {
+      "name": "replay",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "scripts/dev-replay.mjs"
+      ],
+      "port": 3005
     }
   ]
 }

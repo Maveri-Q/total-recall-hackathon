@@ -1,5 +1,6 @@
 // Data for the Proof page: real counts, the latest Walrus memories (the app's, and the user's own calls only),
 // the latest Sui stamps (the app's readings, and the user's own calls only) and when Tatum was last used.
+import { appNow } from "./app-now";
 import "server-only";
 import { callLabel, type Call } from "./call-result";
 import { fanId } from "./fan-id";
@@ -48,7 +49,7 @@ export async function getProofPage(now: Date, userId: string | null): Promise<Pr
     userId
       ? db.from("memories").select(cols).eq("status", "saved").eq("kind", "call").eq("fan_id", fanId(userId)).order("saved_at", { ascending: false }).limit(ALL_MEMORIES)
       : Promise.resolve({ data: null, error: null }),
-    db.from("readings").select("id, sui_digest, stamped_at, matches(home_team, away_team, kickoff_at)").eq("sui_status", "stamped").order("stamped_at", { ascending: false }).limit(LIST),
+    db.from("readings").select("id, sui_digest, stamped_at, matches(home_team, away_team, kickoff_at)").eq("sui_status", "stamped").lte("stamped_at", appNow().toISOString()).order("stamped_at", { ascending: false }).limit(LIST),
     userId
       ? db
           .from("prediction_versions")

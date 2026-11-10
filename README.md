@@ -19,6 +19,11 @@ Built for the Total Recall hackathon (Tatum × Walrus), Track 1: Markets and Spo
 
 - **No sign-up needed to look around.** Matches, Records and Proof are open to everyone.
 - **No wallet, no SUI, no faucet.** The app pays the gas for every stamp from its own wallet (see [How gas works](#how-gas-works)).
+- **Judge test account**, so you can make a call without using your own Google account. Tap a pick, then **Continue with email**:
+  - Email: `judges@vernier-odds.test`
+  - Password: `vernier-1a0da09f-c435c18e`
+
+  It's a normal user account made only for judges: no admin rights, and the same daily call limit as everyone else.
 
 ### A 60-second tour
 1. **Matches** (home): this week's games from 6 leagues. Each game shows the bookies' chances next to Polymarket's, as two bars. Under them: "They agree on this one" or the gap, and how the odds moved since our first check.
@@ -35,7 +40,7 @@ Short version: `npm install`, copy `.env.example` to `.env.local` and fill in th
 | We say | How to check it |
 |---|---|
 | Odds are recorded before kickoff and can't be changed after | Proof → **Check** on any stamp. Or open it on Suiscan and compare the `Stamped` event's time with kickoff. |
-| Walrus remembers every reading, result and record | Proof → **Check** on any memory opens its blob on Walruscan. 408 memories and counting (9 Nov). |
+| Walrus remembers every reading, result and record | Proof → **Check** on any memory opens its blob on Walruscan. 416 memories and counting (10 Nov). |
 | Walrus recall drives the advice | Open a game's record card: the games listed under "The games Walrus brought back" are the ones counted. |
 | The app learns as games are played | Records → **How this changed**: the record after each graded game, each step a Walrus memory saved that day. |
 | It's all real data | Every number comes from The Odds API, Polymarket (via Tatum) or football-data.org. No demo or seeded data. |
@@ -76,20 +81,21 @@ Every hour, at :17 past (Supabase `pg_cron` starts the job on time; GitHub's own
 
 ## Mainnet proof
 
-Checked 9 Nov 2026.
+Checked 10 Nov 2026.
 
 | What | Value |
 |---|---|
-| Walrus memories saved on Mainnet | **408**: 168 odds readings, 124 match results, 81 league records, 35 user calls |
+| Walrus memories saved on Mainnet | **416**: 168 odds readings, 124 match results, 88 league records, 36 user calls |
 | `MEMWAL_AGENT_ID` (Walrus Memory account ID) | `0xfdf452a10a829d4b5f7331a2a993b5ee088456717d9b6cd221b18dbf868f27b8` |
-| Sui stamps | **205**: 168 odds readings and 37 user calls |
+| Sui stamps | **206**: 168 odds readings and 38 user calls |
 | Sui package (`stamp` Move module) | [`0xa4b3e8cc…df210237`](https://suiscan.xyz/mainnet/object/0xa4b3e8ccb8b9331838bb8257c4ec06d3ea7848b67c4cabde3248b7e6df210237) |
 | App wallet that pays for stamps | [`0x6d7a28ce…e388f88f3a`](https://suiscan.xyz/mainnet/account/0x6d7a28ce3c59ebe4596e2d13ac7872b2ef9a828945bfd6cbad9df8e388f88f3a) |
 | Games with readings / graded so far | 92 / 72, across 6 leagues |
-| Hourly data job runs | 358 |
+| Hourly data job runs | 380 |
 | Walrus Memory dashboard | https://memory.walrus.xyz/dashboard |
 
 Real stamps on Suiscan:
+- [Racing Santander v Real Madrid, odds 3 hours 57 minutes before kickoff](https://suiscan.xyz/mainnet/tx/46XxatkKHrhbFmQQrJk5aF1aNNLYcyVWS8JkGgaWH84a) (1 Nov, the game in the demo video)
 - [Le Havre v PSG, odds 3.7 hours before kickoff](https://suiscan.xyz/mainnet/tx/wBy8XnsUgeiyNKqnbzTtvMHEk42mfQ945C3q19epxQN) (30 Oct)
 - [Villarreal v Espanyol, odds the day before](https://suiscan.xyz/mainnet/tx/Cd8yKFkf7b3pUXZ19612tGR6LuUoVe9959AGRVr97Wof) (29 Oct)
 - [Frosinone v Lecce, odds 3.2 hours before kickoff](https://suiscan.xyz/mainnet/tx/CFjLWQ9KusznghbMfvTgm9vg6rwdgskvJRFLd9Dma7EA) (29 Oct)

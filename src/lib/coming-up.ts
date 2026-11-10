@@ -77,7 +77,8 @@ export async function getUpcomingMatches(now: Date): Promise<UpcomingMatch[]> {
   ]);
   if (error) throw new Error(`loading matches: ${error.message}`);
   return (data ?? []).map((m) => {
-    const readings = (m.readings ?? []) as ReadingRow[];
+    // Only readings taken by `now` (always true live; matters when replaying a past moment).
+    const readings = ((m.readings ?? []) as ReadingRow[]).filter((r) => Date.parse(r.odds_fetched_at) <= now.getTime());
     const leagueTeams = teams.filter((t) => t.league_code === m.league_code);
     return {
       id: m.id,
@@ -101,6 +102,7 @@ export async function getRecentResults(now: Date): Promise<RecentResult[]> {
     .select("id, league_code, home_team, away_team, kickoff_at, home_goals, away_goals, readings(*)")
     .not("graded_at", "is", null)
     .eq("result_status", "finished")
+    .lt("kickoff_at", now.toISOString())
     .gte("kickoff_at", new Date(now.getTime() - 30 * 24 * 3600_000).toISOString())
     .order("kickoff_at", { ascending: false });
   if (error) throw new Error(`loading results: ${error.message}`);
@@ -137,7 +139,8 @@ export async function lastCheckedAt(): Promise<string | null> {
  * and scoreline() counts them. Cached for 15 minutes: new games are only added once an hour.
  * `weekAgo` is passed in (rounded to the hour) so the cache can be shared.
  */
-export async function bandScore(leagueCode: string, band: GapBand, weekAgo: string): Promise<BandScore> {
+/** `asOf` (replay only, see app-now.ts): count only games that had kicked off by then. */
+export async function bandScore(leagueCode: string, band: GapBand, weekAgo: string, asOf?: string): Promise<BandScore> {
   "use cache";
   cacheLife({ stale: 300, revalidate: 900, expire: 3600 });
 
@@ -170,7 +173,7 @@ export async function bandScore(leagueCode: string, band: GapBand, weekAgo: stri
       pastGames.push({ matchId: match.id, leagueCode: match.league_code, kickoffAt: match.kickoff_at, readings: match.readings as ReadingRow[] });
     }
   }
-  const score = scoreline(pastGames, leagueCode, band);
+  const score = scoreline(pastGames, leagueCode, band, asOf ? new Date(asOf) : undefined);
 
   return {
     ...score,

@@ -387,3 +387,8 @@ Each league must pass three checks: The Odds API covers it, Polymarket has match
 - "Too close to call" (extra A) is dropped: the lower Brier score is closer and gets the point, however small the gap. Only a same score (within `TIE_MARGIN` 0.0005) is a tie, shown as "same score". All 168 graded readings re-graded with `scripts/regrade-too-close.mts --save` (104 changed). Records, Matches and Last week's results all count from the stored `closer`.
 - Result on 10 Nov: Polymarket 51 · Bookies 21, from 72 games, all under a 5-point gap. Record memories restart with keys ending `:v3`.
 - Records page title is "Who's been closer". League cards show only "Polymarket X · Bookies Y" and "From N games." (early signal under 20).
+
+### Demo video and judge account (10 Nov 2026)
+- Judge test account `judges@vernier-odds.test` (normal user, 30 calls a day like everyone). Made by `scripts/create-judge-user.mts`; password in `.env.local` as `JUDGE_PASSWORD` and in the README on purpose.
+- Video source in `video/`: `record.mts` (Playwright clips at 2x), `stage.html` (the 1920x1080 composition), `render.mts` (frames to ffmpeg, voice + music mix), `sound.py` (music and effects made in code, no licences), `voice_eleven.py` (ElevenLabs voice "George", key `ELEVENLABS_API_KEY` in `.env.local`), `voice.py` (free Edge voice fallback), `judge-login.mts` (sign in by hand in Edge, session saved for the recorder, then deleted). Output `vernier-demo.mp4` (git-ignored, like `video/build`).
+- Replay mode for recording during the international break: `node scripts/dev-replay.mjs` runs `next dev` with `VERNIER_REPLAY_AT` (`src/lib/app-now.ts`), showing pages as they were at that moment from real saved data. Development only; the live site ignores it.

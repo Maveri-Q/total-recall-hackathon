@@ -46,3 +46,7 @@ next-env.d.ts
 
 # Local review screenshots
 /screenshots/
+
+# demo video work files
+/video/build
+/vernier-demo.mp4

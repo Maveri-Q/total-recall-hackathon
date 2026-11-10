@@ -1,0 +1,836 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Vernier demo stage</title>
+<!-- The 1920x1080 stage for the demo video. render.mts calls boot(data) once, then seek(t) for every frame.
+     Everything on screen is worked out from t alone, so each frame is exact and repeatable. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&family=Schibsted+Grotesk:wght@400;500;600;700&display=block" rel="stylesheet">
+<style>
+:root { --ink:#0B1A14; --ink2:#2b3a33; --muted:#4f6158; --faint:#7d8c85; --green:#0FA968; --green-t:#0a7a4c; --lime:#C6F36B;
+  --bg:#F7F9F8; --chalk:#F2F5F1; --bookies:#1e2b25; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--bg); color: var(--ink);
+  font-family: 'Schibsted Grotesk', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+.display { font-family: 'Archivo', system-ui, sans-serif; }
+#glow { position: absolute; width: 1500px; height: 1500px; border-radius: 50%; left: 0; top: 0; pointer-events: none;
+  background: radial-gradient(circle, rgba(15,169,104,.17) 0%, rgba(198,243,107,.07) 38%, rgba(247,249,248,0) 68%); }
+#grain { position: absolute; inset: 0; opacity: .5; pointer-events: none;
+  background-image: radial-gradient(rgba(11,26,20,.035) 1px, transparent 1px); background-size: 22px 22px; }
+.layer { position: absolute; inset: 0; opacity: 0; will-change: opacity, transform; }
+
+/* Logo */
+#logo { position: absolute; left: 50%; top: 50%; width: 0; height: 0; }
+#logoTile { position: absolute; width: 300px; height: 300px; left: -150px; top: -150px; }
+#wordmark { position: absolute; left: 0; top: -92px; font: 900 168px/1 'Archivo'; letter-spacing: -.055em; white-space: nowrap; color: var(--ink); }
+#tagline { position: absolute; left: 50%; top: 790px; transform: translateX(-50%); font: 600 34px/1.2 'Archivo'; letter-spacing: -.02em; color: var(--muted); white-space: nowrap; }
+#closeLink { position: absolute; left: 50%; top: 858px; transform: translateX(-50%); font: 800 44px/1 'Archivo'; letter-spacing: -.02em; white-space: nowrap;
+  padding: 18px 34px; border-radius: 999px; background: var(--ink); color: var(--chalk); }
+#closeLink b { color: var(--lime); font-weight: 800; }
+#closeFoot { position: absolute; left: 50%; top: 976px; transform: translateX(-50%); font: 600 22px/1 'Schibsted Grotesk'; color: var(--faint); white-space: nowrap; }
+
+/* Problem card */
+#pKicker { position: absolute; left: 210px; top: 150px; font: 700 26px/1 'Archivo'; letter-spacing: .02em; color: var(--green-t); text-transform: uppercase; }
+#pTitle { position: absolute; left: 204px; top: 196px; font: 900 104px/1.02 'Archivo'; letter-spacing: -.05em; white-space: nowrap; }
+#rulers { position: absolute; left: 0; top: 350px; }
+#pLines { position: absolute; left: 210px; top: 884px; font: 800 64px/1.1 'Archivo'; letter-spacing: -.035em; display: flex; gap: 30px; white-space: nowrap; }
+#pLines span { display: inline-block; }
+#pLines .q { color: var(--green-t); }
+
+/* Captions beside the phone */
+#cap { position: absolute; left: 100px; top: 0; width: 700px; height: 1080px; }
+#kicker { position: absolute; left: 0; top: 214px; font: 800 24px/1 'Archivo'; letter-spacing: .06em; text-transform: uppercase; color: var(--green-t);
+  display: flex; align-items: center; gap: 14px; }
+#kicker i { display: inline-block; width: 34px; height: 6px; border-radius: 3px; background: var(--lime); box-shadow: 0 0 0 1px rgba(11,26,20,.08); }
+.line { position: absolute; left: 0; top: 262px; width: 700px; font: 800 52px/1.12 'Archivo'; letter-spacing: -.035em; color: var(--ink); }
+.line .w { display: inline; transition: none; }
+.line .w { display: inline-block; }
+.line .w.hl { color: var(--green-t); position: relative; }
+.line .w.hl::after { content: ""; position: absolute; left: 0; right: 0; bottom: 2px; height: 10px; border-radius: 5px; background: var(--lime);
+  z-index: -1; transform-origin: left; transform: scaleX(var(--u, 0)); }
+#wipe { position: absolute; top: 0; left: 0; width: 1920px; height: 1080px; background: var(--ink); z-index: 50; transform: translateX(-2100px);
+  background-image: repeating-linear-gradient(90deg, rgba(242,245,241,.10) 0 3px, transparent 3px 48px); }
+#wipe::before, #wipe::after { content: ""; position: absolute; top: 0; bottom: 0; width: 22px; background: var(--lime); }
+#wipe::before { right: -22px; } #wipe::after { left: -22px; }
+#wipe i { position: absolute; left: 50%; top: 50%; width: 180px; height: 180px; margin: -90px 0 0 -90px; }
+#notes { position: absolute; left: 0; top: 590px; width: 700px; display: flex; flex-direction: column; gap: 14px; align-items: flex-start; }
+.note { display: inline-flex; align-items: center; gap: 14px; padding: 16px 24px; border-radius: 20px; background: #fff;
+  box-shadow: 0 1px 0 rgba(11,26,20,.05), 0 10px 30px rgba(11,26,20,.08); font: 600 28px/1.2 'Schibsted Grotesk'; color: var(--ink2); white-space: nowrap; }
+.note b { font: 800 30px/1 'Archivo'; letter-spacing: -.02em; color: var(--ink); }
+.note .dotg { width: 14px; height: 14px; border-radius: 50%; background: var(--green); flex: none; }
+.note .dotb { width: 14px; height: 14px; border-radius: 50%; background: var(--bookies); flex: none; }
+.note .dotl { width: 14px; height: 14px; border-radius: 4px; background: var(--lime); box-shadow: inset 0 0 0 2px rgba(11,26,20,.25); flex: none; }
+#pill { position: absolute; left: 0; top: 950px; display: inline-flex; align-items: center; gap: 12px; font: 600 21px/1 'Schibsted Grotesk'; color: var(--muted); white-space: nowrap; }
+#pill .tag { font: 800 17px/1 'Archivo'; letter-spacing: .08em; padding: 8px 12px; border-radius: 999px; color: #fff; background: var(--ink); }
+#pill .tag.live { background: var(--green); }
+
+/* Big numbers */
+.big { position: absolute; left: 0; top: 560px; display: flex; align-items: flex-end; gap: 28px; }
+.big .n { font: 900 168px/.8 'Archivo'; letter-spacing: -.06em; }
+.big .l { font: 700 30px/1.15 'Archivo'; letter-spacing: -.01em; color: var(--muted); padding-bottom: 8px; }
+#score { position: absolute; left: 0; top: 560px; width: 790px; }
+#score .row { display: flex; align-items: flex-end; gap: 22px; }
+#score .n { font: 900 150px/.8 'Archivo'; letter-spacing: -.06em; }
+#score .lab { font: 700 28px/1 'Archivo'; padding-bottom: 6px; }
+#score .bar { margin-top: 30px; height: 18px; border-radius: 9px; display: flex; gap: 4px; width: 700px; }
+#score .bar span { border-radius: 9px; height: 100%; }
+#score .sub { margin-top: 18px; font: 600 26px/1.2 'Schibsted Grotesk'; color: var(--muted); }
+
+/* Phone */
+#stageR { position: absolute; left: 1340px; top: 540px; width: 0; height: 0; perspective: 2200px; }
+#phone { position: absolute; width: 448px; height: 980px; left: -224px; top: -490px; border-radius: 66px; background: #0d1512;
+  box-shadow: 0 0 0 2px #26302c, 0 50px 90px -30px rgba(11,26,20,.45), 0 20px 50px rgba(11,26,20,.18); transform-style: preserve-3d; }
+#screen { position: absolute; left: 14px; top: 14px; width: 420px; height: 952px; border-radius: 54px; overflow: hidden; background: #f3f6f4; }
+#status { position: absolute; left: 0; top: 0; width: 420px; height: 44px; background: #f3f6f4; z-index: 2; }
+#screen img { position: absolute; left: 0; top: 44px; width: 420px; height: 908px; display: block; }
+#notch { position: absolute; left: 50%; top: 24px; width: 104px; height: 28px; margin-left: -52px; border-radius: 14px; background: #0d1512; z-index: 3; }
+#urlbar { position: absolute; left: 50%; bottom: 30px; transform: translateX(-50%); z-index: 3; font: 600 15px/1 'Schibsted Grotesk';
+  color: rgba(11,26,20,.55); background: rgba(255,255,255,.85); padding: 7px 14px; border-radius: 999px; white-space: nowrap; box-shadow: 0 2px 10px rgba(11,26,20,.08); }
+#bands { position: absolute; left: 0; top: 0; }
+#lift { position: absolute; left: 0; top: 0; border-radius: 20px; opacity: 0; z-index: 20; background: #fff;
+  box-shadow: 0 0 0 3px #fff, 0 0 0 7px var(--lime), 0 40px 80px -20px rgba(11,26,20,.45), 0 16px 40px rgba(11,26,20,.18); }
+#liftRing { position: absolute; border: 4px solid var(--lime); border-radius: 14px; opacity: 0; z-index: 19;
+  box-shadow: 0 0 0 2px rgba(11,26,20,.35), 0 0 30px rgba(198,243,107,.6); }
+#liftLink { position: absolute; left: 0; top: 0; z-index: 18; pointer-events: none; }
+#zoomRing { position: absolute; border: 4px solid var(--lime); border-radius: 22px; box-shadow: 0 0 0 3px rgba(11,26,20,.12); opacity: 0; z-index: 4; pointer-events: none; }
+
+/* Stamp badge */
+#badge { position: absolute; left: 1520px; top: 120px; width: 320px; padding: 22px 26px; border: 6px solid var(--ink); border-radius: 22px;
+  background: var(--lime); font: 900 44px/1 'Archivo'; letter-spacing: -.03em; text-align: center; transform-origin: center; opacity: 0;
+  box-shadow: 0 20px 40px rgba(11,26,20,.18); }
+#badge small { display: block; margin-top: 10px; font: 700 22px/1 'Archivo'; letter-spacing: 0; }
+
+/* Time compare (stamp scene) */
+#times { position: absolute; left: 0; top: 590px; width: 660px; background: #fff; border-radius: 26px; padding: 26px 30px;
+  box-shadow: 0 1px 0 rgba(11,26,20,.05), 0 16px 40px rgba(11,26,20,.09); }
+#times .r { display: flex; justify-content: space-between; align-items: baseline; font: 600 28px/1 'Schibsted Grotesk'; color: var(--ink2); padding: 10px 0; }
+#times .r b { font: 800 40px/1 'Archivo'; letter-spacing: -.02em; color: var(--ink); }
+#times .track { position: relative; height: 16px; border-radius: 8px; background: rgba(11,26,20,.07); margin: 18px 0 14px; overflow: hidden; }
+#times .fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 8px; background: var(--lime); box-shadow: inset 0 0 0 2px rgba(11,26,20,.12); }
+#times .gapTxt { font: 800 34px/1 'Archivo'; letter-spacing: -.02em; color: var(--green-t); }
+
+/* Receipt (call scene) */
+#receipt { position: absolute; left: 0; top: 560px; width: 640px; background: #fff; border-radius: 26px; padding: 28px 32px 26px;
+  box-shadow: 0 1px 0 rgba(11,26,20,.05), 0 18px 44px rgba(11,26,20,.11); opacity: 0; }
+#receipt .h { font: 800 22px/1 'Archivo'; letter-spacing: .06em; text-transform: uppercase; color: var(--green-t); }
+#receipt .m { margin-top: 14px; font: 800 34px/1.15 'Archivo'; letter-spacing: -.025em; }
+#receipt .k { margin-top: 18px; display: grid; grid-template-columns: 180px 1fr; row-gap: 10px; font: 500 24px/1.2 'Schibsted Grotesk'; color: var(--muted); }
+#receipt .k b { font-weight: 700; color: var(--ink); }
+#receipt .stampMark { position: absolute; right: 26px; top: 22px; padding: 8px 14px; border: 4px solid var(--green); border-radius: 12px;
+  font: 900 22px/1 'Archivo'; color: var(--green-t); letter-spacing: .04em; transform: rotate(-8deg); }
+
+/* Diagram */
+#dTitle { position: absolute; left: 120px; top: 150px; font: 900 84px/1 'Archivo'; letter-spacing: -.05em; }
+#dSub { position: absolute; left: 124px; top: 252px; font: 600 30px/1 'Schibsted Grotesk'; color: var(--muted); }
+#diagram { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+.node { position: absolute; top: 410px; width: 292px; height: 230px; border-radius: 30px; background: #fff; padding: 26px 26px;
+  box-shadow: 0 1px 0 rgba(11,26,20,.05), 0 18px 44px rgba(11,26,20,.10); opacity: 0; }
+.node.dark { background: var(--ink); color: var(--chalk); }
+.node .t { font: 800 34px/1.05 'Archivo'; letter-spacing: -.03em; }
+.node .s { margin-top: 14px; font: 500 22px/1.3 'Schibsted Grotesk'; color: var(--muted); }
+.node.dark .s { color: #b9c7bf; }
+.node .ic { width: 44px; height: 10px; border-radius: 5px; margin-bottom: 20px; }
+#badges { position: absolute; left: 120px; top: 780px; display: flex; gap: 18px; }
+.bdg { padding: 20px 28px; border-radius: 999px; font: 800 34px/1 'Archivo'; letter-spacing: -.02em; background: #fff; opacity: 0;
+  box-shadow: 0 1px 0 rgba(11,26,20,.05), 0 12px 30px rgba(11,26,20,.08); display: inline-flex; align-items: center; gap: 14px; }
+.bdg.ok { background: var(--ink); color: var(--chalk); }
+.bdg.ok i { width: 16px; height: 16px; border-radius: 50%; background: var(--lime); }
+
+/* Progress scale at the bottom */
+#prog { position: absolute; left: 0; top: 1030px; }
+</style>
+</head>
+<body>
+<div id="glow"></div>
+<div id="grain"></div>
+
+<!-- Logo: used for the opening and the close -->
+<div id="logoLayer" class="layer">
+  <div id="logo">
+    <svg id="logoTile" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+      <defs><clipPath id="tileClip"><rect x="1" y="1" width="118" height="118" rx="28"/></clipPath></defs>
+      <rect x="1" y="1" width="118" height="118" rx="28" fill="#0B1A14"/>
+      <g clip-path="url(#tileClip)">
+        <g id="lgTop">
+          <rect x="12" y="18" width="96" height="16" rx="4" fill="#F2F5F1"/>
+          <g stroke-linecap="round" stroke-width="4.2" stroke="#F2F5F1">
+            <line x1="24" y1="34" x2="24" y2="54"/><line x1="36" y1="34" x2="36" y2="45"/><line x1="48" y1="34" x2="48" y2="49"/>
+            <line x1="60" y1="34" x2="60" y2="45"/><line x1="84" y1="34" x2="84" y2="45"/><line x1="96" y1="34" x2="96" y2="54"/>
+          </g>
+        </g>
+        <g id="lgBot">
+          <rect x="28" y="86" width="80" height="16" rx="4" fill="#0FA968"/>
+          <g stroke-linecap="round" stroke-width="4.2" stroke="#0FA968">
+            <line x1="39.6" y1="86" x2="39.6" y2="66"/><line x1="50.4" y1="86" x2="50.4" y2="75"/><line x1="61.2" y1="86" x2="61.2" y2="75"/>
+            <line x1="82.8" y1="86" x2="82.8" y2="75"/><line x1="93.6" y1="86" x2="93.6" y2="75"/>
+          </g>
+        </g>
+        <line id="lgLime" x1="72" y1="32" x2="72" y2="88" stroke="#C6F36B" stroke-width="6.5" stroke-linecap="round"/>
+      </g>
+    </svg>
+    <div id="wordmark">vernier</div>
+  </div>
+  <div id="tagline">Bookies vs Polymarket. Measured to the last point.</div>
+  <div id="closeLink">vernier-odds<b>.</b>vercel.app</div>
+  <div id="closeFoot">Built for Total Recall, the Tatum × Walrus memory hackathon. Code: github.com/Maveri-Q/total-recall-hackathon</div>
+</div>
+
+<!-- Scene 1: the problem -->
+<div id="problemLayer" class="layer">
+  <div id="pKicker">La Liga · Sun 1 Nov · kickoff 3:15pm GMT</div>
+  <div id="pTitle" class="display"></div>
+  <canvas id="rulers" width="1920" height="520"></canvas>
+  <div id="pLines"><span id="pl1">Same match. Two prices.</span><span id="pl2" class="q">Who do you trust?</span></div>
+</div>
+
+<!-- Scenes 2 to 7: phone and captions -->
+<div id="appLayer" class="layer">
+  <canvas id="bands" width="1920" height="1080"></canvas>
+  <div id="cap">
+    <div id="kicker"><i></i><span id="kickerText"></span></div>
+    <div id="lines"></div>
+    <div id="notes"></div>
+    <div id="times" style="opacity:0">
+      <div class="r"><span>Stamped on Sui</span><b>11:18 UTC</b></div>
+      <div class="r"><span>Kickoff</span><b>15:15 UTC</b></div>
+      <div class="track"><div class="fill"></div></div>
+      <div class="gapTxt">3 hours 57 minutes before kickoff</div>
+    </div>
+    <div class="big" id="memBig" style="opacity:0"><span class="n" id="memN">0</span><span class="l">memories on<br>Walrus Mainnet</span></div>
+    <div id="score" style="opacity:0">
+      <div class="row">
+        <span class="n" id="scP" style="color:var(--green-t)">0</span><span class="lab" style="color:var(--green-t)">Polymarket</span>
+        <span class="n" id="scB" style="color:var(--bookies);margin-left:26px">0</span><span class="lab" style="color:var(--bookies)">Bookies</span>
+      </div>
+      <div class="bar"><span id="barP" style="background:var(--green)"></span><span id="barB" style="background:var(--bookies)"></span></div>
+      <div class="sub">Who had the lower Brier score, from 72 graded games.</div>
+    </div>
+    <div id="receipt">
+      <div class="stampMark">ON SUI</div>
+      <div class="h">A real call, 6 Nov</div>
+      <div class="m">Hamburger SV v Borussia Mönchengladbach</div>
+      <div class="k">
+        <span>Saved</span><b>07:27:10 UTC</b>
+        <span>Stamped</span><b>0.9 seconds later</b>
+        <span>Transaction</span><b>3J5Zrl…o4FZVMc</b>
+        <span>Paid by</span><b>the app wallet, not the fan</b>
+      </div>
+    </div>
+    <div id="pill"><span class="tag" id="pillTag">REPLAY</span><span id="pillText"></span></div>
+  </div>
+  <div id="stageR">
+    <div id="phone">
+      <div id="screen"><div id="status"></div><img id="imB" alt=""><img id="imA" alt=""><div id="zoomRing"></div></div>
+      <div id="notch"></div>
+    </div>
+  </div>
+  <svg id="liftLink" width="1920" height="1080"><line id="llA" stroke="#0B1A14" stroke-width="7" stroke-linecap="round"/><line id="llB" stroke="#C6F36B" stroke-width="4" stroke-linecap="round"/></svg>
+  <div id="liftRing"></div>
+  <canvas id="lift"></canvas>
+  <div id="badge">Before kickoff<small>3h 57m early, on Sui</small></div>
+</div>
+
+<!-- Scene 8: how it's built -->
+<div id="builtLayer" class="layer">
+  <div id="dTitle">How it's built</div>
+  <div id="dSub">Every step runs for real, on Mainnet.</div>
+  <svg id="diagram" viewBox="0 0 1920 1080"></svg>
+  <div class="node" style="left:120px"><div class="ic" style="background:var(--bookies)"></div><div class="t">Odds in</div><div class="s">The Odds API: 20 UK bookies.<br>Polymarket via Tatum.</div></div>
+  <div class="node" style="left:477px"><div class="ic" style="background:var(--lime)"></div><div class="t">Data job</div><div class="s">Runs every hour. Matches the games, turns odds into chances.</div></div>
+  <div class="node dark" style="left:834px"><div class="ic" style="background:var(--lime)"></div><div class="t">Sui stamp</div><div class="s">A fingerprint of each reading, sent through Tatum before kickoff.</div></div>
+  <div class="node" style="left:1191px"><div class="ic" style="background:var(--green)"></div><div class="t">Walrus Memory</div><div class="s">Readings, results and records. Recalled for every game.</div></div>
+  <div class="node dark" style="left:1548px"><div class="ic" style="background:var(--green)"></div><div class="t">The app</div><div class="s">Who's been closer, before you pick. Your calls too.</div></div>
+  <div id="badges">
+    <span class="bdg ok"><i></i><span id="testsBadge">200 tests passing</span></span>
+    <span class="bdg">Real data</span>
+    <span class="bdg">Sui Mainnet</span>
+    <span class="bdg">Walrus Mainnet</span>
+  </div>
+</div>
+
+<canvas id="prog" width="1920" height="50"></canvas>
+<div id="wipe"><i><svg viewBox="0 0 120 120" width="180" height="180"><rect x="12" y="18" width="96" height="16" rx="4" fill="#F2F5F1"/><rect x="28" y="86" width="80" height="16" rx="4" fill="#0FA968"/><line x1="72" y1="32" x2="72" y2="88" stroke="#C6F36B" stroke-width="6.5" stroke-linecap="round"/></svg></i></div>
+
+<script>
+// ---------- maths ----------
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const inOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+const out = (t) => 1 - Math.pow(1 - t, 3);
+const outBack = (t) => { const c1 = 1.5, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); };
+const prog = (t, a, d) => clamp((t - a) / d);
+const lerp = (a, b, p) => a + (b - a) * p;
+const $ = (id) => document.getElementById(id);
+const FPS = 30;
+
+// ---------- the script ----------
+// Each scene: how long it lasts, when each voice line starts (seconds into the scene), and the caption shown for it.
+// Caption words appear as the voice says them. Numbers are the real ones, checked against the database.
+const SCENES = [
+  { id: "intro", dur: 6.4, lines: [] },
+  { id: "problem", dur: 17.4, lines: [[0.5], [4.0], [7.7], [10.9], [14.0]] },
+  { id: "read", dur: 12.6, kicker: "Read the odds", lines: [
+    [0.5, "Vernier reads both prices before every big game."],
+    [4.8, "Odds from 20 bookies. Polymarket prices through Tatum, with over $300,000 traded on this one."]] },
+  { id: "stamp", dur: 21.4, kicker: "Stamp it", lines: [
+    [0.6, "Every reading is stamped on Sui Mainnet, through Tatum."],
+    [8.4, "This one, nearly 4 hours before kickoff."],
+    [16.0, "Nobody can change it later. Not even us."]] },
+  { id: "grade", dur: 24.4, kicker: "Grade and remember", lines: [
+    [0.6, "After full time, Vernier checks who was closer."],
+    [8.4, "Madrid won 3–0. Polymarket was closer."],
+    [13.7, "The reading, the result and the score go into Walrus Memory."],
+    [18.6, "415 memories on Walrus Mainnet so far."]] },
+  { id: "learn", dur: 16.6, kicker: "What it learned", lines: [
+    [0.7, "After 72 games, a pattern."],
+    [4.1, "They nearly always agree. Usually less than 1% apart."],
+    [8.9, "But Polymarket was a little closer 51 times. The bookies, 21."]] },
+  { id: "recall", dur: 15.4, kicker: "Memory at work", lines: [
+    [1.0, "Before the next game, Vernier recalls games like it from Walrus."],
+    [8.6, "So you see who's been closer, before you pick."]] },
+  { id: "call", dur: 15.6, kicker: "Your call", lines: [
+    [0.6, "Then make your own call. One tap."],
+    [7.8, "It's stamped on Sui, and graded after the match."],
+    [11.0, "No wallet. No gas. Vernier remembers your record too."]] },
+  { id: "built", dur: 11.6, lines: [[0.8], [6.0]] },
+  { id: "close", dur: 9.6, lines: [[1.7]] },
+];
+
+// What the phone shows in each scene: clip name, the clip time to start from, the scene time it starts at,
+// and the label under the captions (replay of a past moment, or the live site).
+const REPLAY_M = ["REPLAY", "Matches page at 12:00 GMT, Sun 1 Nov. Real saved data."];
+const REPLAY_P = ["REPLAY", "Proof page at 12:00 GMT, Sun 1 Nov. The check runs live on Sui."];
+const LIVE = ["LIVE", "vernier-odds.vercel.app"];
+const PHONE = {
+  read: [{ clip: "matches", from: 0, at: 0, max: 10.6, pill: REPLAY_M }],
+  stamp: [{ clip: "stamp", from: 1.5, at: 0, pill: REPLAY_P }, { clip: "suiscan", from: 0.6, at: 14.9, pill: ["LIVE", "suiscan.xyz, Sui Mainnet explorer"] }],
+  grade: [{ clip: "results", from: 0, at: 0, pill: LIVE }, { clip: "memories", from: 0, at: 13.2, pill: ["LIVE", "vernier-odds.vercel.app/proof"] }],
+  learn: [{ clip: "records", from: 0, at: 0, pill: ["LIVE", "vernier-odds.vercel.app/records"] }],
+  recall: [{ clip: "matches", from: 10.8, at: 0, pill: REPLAY_M }],
+  call: [{ clip: "calllive", from: 0, at: 0, pill: ["LIVE", "Signed in as the judge test account"] }],
+};
+
+// Notes that appear under the caption.
+const NOTES = {
+  read: [[6.0, '<span class="dotb"></span><b>78%</b> bookies say Real Madrid win'], [6.5, '<span class="dotg"></span><b>81%</b> Polymarket says Real Madrid win'],
+         [7.4, '<span class="dotl"></span><b>$332,648</b> traded on Polymarket']],
+  stamp: [],
+  grade: [[9.4, '<span class="dotg"></span><b>Polymarket</b> closer: lower Brier score', 13.0], [10.0, '<span class="dotl"></span>Scored after full time, 0–3', 13.0]],
+  recall: [[11.0, '<span class="dotg"></span><b>Recalled from Walrus Memory</b>'], [11.6, '<span class="dotl"></span>Past La Liga games with a gap like this']],
+  call: [[8.6, '<span class="dotl"></span>Stamped on Sui about <b>3 seconds</b> after the tap'], [9.2, '<span class="dotg"></span>The app wallet pays the gas, about <b>0.0001 SUI</b>']],
+};
+
+// Lift-outs: the part of the screen that matters lifts out of the phone, bigger, then goes back.
+// [from, to, [x, y, w, h]] with the box in the app's own pixels (390 x 844), measured from the recorded frames.
+const LIFT = {
+  read: [6.2, 10.3, [14, 158, 356, 190]],
+  stamp: [11.0, 14.6, [28, 252, 330, 138]],
+  grade: [9.6, 13.0, [20, 266, 360, 120]],
+  learn: [1.4, 5.4, [14, 268, 362, 166]],
+  recall: [5.1, 8.8, [28, 352, 336, 212]],
+  call: [9.9, 14.4, [30, 364, 330, 154]],
+};
+
+let DATA = null, VOICE = {}, TOTAL = 0, START = {}, AUDIO = [];
+
+function sceneAt(t) {
+  for (const s of SCENES) if (t < START[s.id] + s.dur) return s;
+  return SCENES[SCENES.length - 1];
+}
+
+function voiceLine(scene, i) { return VOICE[scene + "-" + i]; }
+
+// ---------- boot ----------
+window.boot = (data) => {
+  DATA = data;
+  for (const v of data.timings) VOICE[v.scene + "-" + v.i] = v;
+  // Make room for the voice: a line never starts before the one before it has finished, and a scene lasts
+  // until its last line is done.
+  const len = (v) => (v && v.words.length ? v.words[v.words.length - 1].t + v.words[v.words.length - 1].d : 0);
+  for (const s of SCENES) {
+    let end = 0;
+    s.lines.forEach((l, i) => { if (i > 0) l[0] = Math.max(l[0], end + 0.45); end = l[0] + len(voiceLine(s.id, i)); });
+    s.dur = Math.max(s.dur, end + (s.id === "close" ? 2.4 : 1.0));
+  }
+  let t = 0;
+  for (const s of SCENES) { START[s.id] = t; t += s.dur; }
+  window.SECTIONS = { total: t, start: { ...START } };
+  TOTAL = t;
+  window.TOTAL = TOTAL;
+
+  // Captions: one element per line, words wrapped so they can light up in time with the voice.
+  const lines = $("lines");
+  for (const s of SCENES) (s.lines || []).forEach((l, i) => {
+    if (!l[1]) return;
+    const el = document.createElement("div");
+    el.className = "line"; el.id = `line-${s.id}-${i}`;
+    el.innerHTML = l[1].split(" ").map((w) => `<span class="w${/[0-9$%]|^(Sui|Walrus|Tatum|Polymarket)/.test(w) ? " hl" : ""}">${w}</span> `).join("");
+    lines.appendChild(el);
+  });
+  for (const [sid, list] of Object.entries(NOTES)) list.forEach((n, i) => {
+    const el = document.createElement("div"); el.className = "note"; el.id = `note-${sid}-${i}`; el.innerHTML = n[1]; el.style.opacity = 0;
+    $("notes").appendChild(el);
+  });
+  $("pTitle").innerHTML = "Racing Santander v Real Madrid.".split(" ").map((w) => `<span class="w">${w}</span> `).join("");
+  if (data.tests) $("testsBadge").textContent = `${data.tests} tests passing`;
+
+  buildDiagram();
+
+  // Sound: each voice line, plus effects. render.mts reads this list to mix the soundtrack.
+  for (const s of SCENES) (s.lines || []).forEach((l, i) => {
+    const v = voiceLine(s.id, i);
+    if (v) AUDIO.push({ file: v.file, at: START[s.id] + l[0], vol: 1, kind: "voice" });
+  });
+  const fx = (file, at, vol) => AUDIO.push({ file, at, vol, kind: "fx" });
+  fx("whoosh", 0.15, 0.35); fx("tick", 2.05, 0.9); fx("chime", 2.75, 0.35);
+  const P = START.problem;
+  fx("whoosh", P - 0.3, 0.45); fx("tick", P + 4.0 + 1.25, 0.8); fx("tick", P + 7.7 + 1.25, 0.8); fx("whoosh", P + 10.4, 0.5); fx("tick", P + 11.9, 0.7);
+  for (const id of ["stamp", "grade", "learn", "recall", "call"]) fx("whoosh", START[id] - 0.3, 0.3);
+  for (const id of ["built", "close"]) fx("whoosh", START[id] - 0.45, 0.6);
+  for (const [sid, list] of Object.entries(NOTES)) list.forEach((n) => fx("pop", START[sid] + n[0], 0.6));
+  fx("stamp", START.stamp + 8.95, 0.9);
+  fx("chime", START.grade + 18.9, 0.4);
+  fx("tick", START.learn + 9.2, 0.6);
+  fx("stamp", START.call + 8.3, 0.85);
+  for (const [id, L] of Object.entries(LIFT)) { fx("whoosh", START[id] + L[0] - 0.1, 0.22); fx("pop", START[id] + L[0] + 0.35, 0.5); }
+  const b0 = voiceLine("built", 0), b1 = voiceLine("built", 1);
+  if (b0) [0, 1, 2, 5, 7].forEach((k) => b0.words[k] && fx("tick", START.built + 0.8 + b0.words[k].t, 0.5));
+  if (b1) [0, 4, 6].forEach((k) => b1.words[k] && fx("tick", START.built + 6.0 + b1.words[k].t, 0.5));
+  fx("tick", START.close + 1.25, 0.9); fx("chime", START.close + 6.4, 0.35);
+  window.AUDIO = AUDIO;
+  return TOTAL;
+};
+
+// ---------- diagram ----------
+const NODE_X = [120, 477, 834, 1191, 1548], NODE_W = 292, NODE_Y = 410, NODE_H = 230;
+function buildDiagram() {
+  const svg = $("diagram");
+  let h = "";
+  for (let i = 0; i < 4; i++) {
+    const x1 = NODE_X[i] + NODE_W + 8, x2 = NODE_X[i + 1] - 8, y = NODE_Y + NODE_H / 2;
+    h += `<line id="ar${i}" x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="#0B1A14" stroke-width="5" stroke-linecap="round" opacity="0"/>`;
+    h += `<path id="ah${i}" d="M${x2 - 14} ${y - 11} L${x2} ${y} L${x2 - 14} ${y + 11}" fill="none" stroke="#0B1A14" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity="0"/>`;
+    for (let k = 0; k < 2; k++) h += `<circle id="fd${i}-${k}" r="7" cy="${y}" fill="#C6F36B" stroke="#0B1A14" stroke-width="2" opacity="0"/>`;
+  }
+  svg.innerHTML = h;
+}
+
+// ---------- rulers (scene 1) ----------
+function drawRulers(lt) {
+  const c = $("rulers"), g = c.getContext("2d");
+  g.clearRect(0, 0, c.width, c.height);
+  const X0 = 210, W = 1500;
+  // The vernier zoom: from the whole 0-100% scale to 70-90%, so the 3 point gap opens up.
+  const z = inOut(prog(lt, 10.3, 1.8));
+  const lo = lerp(0, 70, z), hi = lerp(100, 90, z);
+  const x = (v) => X0 + ((v - lo) / (hi - lo)) * W;
+  const topY = 150, botY = 330;
+  const appear = (a) => out(prog(lt, a, 0.7));
+
+  const drawScale = (y, colour, dir, alpha, labels) => {
+    g.globalAlpha = alpha;
+    g.fillStyle = colour;
+    g.beginPath(); g.roundRect(X0 - 10, dir > 0 ? y - 22 : y, W + 20, 22, 6); g.fill();
+    const spacing = W / (hi - lo);
+    for (let v = Math.ceil(lo); v <= Math.floor(hi); v++) {
+      const px = x(v); const major = v % 10 === 0, mid = v % 5 === 0;
+      const len = major ? 40 : mid ? 26 : 14;
+      g.strokeStyle = colour; g.lineWidth = major ? 4 : 3; g.lineCap = "round";
+      g.beginPath(); g.moveTo(px, y); g.lineTo(px, y + dir * len); g.stroke();
+      const showLabel = major || (mid && spacing > 20) || spacing > 56;
+      if (showLabel && labels) {
+        g.font = `700 ${major ? 24 : 20}px Archivo`; g.textAlign = "center"; g.fillStyle = "rgba(11,26,20,.55)";
+        g.fillText(v + "%", px, y + 62);
+      }
+    }
+    g.globalAlpha = 1;
+  };
+  const a1 = appear(3.6), a2 = appear(7.3);
+  if (a1 > 0) drawScale(topY, "#1e2b25", 1, a1, false);
+  if (a2 > 0) drawScale(botY, "#0FA968", -1, a2, true);
+
+  // Lime band between the two readings once both are in and the zoom starts.
+  const gapA = out(prog(lt, 10.9, 0.9));
+  if (gapA > 0) {
+    g.globalAlpha = gapA;
+    g.fillStyle = "rgba(198,243,107,.55)";
+    g.fillRect(x(78), topY + 6, x(81) - x(78), botY - topY - 12);
+    g.strokeStyle = "#0B1A14"; g.lineWidth = 2; g.setLineDash([6, 6]);
+    g.strokeRect(x(78), topY + 6, x(81) - x(78), botY - topY - 12); g.setLineDash([]);
+    g.globalAlpha = 1;
+  }
+  const marker = (v, y, colour, label, sub, a, up) => {
+    if (a <= 0) return;
+    const px = x(v);
+    g.globalAlpha = Math.min(1, a * 1.5);
+    g.strokeStyle = colour; g.lineWidth = 7; g.lineCap = "round";
+    g.beginPath(); g.moveTo(px, up ? y - 4 : y + 4); g.lineTo(px, up ? y + 58 : y - 58); g.stroke();
+    g.fillStyle = colour; g.font = "900 64px Archivo"; g.textAlign = "left";
+    const ty = up ? y - 34 : y + 122;
+    g.fillText(label, px + 18, ty);
+    g.font = "700 24px Archivo"; g.fillStyle = "rgba(11,26,20,.6)";
+    g.fillText(sub, px + 20, up ? ty - 64 : ty + 36);
+    g.globalAlpha = 1;
+  };
+  // Markers slide along their scale to the real reading.
+  const m1 = inOut(prog(lt, 4.0, 1.25)), m2 = inOut(prog(lt, 7.7, 1.25));
+  marker(lerp(0, 78, m1), topY, "#0B1A14", "78%", "BOOKIES · REAL MADRID WIN", prog(lt, 4.0, 0.3), true);
+  marker(lerp(0, 81, m2), botY, "#0a7a4c", "81%", "POLYMARKET · REAL MADRID WIN", prog(lt, 7.7, 0.3), false);
+  if (gapA > 0) {
+    g.globalAlpha = gapA; g.fillStyle = "#0B1A14"; g.font = "800 30px Archivo"; g.textAlign = "left";
+    g.fillText("3 points apart", x(81) + 22, (topY + botY) / 2 + 10);
+    g.globalAlpha = 1;
+  }
+}
+
+// ---------- bottom progress scale ----------
+function drawProgress(t) {
+  const c = $("prog"), g = c.getContext("2d");
+  g.clearRect(0, 0, c.width, c.height);
+  const a = Math.min(prog(t, START.problem - 0.6, 0.8), 1 - prog(t, START.close - 0.2, 0.6));
+  if (a <= 0) return;
+  g.globalAlpha = a;
+  const X0 = 120, W = 1680, y = 22;
+  const px = (s) => X0 + (s / TOTAL) * W;
+  for (let s = 0; s <= TOTAL; s += 1) {
+    const isBoundary = SCENES.some((sc) => Math.abs(START[sc.id] - s) < 0.5);
+    g.strokeStyle = s <= t ? "rgba(11,26,20,.45)" : "rgba(11,26,20,.14)"; g.lineWidth = 2;
+    g.beginPath(); g.moveTo(px(s), y); g.lineTo(px(s), y + (s % 5 === 0 ? 10 : 5)); g.stroke();
+  }
+  for (const sc of SCENES.slice(1)) {
+    g.strokeStyle = "rgba(11,26,20,.35)"; g.lineWidth = 3;
+    g.beginPath(); g.moveTo(px(START[sc.id]), y - 6); g.lineTo(px(START[sc.id]), y + 14); g.stroke();
+  }
+  g.strokeStyle = "#0B1A14"; g.lineWidth = 9; g.lineCap = "round";
+  g.beginPath(); g.moveTo(px(t), y - 12); g.lineTo(px(t), y + 18); g.stroke();
+  g.strokeStyle = "#C6F36B"; g.lineWidth = 5;
+  g.beginPath(); g.moveTo(px(t), y - 10); g.lineTo(px(t), y + 16); g.stroke();
+  g.globalAlpha = 1;
+}
+
+// ---------- phone frames ----------
+function frameSrc(clip, ct) {
+  const idx = DATA.clips[clip];
+  const i = clamp(Math.round(ct * FPS), 0, idx.frames.length - 1);
+  return `build/clips/${clip}/f${String(idx.frames[i]).padStart(5, "0")}.jpg`;
+}
+function phoneState(t) {
+  // The segment showing now, and the one before it (for a short crossfade).
+  const order = ["read", "stamp", "grade", "learn", "recall", "call"];
+  const segs = [];
+  for (const id of order) for (const s of PHONE[id]) segs.push({ ...s, scene: id, g: START[id] + s.at });
+  for (let k = 0; k < segs.length; k++) segs[k].end = k + 1 < segs.length ? segs[k + 1].g : START.built;
+  let k = segs.findIndex((s, j) => t >= s.g && t < segs[j].end);
+  if (k < 0) k = t < segs[0].g ? 0 : segs.length - 1;
+  const cur = segs[k], prev = segs[k - 1];
+  const ct = (s, tt) => Math.min(s.from + (tt - s.g), s.max ?? 1e9);
+  return {
+    a: frameSrc(cur.clip, ct(cur, t)), pill: cur.pill,
+    b: prev ? frameSrc(prev.clip, ct(prev, prev.end)) : null,
+    mix: prev ? inOut(prog(t, cur.g, 0.45)) : 1,
+  };
+}
+async function setImg(img, src) {
+  if (!src) { img.style.visibility = "hidden"; return; }
+  img.style.visibility = "visible";
+  if (img.getAttribute("src") !== src) { img.setAttribute("src", src); try { await img.decode(); } catch {} }
+}
+
+// ---------- captions ----------
+function showCaptions(t, s) {
+  const lt = t - START[s.id];
+  for (const sc of SCENES) (sc.lines || []).forEach((l, i) => {
+    const el = $(`line-${sc.id}-${i}`);
+    if (!el) return;
+    if (sc.id !== s.id) { el.style.opacity = 0; return; }
+    const next = sc.lines[i + 1];
+    const startAt = l[0] - 0.15, endAt = next ? next[0] - 0.2 : sc.dur;
+    if (lt < startAt - 0.4 || lt > endAt + 0.4) { el.style.opacity = 0; return; }
+    const inP = out(prog(lt, startAt - 0.3, 0.4)), outP = prog(lt, endAt - 0.1, 0.35);
+    el.style.opacity = inP * (1 - outP);
+    el.style.transform = `translateY(${(1 - inP) * 26 - outP * 26}px)`;
+    // Words light up as the voice says them.
+    const v = voiceLine(sc.id, i), ws = el.querySelectorAll(".w");
+    let f = 1;
+    if (v && v.words.length) {
+      const said = v.words.filter((w) => lt >= l[0] + w.t - 0.05).length;
+      f = said / v.words.length;
+    }
+    // Caption word j lights with voice word round(j * voice words / caption words).
+    ws.forEach((w, j) => {
+      let at = startAt;
+      if (v && v.words.length) at = l[0] + v.words[Math.min(v.words.length - 1, Math.floor((j * v.words.length) / ws.length))].t - 0.05;
+      const p = out(prog(lt, at, 0.28));
+      w.style.opacity = 0.16 + 0.84 * p;
+      w.style.transform = `translateY(${(1 - p) * 12}px)`;
+      if (w.classList.contains("hl")) w.style.setProperty("--u", inOut(prog(lt, at + 0.1, 0.45)));
+    });
+  });
+}
+
+// ---------- staging helpers ----------
+function drawBands(t, px, alpha, shift) {
+  const c = $("bands"), g = c.getContext("2d");
+  g.clearRect(0, 0, 1920, 1080);
+  if (alpha <= 0) return;
+  g.globalAlpha = alpha;
+  const step = 24;
+  const band = (y, h, colour, dir, off) => {
+    g.fillStyle = colour; g.fillRect(0, y, 1920, h);
+    g.strokeStyle = colour; g.lineCap = "round";
+    const o = ((off % step) + step) % step;
+    const base = Math.floor(off / step);
+    for (let k = -2; k < 1920 / step + 2; k++) {
+      const x = k * step + o;
+      const n = k - base;
+      const major = ((n % 10) + 10) % 10 === 0, mid = ((n % 5) + 5) % 5 === 0;
+      g.lineWidth = major ? 4 : 3;
+      const len = major ? 30 : mid ? 20 : 11;
+      g.beginPath(); g.moveTo(x, dir > 0 ? y + h : y); g.lineTo(x, dir > 0 ? y + h + len : y - len); g.stroke();
+    }
+  };
+  // Slow drift, plus a big slide each time the scene changes: the two scales move past each other.
+  band(28, 20, "#1e2b25", 1, -t * 14 - shift * 264);
+  band(1004, 20, "#0FA968", -1, t * 14 + shift * 264);
+  // The lime index line where the phone stands, from scale to scale.
+  g.strokeStyle = "#0B1A14"; g.lineWidth = 12; g.lineCap = "round";
+  g.beginPath(); g.moveTo(px, 50); g.lineTo(px, 1002); g.stroke();
+  g.strokeStyle = "#C6F36B"; g.lineWidth = 7;
+  g.beginPath(); g.moveTo(px, 50); g.lineTo(px, 1002); g.stroke();
+  g.globalAlpha = 1;
+}
+
+function drawLift(L, q, px, py, S, side) {
+  const card = $("lift"), ring = $("liftRing");
+  if (!L || q <= 0.001) { card.style.opacity = 0; ring.style.opacity = 0; $("liftLink").style.opacity = 0; return; }
+  const [x, y, w, h] = L[2];
+  // Where that part sits on the phone right now (the phone is held flat while lifted).
+  const is = S * (420 / 390);
+  const imgX = px + S * (-224 + 14), imgY = 540 + py + S * (-490 + 14 + 44);
+  const sx = imgX + x * is, sy = imgY + y * is, sw = w * is, sh = h * is;
+  // Where it lifts to: bigger, half over the phone, towards the captions.
+  const k = Math.min(1.5, 560 / w);
+  const tw = w * k, th = h * k;
+  const tcx = px - side * 330, tcy = Math.max(360, Math.min(720, sy + sh / 2));
+  const cw = lerp(sw, tw, q), ch = lerp(sh, th, q);
+  const cx = lerp(sx + sw / 2, tcx, q), cy = lerp(sy + sh / 2, tcy, q);
+  card.width = Math.round(tw * 2); card.height = Math.round(th * 2);
+  const g = card.getContext("2d");
+  const im = $("imA");
+  const nat = im.naturalWidth / 390 || 2;
+  g.drawImage(im, x * nat, y * nat, w * nat, h * nat, 0, 0, card.width, card.height);
+  card.style.width = `${cw}px`; card.style.height = `${ch}px`;
+  card.style.transform = `translate(${cx - cw / 2}px, ${cy - ch / 2}px) rotate(${-1.2 * side * q}deg)`;
+  card.style.opacity = Math.min(1, q * 2.5);
+  ring.style.left = `${sx - 6}px`; ring.style.top = `${sy - 6}px`; ring.style.width = `${sw + 12}px`; ring.style.height = `${sh + 12}px`;
+  ring.style.opacity = q;
+  const ax = side > 0 ? sx - 6 : sx + sw + 6, ay = sy + sh / 2;
+  const bx = side > 0 ? cx + cw / 2 : cx - cw / 2, by = cy;
+  for (const id of ["llA", "llB"]) { const l = $(id); l.setAttribute("x1", ax); l.setAttribute("y1", ay); l.setAttribute("x2", bx); l.setAttribute("y2", by); }
+  $("liftLink").style.opacity = q > 0.6 ? (q - 0.6) / 0.4 : 0;
+}
+
+// ---------- seek ----------
+let busy = Promise.resolve();
+window.seek = (t) => (busy = busy.then(() => draw(t)));
+
+async function draw(t) {
+  const s = sceneAt(t);
+  const lt = t - START[s.id];
+
+  // Background glow drifts slowly, so the frame never feels frozen.
+  $("glow").style.transform = `translate(${1000 + Math.sin(t / 9) * 260 - 750}px, ${300 + Math.cos(t / 11) * 160 - 750}px)`;
+
+  // Logo (opening and close)
+  const L = $("logoLayer");
+  if (s.id === "intro" || s.id === "close") {
+    const intro = s.id === "intro";
+    const slide = (a) => inOut(prog(lt, a, 1.3));
+    const ts = slide(intro ? 0.2 : 0.0), tb = slide(intro ? 0.35 : 0.1);
+    $("lgTop").setAttribute("transform", `translate(${(1 - ts) * -130} 0)`);
+    $("lgBot").setAttribute("transform", `translate(${(1 - tb) * 130} 0)`);
+    const drop = outBack(prog(lt, intro ? 1.65 : 1.15, 0.45));
+    const lime = $("lgLime");
+    lime.setAttribute("y1", 32 - (1 - clamp(drop)) * 60); lime.setAttribute("y2", lerp(-28, 88, drop));
+    lime.style.opacity = prog(lt, intro ? 1.6 : 1.1, 0.1);
+    const shift = inOut(prog(lt, intro ? 2.5 : 1.9, 0.9));
+    const wm = $("wordmark");
+    const tile = $("logoTile");
+    // Tile moves left and the wordmark comes in beside it.
+    const total = 300 + 40 + 560;
+    tile.style.transform = `translateX(${-shift * (total / 2 - 150)}px)`;
+    wm.style.left = `${-total / 2 + 340}px`;
+    wm.style.opacity = prog(lt, intro ? 2.75 : 2.15, 0.6);
+    wm.style.transform = `translateX(${(1 - out(prog(lt, intro ? 2.6 : 2.0, 0.9))) * 60}px)`;
+    if (intro) {
+      const exit = inOut(prog(lt, 5.5, 0.9));
+      L.style.opacity = 1 - exit;
+      $("logo").style.transform = `translateY(${-exit * 30}px) scale(${1 + exit * 0.08})`;
+      $("tagline").style.opacity = 0; $("closeLink").style.opacity = 0; $("closeFoot").style.opacity = 0;
+    } else {
+      L.style.opacity = prog(lt, 0, 0.4);
+      $("logo").style.transform = `translateY(${-inOut(prog(lt, 3.2, 0.9)) * 130}px)`;
+      const tg = out(prog(lt, 3.6, 0.8));
+      $("tagline").style.opacity = tg; $("tagline").style.transform = `translate(-50%, ${(1 - tg) * 20 - 130}px)`;
+      const cl = outBack(prog(lt, 4.6, 0.7));
+      $("closeLink").style.opacity = clamp(cl); $("closeLink").style.transform = `translate(-50%, -120px) scale(${0.9 + 0.1 * cl})`;
+      $("closeFoot").style.opacity = prog(lt, 5.6, 0.8); $("closeFoot").style.transform = `translate(-50%, -110px)`;
+    }
+  } else L.style.opacity = 0;
+
+  // Scene 1
+  const Pl = $("problemLayer");
+  if (s.id === "problem") {
+    Pl.style.opacity = Math.min(prog(lt, 0, 0.5), 1 - prog(lt, s.dur - 0.6, 0.6));
+    $("pKicker").style.opacity = prog(lt, 0.2, 0.5);
+    const v = voiceLine("problem", 0), ws = $("pTitle").querySelectorAll(".w");
+    const said = v ? v.words.filter((w) => lt >= 0.5 + w.t - 0.05).length : 5;
+    const lit = Math.ceil((said / (v ? v.words.length : 5)) * ws.length - 1e-6);
+    ws.forEach((w, j) => { const on = j < lit; w.style.opacity = on ? 1 : 0.12; });
+    drawRulers(lt);
+    const l1 = out(prog(lt, 10.9, 0.5)), l2 = out(prog(lt, 14.0, 0.5));
+    $("pl1").style.opacity = l1; $("pl1").style.transform = `translateY(${(1 - l1) * 24}px)`;
+    $("pl2").style.opacity = l2; $("pl2").style.transform = `translateY(${(1 - l2) * 24}px)`;
+  } else Pl.style.opacity = 0;
+
+  // Scenes 2 to 7
+  const A = $("appLayer");
+  const appScenes = ["read", "stamp", "grade", "learn", "recall", "call"];
+  if (appScenes.includes(s.id)) {
+    const first = s.id === "read", last = s.id === "call";
+    const enter = first ? inOut(prog(lt, 0, 0.9)) : 1;
+    const leave = last ? inOut(prog(lt, s.dur - 0.7, 0.7)) : 0;
+    A.style.opacity = Math.min(enter, 1 - leave);
+    // Staging: the phone stands on the lime line, between the bookies' scale (top) and Polymarket's (bottom).
+    // Each scene the scales slide past each other and the phone moves with the line to the other side.
+    const SIDE = { read: 1, stamp: -1, grade: 1, learn: -1, recall: 1, call: -1 };
+    const idx = appScenes.indexOf(s.id);
+    const prevId = appScenes[idx - 1];
+    const from = prevId ? SIDE[prevId] : SIDE[s.id];
+    const sw = inOut(prog(lt, -0.1, 1.1));
+    const side = lerp(from, SIDE[s.id], sw);
+    const px = lerp(510, 1410, (side + 1) / 2);
+    const S = 0.86;
+    const L = LIFT[s.id];
+    const lq = L ? out(prog(lt, L[0], 0.7)) * (1 - inOut(prog(lt, L[1] - 0.5, 0.6))) : 0;
+    const y = (1 - enter) * 1100 + Math.sin(t / 3.7) * 4 * (1 - lq);
+    const swing = Math.sin(Math.PI * sw) * (SIDE[s.id] - from) * 5;
+    const ry = (-5 * side + Math.sin(t / 5) * 1.5) * (1 - lq) + swing;
+    $("stageR").style.left = `${px}px`;
+    // Captions go straight to their side (the old ones have faded by then), so they never cross the phone.
+    $("cap").style.left = `${SIDE[s.id] > 0 ? 100 : 1120}px`;
+    // ...and wait until the phone has moved out of their way.
+    $("cap").style.opacity = prevId ? out(prog(lt, 0.4, 0.35)) : 1;
+    $("phone").style.transformOrigin = "50% 50%";
+    $("phone").style.transform = `translateY(${y}px) rotateY(${ry}deg) rotateZ(${swing * 0.2}deg) scale(${S})`;
+    $("screen").style.filter = `brightness(${1 - 0.12 * lq})`;
+    $("badge").style.left = `${px + 70}px`;
+    $("glow").style.marginLeft = `${side * 160}px`;
+    drawBands(t, px, enter * (1 - leave), idx + sw);
+
+    const ph = phoneState(t);
+    await Promise.all([setImg($("imA"), ph.a), setImg($("imB"), ph.b)]);
+    $("imA").style.opacity = ph.mix;
+    drawLift(L, lq, px, y, S, side);
+    $("pillTag").textContent = ph.pill[0];
+    $("pillTag").className = "tag" + (ph.pill[0] === "LIVE" ? " live" : "");
+    $("pillText").textContent = ph.pill[1];
+
+    // Kicker swaps between scenes.
+    const kIn = out(prog(lt, 0.05, 0.5)), kOut = prog(lt, s.dur - 0.4, 0.3);
+    $("kickerText").textContent = s.kicker || "";
+    $("kicker").style.opacity = kIn * (1 - kOut);
+    $("kicker").style.transform = `translateX(${(1 - kIn) * -30}px)`;
+    showCaptions(t, s);
+
+    // Notes
+    for (const [sid, list] of Object.entries(NOTES)) list.forEach((n, i) => {
+      const el = $(`note-${sid}-${i}`);
+      if (sid !== s.id) { el.style.opacity = 0; el.style.display = "none"; return; }
+      const p = outBack(prog(lt, n[0], 0.5)), o = 1 - prog(lt, (n[2] ?? s.dur) - 0.5, 0.4);
+      el.style.display = lt >= n[0] - 0.01 ? "inline-flex" : "none";
+      el.style.opacity = clamp(p * 1.4) * o;
+      el.style.transform = `translateX(${(1 - clamp(p)) * -40}px) scale(${0.94 + 0.06 * p})`;
+    });
+
+    // Stamp scene: time compare card, then the badge slams on.
+    const tm = $("times");
+    if (s.id === "stamp") {
+      const a = out(prog(lt, 8.6, 0.6)), o = 1 - prog(lt, 14.3, 0.5);
+      tm.style.opacity = a * o; tm.style.transform = `translateY(${(1 - a) * 30}px)`;
+      tm.querySelector(".fill").style.width = `${inOut(prog(lt, 9.0, 1.2)) * 100}%`;
+      const b = prog(lt, 8.7, 0.28), bo = 1 - prog(lt, 10.7, 0.4);
+      $("badge").style.opacity = (b > 0 ? 1 : 0) * bo;
+      $("badge").style.transform = `rotate(-7deg) scale(${lerp(1.9, 1, out(b))})`;
+    } else { tm.style.opacity = 0; $("badge").style.opacity = 0; }
+
+    // Grade scene: memory count rolls up.
+    const mb = $("memBig");
+    if (s.id === "grade") {
+      const a = out(prog(lt, 18.6, 0.6));
+      mb.style.opacity = a * (1 - prog(lt, s.dur - 0.5, 0.4)); mb.style.transform = `translateY(${(1 - a) * 30}px)`;
+      $("memN").textContent = Math.round(415 * out(prog(lt, 18.7, 1.6)));
+    } else mb.style.opacity = 0;
+
+    // Learn scene: the score.
+    const sc = $("score");
+    if (s.id === "learn") {
+      const a = out(prog(lt, 8.9, 0.6));
+      sc.style.opacity = a * (1 - prog(lt, s.dur - 0.5, 0.4)); sc.style.transform = `translateY(${(1 - a) * 30}px)`;
+      const r = out(prog(lt, 9.0, 1.8));
+      $("scP").textContent = Math.round(51 * r); $("scB").textContent = Math.round(21 * r);
+      $("barP").style.width = `${(51 / 72) * 700 * r}px`; $("barB").style.width = `${(21 / 72) * 700 * r}px`;
+    } else sc.style.opacity = 0;
+
+    // Call scene: a real stamped call.
+    const rc = $("receipt");
+    if (false) {
+      const a = prog(lt, 6.6, 0.3);
+      rc.style.opacity = (a > 0 ? 1 : 0) * (1 - prog(lt, s.dur - 0.7, 0.5));
+      rc.style.transform = `rotate(${lerp(-4, -1.5, out(a))}deg) scale(${lerp(1.35, 1, out(a))})`;
+    } else rc.style.opacity = 0;
+  } else A.style.opacity = 0;
+
+  // Scene 8: the diagram builds in time with the voice.
+  const B = $("builtLayer");
+  if (s.id === "built") {
+    B.style.opacity = Math.min(prog(lt, 0, 0.5), 1 - prog(lt, s.dur - 0.6, 0.6));
+    $("dTitle").style.opacity = out(prog(lt, 0.1, 0.5));
+    $("dSub").style.opacity = out(prog(lt, 0.4, 0.5));
+    const w0 = voiceLine("built", 0), w1 = voiceLine("built", 1);
+    const at0 = (k, d) => (w0 && w0.words[k] ? 0.8 + w0.words[k].t : d);
+    const at1 = (k, d) => (w1 && w1.words[k] ? 6.0 + w1.words[k].t : d);
+    const nodeAt = [at0(0, 0.9), at0(1, 1.4), at0(2, 2.0), at0(5, 3.0), at0(7, 3.8) + 0.25];
+    document.querySelectorAll(".node").forEach((n, i) => {
+      const p = outBack(prog(lt, nodeAt[i], 0.55));
+      n.style.opacity = clamp(p * 1.5); n.style.transform = `translateY(${(1 - clamp(p)) * 40}px) scale(${0.92 + 0.08 * p})`;
+    });
+    for (let i = 0; i < 4; i++) {
+      const p = out(prog(lt, nodeAt[i + 1] - 0.2, 0.4));
+      $(`ar${i}`).setAttribute("opacity", p); $(`ah${i}`).setAttribute("opacity", p);
+      const x1 = NODE_X[i] + NODE_W + 8, x2 = NODE_X[i + 1] - 8;
+      for (let k = 0; k < 2; k++) {
+        const ph = ((lt * 0.9 + k * 0.5) % 1);
+        const d = $(`fd${i}-${k}`); d.setAttribute("cx", lerp(x1, x2 - 10, ph)); d.setAttribute("opacity", p * Math.sin(Math.PI * ph));
+      }
+    }
+    const badgeAt = [at1(0, 6.0), at1(4, 7.6), at1(6, 8.6), at1(6, 8.6) + 0.35];
+    document.querySelectorAll(".bdg").forEach((b, i) => {
+      const p = outBack(prog(lt, badgeAt[i], 0.5));
+      b.style.opacity = clamp(p * 1.5); b.style.transform = `translateY(${(1 - clamp(p)) * 24}px)`;
+    });
+  } else B.style.opacity = 0;
+
+  // Big scene changes: an ink panel with a lime edge sweeps across, carrying the logo.
+  const W = $("wipe");
+  let wx = -2100;
+  for (const id of ["read", "built", "close"]) {
+    const p = prog(t, START[id] - 0.45, 0.9);
+    if (p > 0 && p < 1) wx = lerp(-1960, 1960, inOut(p));
+  }
+  W.style.transform = `translateX(${wx}px)`;
+
+}
+</script>
+</body>
+</html>

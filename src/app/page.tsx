@@ -1,3 +1,4 @@
+import { appNow, isReplay } from "@/lib/app-now";
 import { Suspense } from "react";
 import { connection } from "next/server";
 import { againstOddsNote } from "@/lib/call-result";
@@ -109,7 +110,7 @@ function toView(m: UpcomingMatch, call: MyCall | undefined): MatchView {
 async function Record({ m, band, weekAgo }: { m: MatchView; band: GapBand; weekAgo: string }) {
   let score;
   try {
-    score = await bandScore(m.leagueCode, band, weekAgo);
+    score = await bandScore(m.leagueCode, band, weekAgo, isReplay() ? appNow().toISOString() : undefined);
   } catch (e) {
     console.error("bandScore", e);
     return <p className="m-0 text-[14px] text-muted">Couldn&apos;t load past games right now. Try again in a minute.</p>;
@@ -131,7 +132,7 @@ async function Record({ m, band, weekAgo }: { m: MatchView; band: GapBand; weekA
 
 async function Page() {
   await connection();
-  const now = new Date();
+  const now = appNow();
   const [matches, user, results, nearly] = await Promise.all([
     getUpcomingMatches(now),
     getCurrentUser(),
