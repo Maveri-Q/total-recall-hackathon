@@ -11,6 +11,8 @@ Built for the Total Recall hackathon (Tatum × Walrus), Track 1: Markets and Spo
 
 **Live app: https://vernier-odds.vercel.app** · No sign-up needed to look around.
 
+**Demo video (2:32): https://youtu.be/Lr9FJKmTUhE** · **Blog post: [We graded the bookies and Polymarket on 72 football games](https://medium.com/@Maveriq_/vernier-we-graded-the-bookies-and-polymarket-on-72-football-games-0d18b48c2421)**
+
 ---
 
 ## How to test
